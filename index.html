@@ -1,0 +1,2514 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#1a1a1a">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://script.google.com https://script.googleusercontent.com;">
+<title>白光咖啡 風味校正</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:#F2F0EB;min-height:100vh;padding:0 0 80px}
+.app{max-width:420px;margin:0 auto;background:#F2F0EB;min-height:100vh}
+
+/* top bar */
+.topbar{background:#1a1a1a;padding:52px 18px 14px;color:#fff;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:16px;font-weight:600}
+.topbar-sub{font-size:11px;color:#888;margin-top:3px}
+
+/* bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:#fff;border-top:1px solid #E8E5E0;display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 8px;cursor:pointer;gap:3px}
+.nav-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.nav-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-label{font-size:10px;font-weight:500;color:#AAA}
+.nav-item.active .nav-label{color:#1a1a1a}
+.nav-item.active .nav-icon svg{stroke:#1a1a1a}
+.nav-item.nav-light.active .nav-label{color:#C4862A}
+.nav-item.nav-light.active .nav-icon svg{stroke:#C4862A}
+.nav-item.nav-medium.active .nav-label{color:#6B4C2A}
+.nav-item.nav-medium.active .nav-icon svg{stroke:#6B4C2A}
+.nav-item.nav-filter.active .nav-label{color:#2A7A5A}
+.nav-item.nav-filter.active .nav-icon svg{stroke:#2A7A5A}
+
+/* pages */
+.page{display:none}.page.active{display:block}
+
+/* card sections */
+.card{background:#fff;border-radius:16px;margin:12px 12px 0;overflow:hidden;border:1px solid #EBE8E2}
+.card-head{padding:14px 16px 10px;border-bottom:1px solid #F0EDE8}
+.card-title{font-size:13px;font-weight:600;color:#1a1a1a}
+.card-sub{font-size:11px;color:#AAA;margin-top:2px}
+.card-body{padding:14px 16px}
+
+/* labels */
+.sec-label{font-size:10px;font-weight:700;color:#AAA;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px}
+
+/* fields */
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:600;color:#555}
+.field input{font-size:14px;border:1px solid #DDD;border-radius:10px;padding:10px 12px;background:#fff;color:#1a1a1a;width:100%}
+.field input:focus{outline:none;border-color:#1a1a1a}
+.field input::placeholder{color:#CCC}
+.field input[readonly]{background:#F8F6F3;color:#888;border-color:#EEE}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+
+/* bean display */
+.bean-saved{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.bean-name{font-size:15px;font-weight:600;color:#1a1a1a}
+.bean-batch{font-size:11px;color:#AAA;margin-top:1px}
+.bean-metrics{display:flex;gap:14px;flex-wrap:wrap}
+.bm{display:flex;flex-direction:column;gap:2px}
+.bm-l{font-size:10px;color:#AAA}
+.bm-v{font-size:13px;font-weight:600;color:#1a1a1a}
+.change-btn{font-size:12px;color:#555;border:1px solid #DDD;border-radius:8px;padding:6px 12px;background:#fff;cursor:pointer;white-space:nowrap}
+.bean-form{display:none}.bean-form.open{display:block}
+.save-bean-btn{width:100%;padding:12px;border-radius:10px;background:#1a1a1a;color:#fff;font-size:14px;font-weight:600;border:none;cursor:pointer;margin-top:10px}
+
+/* tags */
+.tag-grid{display:flex;flex-wrap:wrap;gap:7px}
+.tag{font-size:12px;padding:7px 12px;border-radius:20px;border:1.5px solid #E0DDD8;color:#666;cursor:pointer;transition:all .15s;user-select:none;background:#fff}
+.tag.sel-hi{border-color:#D4A017;background:#FFF9E6;color:#7A5A00;font-weight:500}
+.tag.sel-med{border-color:#C0456E;background:#FDF0F5;color:#7B1840;font-weight:500}
+.tag.sel-lo{border-color:#7A4030;background:#F5EDEA;color:#5A2E1A;font-weight:500}
+.tag.sel-crit{border-color:#C0392B;background:#FDECEA;color:#922B21;font-weight:500}
+
+/* flavor bars */
+.flavor-bar{display:flex;height:32px;border-radius:10px;overflow:hidden;margin-bottom:8px}
+.fb-seg{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;transition:flex .3s;overflow:hidden;white-space:nowrap}
+.fb-rest{background:#F2F0EB;flex:10;display:flex;align-items:center;justify-content:center;font-size:10px;color:#AAA}
+.target-bar{display:flex;height:5px;border-radius:3px;overflow:hidden;margin-bottom:4px;opacity:.35}
+.range-hint{display:flex;justify-content:space-between;font-size:10px;color:#AAA;margin-bottom:14px}
+
+/* sliders */
+.slider-block{margin-bottom:14px}
+.slider-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.slider-name{font-size:13px;font-weight:500;color:#1a1a1a}
+.slider-val{font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px}
+.badge{font-size:10px;padding:2px 6px;border-radius:5px}
+.badge.ok{background:#EAF5E0;color:#2E6B10}
+.badge.ng{background:#FDECEA;color:#A32020}
+input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
+
+/* result */
+.result-box{padding:14px 16px;border-radius:0}
+.result-box.good{background:#EAF5E0}.result-box.warn{background:#FFF8E0}.result-box.bad{background:#FDECEA}.result-box.crit{background:#1C0F0A}
+.result-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.result-box.good .result-title{color:#2E6B10}.result-box.warn .result-title{color:#7A5500}
+.result-box.bad .result-title{color:#A32020}.result-box.crit .result-title{color:#F5C095}
+.result-body{font-size:12px;line-height:1.65}
+.result-box.good .result-body{color:#3A7A18}.result-box.warn .result-body{color:#8A6000}
+.result-box.bad .result-body{color:#B83030}.result-box.crit .result-body{color:#E8A070}
+
+/* steps */
+.step-row{display:flex;gap:11px;margin-bottom:11px;align-items:flex-start}
+.step-row:last-child{margin-bottom:0}
+.step-num{width:24px;height:24px;border-radius:50%;background:#1a1a1a;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-title{font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:2px}
+.step-desc{font-size:12px;color:#888;line-height:1.5}
+.step-desc.act{color:#0C447C;font-weight:600}
+.step-desc.act-w{color:#A35000;font-weight:600}
+.step-desc.crit{color:#C0392B;font-weight:600}
+
+/* CVA scoring */
+.cva-grid{display:flex;flex-direction:column;gap:12px}
+.cva-item{}
+.cva-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.cva-label{font-size:13px;font-weight:500;color:#1a1a1a}
+.cva-score{font-size:15px;font-weight:700;min-width:24px;text-align:right}
+.cva-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.cva-tag{font-size:11px;padding:4px 9px;border-radius:12px;border:1px solid #E0DDD8;color:#666;cursor:pointer;background:#fff;transition:all .12s}
+.cva-tag.sel{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.cva-total{background:#F8F6F3;border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.cva-total-label{font-size:13px;font-weight:500;color:#555}
+.cva-total-score{font-size:22px;font-weight:700;color:#1a1a1a}
+
+/* submit */
+.btn-submit{width:100%;padding:15px;border-radius:12px;background:#1a1a1a;color:#fff;font-size:15px;font-weight:600;border:none;cursor:pointer;transition:opacity .15s}
+.btn-submit:active{opacity:.7}
+.btn-submit.loading{opacity:.5;pointer-events:none}
+.toast{display:none;margin-top:10px;padding:12px;border-radius:10px;font-size:13px;text-align:center;font-weight:600}
+.toast.ok{background:#EAF5E0;color:#2E6B10}
+.toast.err{background:#FDECEA;color:#A32020}
+.foot{font-size:11px;color:#BBB;text-align:center;padding:8px 0 2px;font-style:italic}
+.density-calc{background:#F8F6F3;border-radius:12px;padding:14px;margin-bottom:10px}
+.density-title{font-size:12px;font-weight:700;color:#555;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.density-result{background:#fff;border:1px solid #E0DDD8;border-radius:10px;padding:12px;margin-top:10px;display:none}
+.density-result.show{display:block}
+.density-result-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #F0EDE8}
+.density-result-row:last-child{border-bottom:none}
+.dr-label{font-size:11px;color:#888}
+.dr-value{font-size:13px;font-weight:700;color:#1a1a1a}
+.dr-value.highlight{color:#2A7A5A}
+.dr-hint{font-size:11px;color:#A35000;margin-top:8px;line-height:1.6}
+.calc-btn{width:100%;padding:10px;border-radius:10px;background:#555;color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;margin-top:8px}
+.calc-btn:active{opacity:.7}
+
+/* log page */
+.log-empty{font-size:13px;color:#AAA;font-style:italic;text-align:center;padding:40px 20px}
+.log-row{display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid #F0EDE8;background:#fff}
+.log-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.log-dot.good{background:#3B8B50}.log-dot.warn{background:#D4A017}.log-dot.bad{background:#C0392B}.log-dot.crit{background:#8B2500}
+.log-meta{font-size:11px;color:#AAA;margin-bottom:2px}
+.log-type{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;margin-right:4px;font-weight:600}
+.log-type.light{background:#FFF3E0;color:#C4862A}
+.log-type.medium{background:#F0E8DF;color:#6B4C2A}
+.log-type.pour{background:#E0F2EB;color:#2A7A5A}
+.log-main{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px}
+.log-detail{font-size:11px;color:#888;line-height:1.5}
+
+/* config */
+.config-body{padding:16px}
+.cfg-field{margin-bottom:14px}
+.cfg-field label{display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:5px}
+.cfg-field input{width:100%;font-size:13px;border:1px solid #DDD;border-radius:10px;padding:10px 12px;background:#fff;color:#1a1a1a}
+.cfg-field input:focus{outline:none;border-color:#1a1a1a}
+.cfg-hint{font-size:11px;color:#AAA;margin-top:5px;line-height:1.5}
+.field select{font-size:14px;border:1px solid #DDD;border-radius:10px;padding:10px 12px;background:#fff;color:#1a1a1a;width:100%;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23AAA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.field select:focus{outline:none;border-color:#1a1a1a}
+.basket-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;margin-left:4px;vertical-align:middle}
+.basket-tag.bigbang{background:#FFF3E0;color:#C4862A}
+.basket-tag.eblab{background:#EAF5E0;color:#2E6B10}
+.basket-tag.artefatto{background:#EEE8FF;color:#5A2EB0}
+.save-cfg-btn{width:100%;padding:13px;border-radius:10px;background:#1a1a1a;color:#fff;font-size:14px;font-weight:600;border:none;cursor:pointer;margin-bottom:20px}
+.gas-code{background:#F5F3F0;border-radius:10px;padding:14px;font-size:11px;color:#444;line-height:2;font-family:monospace;word-break:break-all;margin-top:12px;white-space:pre-wrap}
+.cfg-status{font-size:12px;color:#666;margin-bottom:12px;display:flex;align-items:center;gap:5px}
+.sdot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.sdot.ok{background:#3B8B50}.sdot.ng{background:#C0392B}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="topbar">
+  <div class="topbar-title">白光咖啡 風味校正</div>
+  <div class="topbar-sub" id="topbar-sub">請先填入豆子資訊</div>
+</div>
+
+<!-- ══════════════ PAGE: LIGHT SOE ══════════════ -->
+<div class="page active" id="page-light" style="display:block">
+
+  <!-- 💧 水質校正建議 L -->
+  <div class="card" id="wac-card-l">
+    <div class="card-head">
+      <div class="card-title">💧 水質校正建議</div>
+      <div class="card-sub">開店第一步：輸入今日 TDS</div>
+    </div>
+    <div class="card-body">
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>自來水 TDS</label><input id="ll-tap-tds" type="number" placeholder="130" oninput="calcWaterAdvisory('l')"></div>
+        <div class="field"><label>飲用水 TDS</label><input id="ll-drink-tds" type="number" placeholder="55" oninput="calcWaterAdvisory('l')"></div>
+      </div>
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="field"><label>TDS 增減</label>
+          <select id="ll-tds-adj">
+            <option value="不動">不動</option>
+            <option value="增加+">增加 +</option>
+            <option value="減少-">減少 −</option>
+          </select>
+        </div>
+        <div class="field"><label>鎂離子增減 <span style="font-size:10px;color:#AAA;font-weight:400">實際操作（追蹤用）</span></label>
+          <select id="ll-mg-adj">
+            <option value="不動">不動</option>
+            <option value="增加+">增加 +</option>
+            <option value="減少-">減少 −</option>
+          </select>
+        </div>
+      </div>
+      <div id="wac-body-l"></div>
+    </div>
+  </div>
+
+  <!-- Bean -->
+  <div class="card">
+    <div class="card-head"><div class="card-title">豆子資訊</div><div class="card-sub">當日換豆前不需重填</div></div>
+    <div class="card-body">
+      <div id="bean-display-l" style="display:none">
+        <div class="bean-saved">
+          <div><div class="bean-name" id="bd-name-l"></div><div class="bean-batch" id="bd-batch-l"></div></div>
+          <button class="change-btn" onclick="openBeanForm('l')">換豆</button>
+        </div>
+        <div class="bean-metrics">
+          <div class="bm"><span class="bm-l">Agtron 豆表</span><span class="bm-v" id="bd-ab-l"></span></div>
+          <div class="bm"><span class="bm-l">Agtron 粉值</span><span class="bm-v" id="bd-ag-l"></span></div>
+          <div class="bm"><span class="bm-l">密度</span><span class="bm-v" id="bd-d-l"></span></div>
+        </div>
+      </div>
+      <div class="bean-form open" id="bean-form-l">
+        <div class="grid2" style="margin-bottom:10px">
+          <div class="field"><label>豆名</label><input id="fl-name" placeholder="衣索比亞 古吉" type="text"></div>
+          <div class="field"><label>批次</label><input id="fl-batch" placeholder="2026-03-A" type="text"></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>Agtron 豆表</label><input id="fl-ab" placeholder="72" type="number"></div>
+          <div class="field"><label>Agtron 粉值</label><input id="fl-ag" placeholder="90" type="number"></div>
+          <div class="field"><label>密度 g/L</label><input id="fl-d" placeholder="780" type="number"></div>
+        </div>
+        <button class="save-bean-btn" onclick="saveBean('l')">儲存豆子資訊</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 玻璃盅密度換算 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">⚗️ 換豆粉量換算</div>
+      <div class="card-sub">用玻璃盅測量兩種豆的密度差，快速算出新粉量　<span style="color:#C4862A;font-weight:600">無換豆可省略</span></div>
+    </div>
+    <div class="card-body">
+      <div class="density-calc">
+        <div class="density-title">📦 舊豆（參考豆）</div>
+        <div class="grid2" style="margin-bottom:8px">
+          <div class="field"><label>玻璃盅重量 (g)</label><input id="dcl-old-glass" type="number" placeholder="13.2" oninput="calcDensityL()"></div>
+          <div class="field"><label>目前使用粉量 (g)</label><input id="dcl-old-dose" type="number" placeholder="16" oninput="calcDensityL()"></div>
+        </div>
+        <div class="density-title" style="margin-top:4px">🫘 新豆</div>
+        <div class="grid2" style="margin-bottom:8px">
+          <div class="field"><label>玻璃盅重量 (g)</label><input id="dcl-new-glass" type="number" placeholder="17.0" oninput="calcDensityL()"></div>
+          <div class="field"><label>目前咖啡液重 (g)</label><input id="dcl-old-yield" type="number" placeholder="30" oninput="calcDensityL()"></div>
+        </div>
+        <div class="density-result" id="dcl-result">
+          <div class="density-result-row">
+            <span class="dr-label">密度比例</span>
+            <span class="dr-value" id="dcl-ratio">—</span>
+          </div>
+          <div class="density-result-row">
+            <span class="dr-label">建議粉量</span>
+            <span class="dr-value highlight" id="dcl-dose">—</span>
+          </div>
+          <div class="density-result-row">
+            <span class="dr-label">建議咖啡液重</span>
+            <span class="dr-value highlight" id="dcl-yield">—</span>
+          </div>
+          <div class="dr-hint" id="dcl-hint"></div>
+        </div>
+        <button class="calc-btn" id="dcl-apply-btn" style="display:none" onclick="applyDensityCalc('l')">套用建議粉量與液重 →</button>
+        <!-- 自訂粉量換算 -->
+        <div id="dcl-custom-section" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #E8E5E0">
+          <div class="density-title">🎯 自訂粉量 → 建議萃取量</div>
+          <div class="grid2" style="margin-bottom:6px">
+            <div class="field"><label>實際使用粉量 (g)</label><input id="dcl-custom-dose" type="number" placeholder="16.0" oninput="calcCustomYield('l')"></div>
+            <div class="field"><label>建議萃取液重</label><input id="dcl-custom-yield" type="text" readonly placeholder="自動" style="background:#F8F6F3;color:#2A7A5A;font-weight:700"></div>
+          </div>
+          <button class="calc-btn" id="dcl-custom-apply-btn" style="display:none;background:#2A7A5A" onclick="applyCustomDose('l')">套用自訂粉量與液重 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Brew Params -->
+  <div class="card">
+    <div class="card-head"><div class="card-title">調煮參數</div></div>
+    <div class="card-body">
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>氣溫 (℃)</label><input id="ll-temp" type="number" placeholder="24"></div>
+        <div class="field"><label>濕度 (%)</label><input id="ll-humid" type="number" placeholder="65"></div>
+      </div>
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>水溫 (℃)</label><input id="ll-wtemp" type="number" placeholder="93"></div>
+        <div class="field"><label>粉量 (g)</label><input id="ll-dose" type="number" placeholder="16" oninput="calcRatio('l')"></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>萃取秒數 (s)</label><input id="ll-time" type="number" placeholder="28"></div>
+        <div class="field"><label>咖啡液重 (g)</label><input id="ll-yield" type="number" placeholder="30" oninput="calcRatio('l')"></div>
+        <div class="field"><label>Espresso 比例</label><input id="ll-ratio" type="text" readonly placeholder="自動"></div>
+      </div>
+      <div class="grid2" style="margin-top:10px;gap:10px">
+        <div class="field">
+          <label>Basket <span style="font-size:10px;color:#AAA;font-weight:400">流速快→慢</span></label>
+          <select id="ll-basket" onchange="upd('l')">
+            <option value="bigbang">Big Bang（最快，磨最細）</option>
+            <option value="eblab" selected>E&B LAB24（中等）</option>
+            <option value="artefatto">神器 Artefatto（最慢，磨粗）</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Molar X² 轉速 <span style="font-size:10px;color:#AAA;font-weight:400">H快／M中</span></label>
+          <select id="ll-speed" onchange="upd('l')">
+            <option value="H" selected>H（轉速快，細粉多，萃取↑）</option>
+            <option value="M">M（轉速中，細粉少，萃取↓）</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2" style="margin-top:10px;gap:10px">
+        <div class="field">
+          <label>今日研磨調整 <span style="font-size:10px;color:#C4862A;font-weight:600">手沖連動依據</span></label>
+          <select id="ll-grind-adj" onchange="upd('l')">
+            <option value="不動">不動（維持昨日刻度）</option>
+            <option value="調細">調細（↑ 萃取率）</option>
+            <option value="調粗">調粗（↓ 萃取率）</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>今日水溫調整 <span style="font-size:10px;color:#C4862A;font-weight:600">手沖連動依據</span></label>
+          <select id="ll-temp-adj" onchange="upd('l')">
+            <option value="不動">不動（維持昨日水溫）</option>
+            <option value="升溫">升溫（↑ 萃取效率）</option>
+            <option value="降溫">降溫（↓ 萃取效率）</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2" style="margin-top:8px;gap:10px">
+        <div class="field"><label style="color:#AAA;font-size:11px">研磨說明（選填）</label><input id="ll-grind-note" type="text" placeholder="例：往細 0.5 格"></div>
+        <div class="field"><label style="color:#AAA;font-size:11px">水溫說明（選填）</label><input id="ll-temp-note" type="text" placeholder="例：90.5 → 91.5"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tags -->
+  <div class="card">
+    <div class="card-head"><div class="card-title">今天喝起來像什麼？</div></div>
+    <div class="card-body">
+      <div class="tag-grid" id="tags-l">
+        <span class="tag" data-k="bright"     data-t="hi"   onclick="tog(this,'l')">明亮水果酸</span>
+        <span class="tag" data-k="sharp"      data-t="crit" onclick="tog(this,'l')">尖酸刺激</span>
+        <span class="tag" data-k="astringent" data-t="crit" onclick="tog(this,'l')">收斂感</span>
+        <span class="tag" data-k="berry"      data-t="med"  onclick="tog(this,'l')">莓果甜感</span>
+        <span class="tag" data-k="flatSw"     data-t="lo"   onclick="tog(this,'l')">甜感不足</span>
+        <span class="tag" data-k="bitter"     data-t="lo"   onclick="tog(this,'l')">苦感明顯</span>
+        <span class="tag" data-k="choc"       data-t="lo"   onclick="tog(this,'l')">巧克力過重</span>
+        <span class="tag" data-k="peanut"     data-t="crit" onclick="tog(this,'l')">花生/穀物味</span>
+        <span class="tag" data-k="grass"      data-t="crit" onclick="tog(this,'l')">青草味</span>
+        <span class="tag" data-k="thin"       data-t="lo"   onclick="tog(this,'l')">水感/空洞</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sliders -->
+  <div class="card">
+    <div class="card-head"><div class="card-title">感受比例</div><div class="card-sub">目標：酸 20–30%　甜 60–70%　深調 &lt;5%</div></div>
+    <div class="card-body">
+      <div class="flavor-bar">
+        <div class="fb-seg" id="fba-l" style="flex:22;background:#F5C542;color:#7A5A00">酸 22%</div>
+        <div class="fb-seg" id="fbs-l" style="flex:65;background:#D4537E;color:#5B0F2E">甜 65%</div>
+        <div class="fb-seg" id="fbd-l" style="flex:4;background:#6B3A2A;color:#E8D0C4">深 4%</div>
+        <div class="fb-rest">餘韻</div>
+      </div>
+      <div class="target-bar"><div style="background:#F5C542;flex:25"></div><div style="background:#D4537E;flex:65"></div><div style="background:#6B3A2A;flex:5"></div><div style="background:#DDD;flex:5"></div></div>
+      <div class="range-hint"><span>目標比例 ↑</span><span>酸 20–30%　甜 60–70%　深調 &lt;5%</span></div>
+      <div class="slider-block">
+        <div class="slider-head"><span class="slider-name" style="color:#8A6200">酸值感</span><span class="slider-val"><span id="va-l" style="color:#8A6200">22%</span><span class="badge ok" id="ra-l">目標</span></span></div>
+        <input type="range" min="0" max="50" value="22" step="1" id="sa-l" oninput="upd('l')">
+      </div>
+      <div class="slider-block">
+        <div class="slider-head"><span class="slider-name" style="color:#9B1A50">甜感</span><span class="slider-val"><span id="vs-l" style="color:#9B1A50">65%</span><span class="badge ok" id="rs-l">目標</span></span></div>
+        <input type="range" min="0" max="100" value="65" step="1" id="ss-l" oninput="upd('l')">
+      </div>
+      <div class="slider-block" style="margin-bottom:0">
+        <div class="slider-head"><span class="slider-name" style="color:#5A2E1A">深褐/巧克力調</span><span class="slider-val"><span id="vd-l" style="color:#5A2E1A">4%</span><span class="badge ok" id="rd-l">目標</span></span></div>
+        <input type="range" min="0" max="25" value="4" step="1" id="sd-l" oninput="upd('l')">
+      </div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div style="margin:12px 12px 0;border-radius:16px;overflow:hidden;border:1px solid #EBE8E2">
+    <div id="rbox-l" class="result-box good">
+      <div class="result-title" id="rt-l">均衡 — 符合目標</div>
+      <div class="result-body"  id="rb-l">酸值明亮多汁（20–30%）、甜感主導（60–70%）、巧克力調收斂（&lt;5%）。</div>
+    </div>
+    <div style="padding:14px 16px;border-top:1px solid #F0EDE8;background:#fff">
+      <div class="sec-label" style="margin-bottom:12px">調整方向</div>
+      <div class="step-row"><div class="step-num">1</div><div><div class="step-title">研磨方向</div><div class="step-desc" id="s1-l">維持目前刻度</div></div></div>
+      <div class="step-row"><div class="step-num">2</div><div><div class="step-title">水溫方向</div><div class="step-desc" id="s2-l">維持今日水溫</div></div></div>
+      <div class="step-row"><div class="step-num">3</div><div><div class="step-title">Molar X² 轉速</div><div class="step-desc" id="s3-l">維持目前轉速</div></div></div>
+      <div class="step-row"><div class="step-num">4</div><div><div class="step-title">Basket</div><div class="step-desc" id="s4-l">維持目前 Basket</div></div></div>
+      <div class="step-row"><div class="step-num">5</div><div><div class="step-title">咖啡液重</div><div class="step-desc" id="s5-l">維持 30g</div></div></div>
+    </div>
+  </div>
+
+  <!-- 🫖 手沖連動建議 -->
+  <div class="card" id="pour-forecast-card" style="display:none">
+    <div class="card-head">
+      <div class="card-title">🫖 手沖連動建議</div>
+      <div class="card-sub">根據今日義式校正狀態自動推算</div>
+    </div>
+    <div class="card-body" id="pour-forecast-body"></div>
+  </div>
+
+  <!-- 豆子歷史比對 L -->
+  <div class="card" id="bean-history-card-l" style="display:none">
+    <div class="card-head">
+      <div class="card-title">🫘 同批豆歷史比對</div>
+      <div class="card-sub" id="bean-history-sub-l">載入中…</div>
+    </div>
+    <div class="card-body" id="bean-history-body-l"></div>
+  </div>
+
+  <!-- Submit L -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-body">
+      <div class="field" style="margin-bottom:10px">
+        <label>確認加奶效果</label>
+        <select id="ls-milk">
+          <option value="未確認：尚未校正至合理範圍">未確認：尚未校正至合理範圍</option>
+          <option value="確認完畢">確認完畢</option>
+        </select>
+      </div>
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>夥伴姓名</label><input id="ls-staff" type="text" placeholder="你的名字"></div>
+        <div class="field"><label>時段</label><input id="ls-time" type="text" placeholder="10:00"></div>
+      </div>
+      <div class="field" style="margin-bottom:10px"><label>備注（可選）</label><input id="ls-note" type="text" placeholder="換新豆後第一次校正"></div>
+      <button class="btn-submit" id="btn-l" onclick="submitRecord('l')">送出記錄</button>
+      <div class="toast" id="toast-l"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: MEDIUM SOE ══════════════ -->
+<div class="page" id="page-medium" style="display:none">
+
+  <div class="card">
+    <div class="card-head"><div class="card-title">豆子資訊</div><div class="card-sub">當日換豆前不需重填</div></div>
+    <div class="card-body">
+      <div id="bean-display-m" style="display:none">
+        <div class="bean-saved">
+          <div><div class="bean-name" id="bd-name-m"></div><div class="bean-batch" id="bd-batch-m"></div></div>
+          <button class="change-btn" onclick="openBeanForm('m')">換豆</button>
+        </div>
+        <div class="bean-metrics">
+          <div class="bm"><span class="bm-l">Agtron 豆表</span><span class="bm-v" id="bd-ab-m"></span></div>
+          <div class="bm"><span class="bm-l">Agtron 粉值</span><span class="bm-v" id="bd-ag-m"></span></div>
+          <div class="bm"><span class="bm-l">密度</span><span class="bm-v" id="bd-d-m"></span></div>
+        </div>
+      </div>
+      <div class="bean-form open" id="bean-form-m">
+        <div class="grid2" style="margin-bottom:10px">
+          <div class="field"><label>豆名</label><input id="fm-name" placeholder="衣索比亞 西達馬" type="text"></div>
+          <div class="field"><label>批次</label><input id="fm-batch" placeholder="2026-03-B" type="text"></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>Agtron 豆表</label><input id="fm-ab" placeholder="54" type="number"></div>
+          <div class="field"><label>Agtron 粉值</label><input id="fm-ag" placeholder="63" type="number"></div>
+          <div class="field"><label>密度 g/L</label><input id="fm-d" placeholder="720" type="number"></div>
+        </div>
+        <button class="save-bean-btn" onclick="saveBean('m')">儲存豆子資訊</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 玻璃盅密度換算 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">⚗️ 換豆粉量換算</div>
+      <div class="card-sub">用玻璃盅測量兩種豆的密度差，快速算出新粉量　<span style="color:#6B4C2A;font-weight:600">無換豆可省略</span></div>
+    </div>
+    <div class="card-body">
+      <div class="density-calc">
+        <div class="density-title">📦 舊豆（參考豆）</div>
+        <div class="grid2" style="margin-bottom:8px">
+          <div class="field"><label>玻璃盅重量 (g)</label><input id="dc-old-glass" type="number" placeholder="13.2" oninput="calcDensity()"></div>
+          <div class="field"><label>目前使用粉量 (g)</label><input id="dc-old-dose" type="number" placeholder="14.5" oninput="calcDensity()"></div>
+        </div>
+        <div class="density-title" style="margin-top:4px">🫘 新豆</div>
+        <div class="grid2" style="margin-bottom:8px">
+          <div class="field"><label>玻璃盅重量 (g)</label><input id="dc-new-glass" type="number" placeholder="17.0" oninput="calcDensity()"></div>
+          <div class="field"><label>目前咖啡液重 (g)</label><input id="dc-old-yield" type="number" placeholder="30" oninput="calcDensity()"></div>
+        </div>
+        <div class="density-result" id="dc-result">
+          <div class="density-result-row">
+            <span class="dr-label">密度比例</span>
+            <span class="dr-value" id="dc-ratio">—</span>
+          </div>
+          <div class="density-result-row">
+            <span class="dr-label">建議粉量</span>
+            <span class="dr-value highlight" id="dc-dose">—</span>
+          </div>
+          <div class="density-result-row">
+            <span class="dr-label">建議咖啡液重</span>
+            <span class="dr-value highlight" id="dc-yield">—</span>
+          </div>
+          <div class="dr-hint" id="dc-hint"></div>
+        </div>
+        <button class="calc-btn" id="dc-apply-btn" style="display:none" onclick="applyDensityCalc('m')">套用建議粉量與液重 →</button>
+        <!-- 自訂粉量換算 -->
+        <div id="dc-custom-section" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #E8E5E0">
+          <div class="density-title">🎯 自訂粉量 → 建議萃取量</div>
+          <div class="grid2" style="margin-bottom:6px">
+            <div class="field"><label>實際使用粉量 (g)</label><input id="dc-custom-dose" type="number" placeholder="18.0" oninput="calcCustomYield('m')"></div>
+            <div class="field"><label>建議萃取液重</label><input id="dc-custom-yield" type="text" readonly placeholder="自動" style="background:#F8F6F3;color:#2A7A5A;font-weight:700"></div>
+          </div>
+          <button class="calc-btn" id="dc-custom-apply-btn" style="display:none;background:#2A7A5A" onclick="applyCustomDose('m')">套用自訂粉量與液重 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="card-title">調煮參數</div></div>
+    <div class="card-body">
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>氣溫 (℃)</label><input id="ml-temp" type="number" placeholder="24"></div>
+        <div class="field"><label>濕度 (%)</label><input id="ml-humid" type="number" placeholder="65"></div>
+      </div>
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>水溫 (℃)</label><input id="ml-wtemp" type="number" placeholder="91"></div>
+        <div class="field"><label>粉量 (g)</label><input id="ml-dose" type="number" placeholder="14.5" oninput="calcRatio('m')"></div>
+      </div>
+      <div class="grid3" style="margin-bottom:10px">
+        <div class="field"><label>萃取秒數 (s)</label><input id="ml-time" type="number" placeholder="28"></div>
+        <div class="field"><label>咖啡液重 (g)</label><input id="ml-yield" type="number" placeholder="30" oninput="calcRatio('m')"></div>
+        <div class="field"><label>Espresso 比例</label><input id="ml-ratio" type="text" readonly placeholder="自動"></div>
+      </div>
+      <div class="field">
+        <label>Basket <span style="font-size:10px;color:#AAA;font-weight:400">流速快→慢</span></label>
+        <select id="ml-basket" onchange="upd('m')">
+          <option value="bigbang">Big Bang（最快，磨最細）</option>
+          <option value="eblab" selected>E&B LAB24（中等）</option>
+          <option value="artefatto">神器 Artefatto（最慢，磨粗）</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="card-title">今天喝起來像什麼？</div></div>
+    <div class="card-body">
+      <div class="tag-grid">
+        <span class="tag" data-k="caramel"    data-t="med"  onclick="tog(this,'m')">焦糖甜感</span>
+        <span class="tag" data-k="chocolate"  data-t="med"  onclick="tog(this,'m')">巧克力感</span>
+        <span class="tag" data-k="woody"      data-t="lo"   onclick="tog(this,'m')">木質感</span>
+        <span class="tag" data-k="bitter"     data-t="lo"   onclick="tog(this,'m')">苦感過重</span>
+        <span class="tag" data-k="flatSw"     data-t="lo"   onclick="tog(this,'m')">甜感不足</span>
+        <span class="tag" data-k="sharp"      data-t="crit" onclick="tog(this,'m')">尖酸</span>
+        <span class="tag" data-k="thin"       data-t="lo"   onclick="tog(this,'m')">水感/空洞</span>
+        <span class="tag" data-k="peanut"     data-t="crit" onclick="tog(this,'m')">花生/穀物味</span>
+        <span class="tag" data-k="grass"      data-t="crit" onclick="tog(this,'m')">青草味</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="card-title">感受比例</div><div class="card-sub">目標：酸 0–10%　焦糖甜 40–55%　巧克力木質 30–45%</div></div>
+    <div class="card-body">
+      <div class="flavor-bar">
+        <div class="fb-seg" id="fba-m" style="flex:12;background:#F5C542;color:#7A5A00">酸 12%</div>
+        <div class="fb-seg" id="fbs-m" style="flex:48;background:#D4842A;color:#fff">焦糖 48%</div>
+        <div class="fb-seg" id="fbd-m" style="flex:35;background:#6B3A2A;color:#E8D0C4">巧/木 35%</div>
+        <div class="fb-rest">餘韻</div>
+      </div>
+      <div class="target-bar"><div style="background:#F5C542;flex:5"></div><div style="background:#D4842A;flex:47"></div><div style="background:#6B3A2A;flex:37"></div><div style="background:#DDD;flex:4"></div></div>
+      <div class="range-hint"><span>目標比例 ↑</span><span>酸 0–10%　焦糖甜 40–55%　巧克力木質 30–45%</span></div>
+      <div class="slider-block">
+        <div class="slider-head"><span class="slider-name" style="color:#8A6200">酸值感</span><span class="slider-val"><span id="va-m" style="color:#8A6200">12%</span><span class="badge ok" id="ra-m">目標</span></span></div>
+        <input type="range" min="0" max="40" value="12" step="1" id="sa-m" oninput="upd('m')">
+      </div>
+      <div class="slider-block">
+        <div class="slider-head"><span class="slider-name" style="color:#A05A10">焦糖甜感</span><span class="slider-val"><span id="vs-m" style="color:#A05A10">48%</span><span class="badge ok" id="rs-m">目標</span></span></div>
+        <input type="range" min="0" max="80" value="48" step="1" id="ss-m" oninput="upd('m')">
+      </div>
+      <div class="slider-block" style="margin-bottom:0">
+        <div class="slider-head"><span class="slider-name" style="color:#5A2E1A">巧克力/木質</span><span class="slider-val"><span id="vd-m" style="color:#5A2E1A">35%</span><span class="badge ok" id="rd-m">目標</span></span></div>
+        <input type="range" min="0" max="70" value="35" step="1" id="sd-m" oninput="upd('m')">
+      </div>
+    </div>
+  </div>
+
+  <div style="margin:12px 12px 0;border-radius:16px;overflow:hidden;border:1px solid #EBE8E2">
+    <div id="rbox-m" class="result-box good">
+      <div class="result-title" id="rt-m">均衡 — 符合目標</div>
+      <div class="result-body"  id="rb-m">酸值低調（0–10%）、焦糖甜感主導（40–55%）、巧克力木質收尾（30–45%）。</div>
+    </div>
+    <div style="padding:14px 16px;border-top:1px solid #F0EDE8;background:#fff">
+      <div class="sec-label" style="margin-bottom:12px">調整方向</div>
+      <div class="step-row"><div class="step-num">1</div><div><div class="step-title">研磨方向</div><div class="step-desc" id="s1-m">維持目前刻度</div></div></div>
+      <div class="step-row"><div class="step-num">2</div><div><div class="step-title">Basket</div><div class="step-desc" id="s4-m">維持目前 Basket</div></div></div>
+      <div class="step-row"><div class="step-num">3</div><div><div class="step-title">咖啡液重</div><div class="step-desc" id="s5-m">維持 30g</div></div></div>
+    </div>
+  </div>
+
+  <!-- 豆子歷史比對 M -->
+  <div class="card" id="bean-history-card-m" style="display:none">
+    <div class="card-head">
+      <div class="card-title">🫘 同批豆歷史比對</div>
+      <div class="card-sub" id="bean-history-sub-m">載入中…</div>
+    </div>
+    <div class="card-body" id="bean-history-body-m"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-body">
+      <div class="field" style="margin-bottom:10px">
+        <label>確認加奶效果</label>
+        <select id="ms-milk">
+          <option value="未確認：尚未校正至合理範圍">未確認：尚未校正至合理範圍</option>
+          <option value="確認完畢">確認完畢</option>
+        </select>
+      </div>
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>夥伴姓名</label><input id="ms-staff" type="text" placeholder="你的名字"></div>
+        <div class="field"><label>時段</label><input id="ms-time" type="text" placeholder="10:00"></div>
+      </div>
+      <div class="field" style="margin-bottom:10px"><label>備注（可選）</label><input id="ms-note" type="text" placeholder=""></div>
+      <button class="btn-submit" id="btn-m" onclick="submitRecord('m')">送出記錄</button>
+      <div class="toast" id="toast-m"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: FILTER COFFEE ══════════════ -->
+<div class="page" id="page-filter" style="display:none">
+
+  <!-- 研磨刻度換算 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">⚙️ 研磨刻度換算</div>
+      <div class="card-sub">Molar 400 RPM · 玻璃盅重量 → 熱手沖 / 冰手沖建議刻度</div>
+    </div>
+    <div class="card-body">
+      <div class="grid3" style="margin-bottom:10px">
+        <div class="field">
+          <label>玻璃盅重量 (g)</label>
+          <input id="ph-glass" type="number" placeholder="16.5" step="0.1" oninput="calcMolarGrind()">
+        </div>
+        <div class="field">
+          <label>熱手沖 🟢</label>
+          <input id="ph-grind-result" type="text" readonly placeholder="—" style="background:#F0F8F4;color:#2A7A5A;font-weight:700;font-size:15px;text-align:center">
+        </div>
+        <div class="field">
+          <label>冰手沖 ❄️</label>
+          <input id="ph-grind-ice" type="text" readonly placeholder="—" style="background:#EEF4FF;color:#1A5CB0;font-weight:700;font-size:15px;text-align:center">
+        </div>
+      </div>
+      <div id="ph-grind-detail" style="display:none;margin-bottom:12px">
+        <div style="font-size:12px;background:#F0F8F4;border:1px solid #C8E8D8;border-radius:10px;padding:10px 12px;line-height:1.9">
+          <span id="ph-grind-formula" style="font-weight:600;color:#2A7A5A"></span><br>
+          <span id="ph-grind-ice-formula" style="font-weight:600;color:#1A5CB0"></span><br>
+          <span id="ph-grind-hint" style="color:#666"></span>
+        </div>
+      </div>
+      <div style="background:#F8F6F3;border-radius:10px;overflow:hidden;border:1px solid #EBE8E2">
+        <div style="font-size:10px;font-weight:700;color:#AAA;padding:8px 12px 4px;letter-spacing:.07em">參考豆對照</div>
+        <table style="width:100%;font-size:11px;border-collapse:collapse">
+          <tr style="background:#F0EDE8">
+            <th style="padding:5px 10px;text-align:left;font-weight:600;color:#666">豆名</th>
+            <th style="padding:5px 6px;text-align:center;font-weight:600;color:#666">盅 g</th>
+            <th style="padding:5px 8px;text-align:center;font-weight:600;color:#2A7A5A">熱 🟢</th>
+            <th style="padding:5px 8px;text-align:center;font-weight:600;color:#1A5CB0">冰 ❄️</th>
+          </tr>
+          <tr style="border-top:1px solid #EBE8E2"><td style="padding:5px 10px;color:#555">衣索比亞 喬巴</td><td style="text-align:center;color:#888">17.9</td><td style="text-align:center;font-weight:700;color:#2A7A5A">#4.0</td><td style="text-align:center;font-weight:700;color:#1A5CB0">#2.9</td></tr>
+          <tr style="border-top:1px solid #EBE8E2;background:#FAFAF8"><td style="padding:5px 10px;color:#555">衣索比亞 水仙</td><td style="text-align:center;color:#888">17.4</td><td style="text-align:center;font-weight:700;color:#2A7A5A">#4.0</td><td style="text-align:center;font-weight:700;color:#1A5CB0">#3.0</td></tr>
+          <tr style="border-top:1px solid #EBE8E2"><td style="padding:5px 10px;color:#555">衣索比亞 獅子王</td><td style="text-align:center;color:#888">16.9</td><td style="text-align:center;font-weight:700;color:#2A7A5A">#4.0</td><td style="text-align:center;font-weight:700;color:#1A5CB0">#3.1</td></tr>
+          <tr style="border-top:1px solid #EBE8E2;background:#FAFAF8"><td style="padding:5px 10px;color:#555">巴拿馬 阿爾鐵里</td><td style="text-align:center;color:#888">15.9</td><td style="text-align:center;font-weight:700;color:#2A7A5A">#4.2</td><td style="text-align:center;font-weight:700;color:#1A5CB0">#3.4</td></tr>
+          <tr style="border-top:1px solid #EBE8E2"><td style="padding:5px 10px;color:#555">肯亞 基安喬谷</td><td style="text-align:center;color:#888">15.7</td><td style="text-align:center;font-weight:700;color:#2A7A5A">#4.2</td><td style="text-align:center;font-weight:700;color:#1A5CB0">#3.5</td></tr>
+          <tr style="border-top:1px solid #EBE8E2;background:#FAFAF8"><td style="padding:5px 10px;color:#555">哥倫比亞 花鏡</td><td style="text-align:center;color:#888">15.3</td><td style="text-align:center;font-weight:700;color:#2A7A5A">#4.3</td><td style="text-align:center;font-weight:700;color:#1A5CB0">#3.6</td></tr>
+        </table>
+        <div style="font-size:10px;color:#AAA;padding:6px 12px 8px;line-height:1.7">熱手沖：Molar# = 4.0 + (17.4 − 重量) × 0.143<br>冰手沖：Molar# = 3.0 + (17.4 − 重量) × 0.294，四捨五入至 0.1</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOE 連動建議 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">🔗 SOE 連動建議</div>
+      <div class="card-sub" id="pour-soe-sub">根據今日淺焙 SOE 校正自動更新</div>
+    </div>
+    <div class="card-body" id="pour-soe-body">
+      <div style="font-size:12px;color:#AAA;font-style:italic;padding:4px 0">請先完成淺焙 SOE 校正，系統將自動推算手沖建議。</div>
+    </div>
+  </div>
+
+  <!-- 今日配方 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">📋 今日配方</div>
+      <div class="card-sub">Hario Neo+Switch · 18g · 250g · 82°C · Molar 400 RPM</div>
+    </div>
+    <div class="card-body">
+      <div class="sec-label" style="margin-bottom:10px">注水流程</div>
+      <div style="position:relative;padding-left:18px;margin-bottom:16px">
+        <div style="position:absolute;left:6px;top:8px;bottom:8px;width:2px;background:#E0DDD8;border-radius:2px"></div>
+        <div style="margin-bottom:10px;position:relative">
+          <div style="position:absolute;left:-14px;top:4px;width:8px;height:8px;background:#3B8B50;border-radius:50%"></div>
+          <div style="font-size:12px;font-weight:600;color:#1a1a1a">0 秒&emsp;第一注 → 60g<span style="font-size:10px;font-weight:400;color:#888;margin-left:8px">過濾</span></div>
+        </div>
+        <div style="margin-bottom:10px;position:relative">
+          <div style="position:absolute;left:-14px;top:4px;width:8px;height:8px;background:#D4A017;border-radius:50%"></div>
+          <div style="font-size:12px;font-weight:600;color:#1a1a1a">20 秒&emsp;第二注 → 140g<span style="font-size:10px;font-weight:400;color:#888;margin-left:8px">過濾</span></div>
+        </div>
+        <div style="margin-bottom:10px;position:relative">
+          <div style="position:absolute;left:-14px;top:4px;width:8px;height:8px;background:#C4862A;border-radius:50%"></div>
+          <div style="font-size:12px;font-weight:600;color:#1a1a1a">40 秒&emsp;第三注 → 250g&emsp;關閥<span style="font-size:10px;font-weight:400;color:#888;margin-left:8px">浸泡開始</span></div>
+        </div>
+        <div style="position:relative">
+          <div style="position:absolute;left:-14px;top:4px;width:8px;height:8px;background:#1a1a1a;border-radius:50%"></div>
+          <div style="font-size:12px;font-weight:600" id="ph-valve-time">1:30&emsp;開閥結束萃取<span style="font-size:10px;font-weight:400;color:#888;margin-left:8px">（標準）</span></div>
+          <div style="font-size:11px;color:#888;margin-top:2px">依情況 bypass 3–5g 水</div>
+        </div>
+      </div>
+      <div style="border-top:1px solid #F0EDE8;padding-top:12px">
+        <div class="sec-label" style="margin-bottom:8px">今日實際參數</div>
+        <div class="grid2" style="margin-bottom:8px">
+          <div class="field"><label>水溫 (℃)</label><input id="pl-wtemp" type="number" placeholder="82"></div>
+          <div class="field"><label>研磨刻度</label><input id="pl-grind" type="text" placeholder="4.0"></div>
+        </div>
+        <div class="grid2" style="margin-bottom:8px">
+          <div class="field"><label>氣溫 (℃)</label><input id="pl-temp" type="number" placeholder="24"></div>
+          <div class="field"><label>濕度 (%)</label><input id="pl-humid" type="number" placeholder="65"></div>
+        </div>
+        <div class="field">
+          <label>萃取狀態</label>
+          <select id="pl-extract-status">
+            <option value="正常">✅ 正常</option>
+            <option value="需降低萃取（降溫）">🔽 需降低萃取（降溫）</option>
+            <option value="需提高萃取（升溫）">🔼 需提高萃取（升溫）</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-body">
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>夥伴姓名</label><input id="ps-staff" type="text" placeholder="你的名字"></div>
+        <div class="field"><label>時段</label><input id="ps-time" type="text" placeholder="10:00"></div>
+      </div>
+      <div class="field" style="margin-bottom:10px"><label>備注（可選）</label><input id="ps-note" type="text" placeholder=""></div>
+      <input type="hidden" id="pl-tap-tds" value=""><input type="hidden" id="pl-tds-adj" value="不動">
+      <input type="hidden" id="pl-drink-tds" value=""><input type="hidden" id="pl-mg-adj" value="不動">
+      <input type="hidden" id="pl-tonik" value=""><input type="hidden" id="pl-lylac" value="">
+      <button class="btn-submit" id="btn-p" onclick="submitRecord('p')">送出記錄</button>
+      <div class="toast" id="toast-p"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: LOG ══════════════ -->
+<div class="page" id="page-log" style="display:none">
+  <div style="padding:12px 12px 0">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button onclick="filterLog('all')" id="lf-all" style="font-size:12px;padding:6px 12px;border-radius:16px;border:1px solid #1a1a1a;background:#1a1a1a;color:#fff;cursor:pointer">全部</button>
+      <button onclick="filterLog('light')" id="lf-light" style="font-size:12px;padding:6px 12px;border-radius:16px;border:1px solid #DDD;background:#fff;color:#666;cursor:pointer">淺焙 SOE</button>
+      <button onclick="filterLog('medium')" id="lf-medium" style="font-size:12px;padding:6px 12px;border-radius:16px;border:1px solid #DDD;background:#fff;color:#666;cursor:pointer">中焙 SOE</button>
+      <button onclick="filterLog('pour')" id="lf-pour" style="font-size:12px;padding:6px 12px;border-radius:16px;border:1px solid #DDD;background:#fff;color:#666;cursor:pointer">手沖</button>
+      <a href="https://docs.google.com/spreadsheets/d/1gLEtvPnYX4MFlTAbknweRhTlg1rIb7bYVNjUw662RKo" target="_blank" style="font-size:12px;padding:6px 12px;border-radius:16px;border:1px solid #2A7A5A;background:#E0F2EB;color:#2A7A5A;cursor:pointer;margin-left:auto;text-decoration:none;display:flex;align-items:center">📊 開啟完整記錄</a>
+    </div>
+  </div>
+  <div id="log-list" style="margin-top:4px"></div>
+</div>
+
+<!-- ══════════════ PAGE: CONFIG ══════════════ -->
+<div class="page" id="page-config" style="display:none">
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-body config-body">
+      <div id="cfg-status" style="display:none" class="cfg-status"></div>
+      <div class="cfg-field">
+        <label>Apps Script 網址（Web App URL）</label>
+        <input id="cfg-url" type="url" placeholder="https://script.google.com/macros/s/...">
+        <div class="cfg-hint">三種記錄（淺焙SOE / 中焙SOE / 手沖）共用同一個 URL，透過 type 欄位寫入不同 Sheet</div>
+      </div>
+      <button class="save-cfg-btn" onclick="saveConfig()">儲存設定</button>
+
+      <div class="sec-label" style="margin-bottom:12px">Apps Script 程式碼（貼入後部署）</div>
+      <div class="gas-code">function doGet(e) {
+  var p = e.parameter;
+  if (!e || !p) return ContentService.createTextOutput('OK');
+
+  var JANDI_URL = 'https://wh.jandi.com/connect-api/webhook/33176758/98685ef6ba4e24b0dfa666e19cb2587c';
+
+  // ── READ ──────────────────────────────────────────────
+  if (p.action === 'read') {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var allRecords = [];
+    var sheetMap = {light:'淺焙SOE', medium:'中焙SOE', pour:'手沖'};
+    Object.entries(sheetMap).forEach(function([type, name]) {
+      var sheet = ss.getSheetByName(name);
+      if (!sheet || sheet.getLastColumn() &lt; 2) return;
+      var lastRow = sheet.getLastRow();
+      var lastCol = sheet.getLastColumn();
+      var headers = sheet.getRange(1, 1, lastRow, 1).getValues().map(function(r){ return String(r[0]); });
+      var data = sheet.getRange(1, 2, lastRow, lastCol - 1).getValues();
+      for (var c = 0; c &lt; lastCol - 1; c++) {
+        var obj = {type: type};
+        headers.forEach(function(h, i) {
+          obj[h] = (data[i] &amp;&amp; data[i][c] !== undefined) ? String(data[i][c]) : '';
+        });
+        obj.ts=obj['時間']||''; obj.staff=obj['夥伴']||''; obj.time=obj['時段']||'';
+        obj.temp=obj['氣溫℃']||''; obj.humid=obj['濕度%']||''; obj.wtemp=obj['水溫℃']||'';
+        obj.beanName=obj['豆名']||''; obj.batchNo=obj['批次']||''; obj.note=obj['備注']||'';
+        obj.milkCheck=obj['確認加奶效果']||'';
+        obj.tapTds=obj['自來水TDS']||''; obj.tdsAdj=obj['TDS增減']||'';
+        obj.drinkTds=obj['飲用水TDS']||''; obj.mgAdj=obj['鎂離子增減']||'';
+        if (type === 'pour') {
+          obj.grind=obj['研磨刻度']||''; obj.cvaTotal=obj['CVA整體印象']||'';
+          obj.title='手沖記錄'; obj.status='good';
+        } else {
+          obj.acid=obj['酸值%']||''; obj.sweet=obj['甜感%']||''; obj.dark=obj['深調%']||'';
+          obj.dose=obj['粉量g']||''; obj.brewTime=obj['萃取秒']||'';
+          obj.ratio=obj['Espresso比例']||''; obj.basket=obj['Basket']||'';
+          obj.speed=obj['轉速']||''; obj.status=obj['狀態']||'good';
+          obj.title=obj['狀態']||'記錄'; obj.tags=obj['標籤']||'';
+        }
+        allRecords.push(obj);
+      }
+    });
+    var json = JSON.stringify({records: allRecords});
+    if (p.callback) {
+      return ContentService.createTextOutput(p.callback+'('+json+')')
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    }
+    return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // ── WRITE ─────────────────────────────────────────────
+  if (!p.type) return ContentService.createTextOutput('OK');
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheetName = p.type==='light'?'淺焙SOE':p.type==='medium'?'中焙SOE':'手沖';
+  var sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
+
+  var headers, values;
+  if (p.type === 'pour') {
+    headers = ['時間','夥伴','時段',
+               '氣溫℃','濕度%','水溫℃','研磨刻度','Tonik下','LyLac下',
+               '豆名','批次','Agtron豆','Agtron粉','密度',
+               'CVA香氣','CVA風味','CVA餘韻','CVA酸度','CVA甜感','CVA觸感',
+               'CVA整體印象','CVA豆子類型',
+               'CVA香氣詞','CVA風味詞','CVA餘韻詞','CVA酸度詞','CVA觸感詞',
+               'CVA香氣補充','CVA風味補充','CVA餘韻補充','CVA酸度補充','CVA觸感補充','備注'];
+    values = [p.ts,p.staff,p.time,
+              p.temp,p.humid,p.wtemp,p.grind,p.tonik,p.lylac,
+              p.beanName,p.batchNo,p.agtronBean,p.agtronGrind,p.density,
+              p.cvaAroma,p.cvaFlavor,p.cvaAftertaste,p.cvaAcidity,p.cvaSweetness,p.cvaMouthfeel,
+              p.cvaOverall,p.cvaProfile,
+              p.cvaAromaTags,p.cvaFlavorTags,p.cvaAftertasteTags,p.cvaAcidityTags,p.cvaMouthfeelTags,
+              p.cvaAromaText,p.cvaFlavorText,p.cvaAftertasteText,p.cvaAcidityText,p.cvaMouthfeelText,p.note];
+  } else if (p.type === 'light') {
+    headers = ['時間','夥伴','時段','確認加奶效果',
+               '自來水TDS','TDS增減','飲用水TDS','鎂離子增減','研磨調整','研磨說明','水溫調整','水溫說明',
+               '氣溫℃','濕度%','水溫℃','粉量g','萃取秒','咖啡液重g','Espresso比例',
+               '豆名','批次','Agtron豆','Agtron粉','密度',
+               '酸值%','甜感%','深調%','狀態','Basket','轉速','標籤','備注'];
+    values = [p.ts,p.staff,p.time,p.milkCheck,
+              p.tapTds,p.tdsAdj,p.drinkTds,p.mgAdj,p.grindAdj,p.grindNote,p.tempAdj,p.tempNote,
+              p.temp,p.humid,p.wtemp,p.dose,p.brewTime,p.yield,p.ratio,
+              p.beanName,p.batchNo,p.agtronBean,p.agtronGrind,p.density,
+              p.acid,p.sweet,p.dark,p.status,p.basket,p.speed,p.tags,p.note];
+  } else {
+    headers = ['時間','夥伴','時段','確認加奶效果',
+               '氣溫℃','濕度%','水溫℃','粉量g','萃取秒','咖啡液重g','Espresso比例',
+               '豆名','批次','Agtron豆','Agtron粉','密度',
+               '酸值%','甜感%','深調%','狀態','Basket','標籤','備注'];
+    values = [p.ts,p.staff,p.time,p.milkCheck,
+              p.temp,p.humid,p.wtemp,p.dose,p.brewTime,p.yield,p.ratio,
+              p.beanName,p.batchNo,p.agtronBean,p.agtronGrind,p.density,
+              p.acid,p.sweet,p.dark,p.status,p.basket,p.tags,p.note];
+  }
+
+  if (sheet.getLastColumn() === 0) {
+    sheet.getRange(1, 1, headers.length, 1)
+         .setValues(headers.map(function(h){ return [h]; }));
+  }
+  var col = sheet.getLastColumn() + 1;
+  sheet.getRange(1, col, values.length, 1)
+       .setValues(values.map(function(v){ return [v !== undefined ? v : '']; }));
+
+  // ── 通知 JANDI ────────────────────────────────────────
+  try {
+    var typeLabel = p.type==='light' ? '☕ 淺焙 SOE' : p.type==='medium' ? '🟤 中焙 SOE' : '🫖 手沖';
+    var statusText = p.status==='good' ? '✅ 均衡' : p.status==='warn' ? '⚠️ 需調整' : p.status==='bad' ? '⚠️ 需調整' : '🚨 嚴重需調整';
+    var color = p.type==='light' ? '#F5C542' : p.type==='medium' ? '#8B5E3C' : '#4CAF50';
+
+    var connectInfo = [
+      { title: '夥伴 / 時段', description: (p.staff||'—') + '　' + (p.time||'—') },
+      { title: '豆名', description: (p.beanName||'—') + (p.batchNo ? ' · ' + p.batchNo : '') }
+    ];
+
+    if (p.type === 'pour') {
+      connectInfo.push({ title: '參數', description: '水溫 ' + (p.wtemp||'—') + '℃　研磨 ' + (p.grind||'—') });
+      connectInfo.push({ title: '萃取狀態', description: p.extractStatus || '正常' });
+      if (p.note) connectInfo.push({ title: '備注', description: p.note });
+    } else if (p.type === 'light') {
+      connectInfo.push({ title: '參數', description: '水溫 ' + (p.wtemp||'—') + '℃　粉量 ' + (p.dose||'—') + 'g　' + (p.brewTime||'—') + 's　液重 ' + (p.yield||'—') + 'g　1:' + (p.ratio||'—') });
+      connectInfo.push({ title: '環境', description: '氣溫 ' + (p.temp||'—') + '℃　濕度 ' + (p.humid||'—') + '%　飲用水TDS ' + (p.drinkTds||'—') });
+      connectInfo.push({ title: '器材', description: 'Basket ' + (p.basket||'—') + '　Molar ' + (p.speed||'—') });
+      connectInfo.push({ title: '酸甜比例', description: '酸 ' + (p.acid||'—') + '%　甜 ' + (p.sweet||'—') + '%　深 ' + (p.dark||'—') + '%' });
+      if (p.tags &amp;&amp; p.tags !== '—') connectInfo.push({ title: '風味感受', description: p.tags });
+      if (p.milkCheck) connectInfo.push({ title: '加奶確認', description: p.milkCheck });
+      connectInfo.push({ title: '狀態', description: statusText });
+      if (p.note) connectInfo.push({ title: '備注', description: p.note });
+    } else {
+      connectInfo.push({ title: '參數', description: '水溫 ' + (p.wtemp||'—') + '℃　粉量 ' + (p.dose||'—') + 'g　' + (p.brewTime||'—') + 's　液重 ' + (p.yield||'—') + 'g　1:' + (p.ratio||'—') });
+      connectInfo.push({ title: '酸甜比例', description: '酸 ' + (p.acid||'—') + '%　甜 ' + (p.sweet||'—') + '%　深 ' + (p.dark||'—') + '%' });
+      if (p.tags &amp;&amp; p.tags !== '—') connectInfo.push({ title: '風味感受', description: p.tags });
+      if (p.milkCheck) connectInfo.push({ title: '加奶確認', description: p.milkCheck });
+      connectInfo.push({ title: '狀態', description: statusText });
+      if (p.note) connectInfo.push({ title: '備注', description: p.note });
+    }
+
+    var jandi_body = {
+      body: typeLabel + ' 校正記錄已送出　' + (p.ts||''),
+      connectColor: color,
+      connectInfo: connectInfo
+    };
+
+    UrlFetchApp.fetch(JANDI_URL, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/vnd.tosslab.jandi-v2+json',
+        'Content-Type': 'application/json'
+      },
+      payload: JSON.stringify(jandi_body),
+      muteHttpExceptions: true
+    });
+  } catch(err) {
+    Logger.log('JANDI notify failed: ' + err.message);
+  }
+
+  return ContentService.createTextOutput('OK');
+}
+
+function doPost(e) { return doGet(e); }
+
+function testJandi() {
+  var JANDI_URL = 'https://wh.jandi.com/connect-api/webhook/33176758/98685ef6ba4e24b0dfa666e19cb2587c';
+  var result = UrlFetchApp.fetch(JANDI_URL, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/vnd.tosslab.jandi-v2+json',
+      'Content-Type': 'application/json'
+    },
+    payload: JSON.stringify({
+      body: '🧪 測試訊息',
+      connectColor: '#F5C542',
+      connectInfo: [{ title: '測試', description: '如果看到這則訊息代表 Webhook 正常' }]
+    }),
+    muteHttpExceptions: true
+  });
+  Logger.log('狀態碼: ' + result.getResponseCode());
+  Logger.log('回應: ' + result.getContentText());
+}</div>
+
+      <div class="sec-label" style="margin-top:20px;margin-bottom:12px">部署步驟</div>
+      <div style="font-size:12px;color:#555;line-height:2.2">
+        1. Google Sheets → 擴充功能 → Apps Script<br>
+        2. 貼入上方程式碼 → 儲存<br>
+        3. 部署 → 新增部署 → 網頁應用程式<br>
+        4. 執行身分：<b>我</b>　存取權：<b>所有人</b><br>
+        5. 複製 Web App URL 貼到上方欄位
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- bottom nav -->
+<div class="bottom-nav">
+  <div class="nav-item nav-light active" id="nav-light" onclick="switchPage('light')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></div>
+    <span class="nav-label">淺焙 SOE</span>
+  </div>
+  <div class="nav-item nav-medium" id="nav-medium" onclick="switchPage('medium')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
+    <span class="nav-label">中焙 SOE</span>
+  </div>
+  <div class="nav-item nav-filter" id="nav-filter" onclick="switchPage('filter')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l-4 8v6l-4 2v-8Z"/></svg></div>
+    <span class="nav-label">濾泡</span>
+  </div>
+  <div class="nav-item" id="nav-log" onclick="switchPage('log')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+    <span class="nav-label">記錄</span>
+  </div>
+  <div class="nav-item" id="nav-config" onclick="switchPage('config')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+    <span class="nav-label">設定</span>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────
+const beans = {
+  l: JSON.parse(localStorage.getItem('wl_bean_l') || 'null'),
+  m: JSON.parse(localStorage.getItem('wl_bean_m') || 'null'),
+  p: JSON.parse(localStorage.getItem('wl_bean_p') || 'null'),
+};
+const selTags = { l: new Set(), m: new Set(), p: new Set() };
+const cvaScores = { aroma:5, flavor:5, aftertaste:5, acidity:5, sweetness:5, mouthfeel:5 };
+const cvaTags = { aroma:new Set(), flavor:new Set(), aftertaste:new Set(), acidity:new Set(), mouthfeel:new Set() };
+let scriptUrl = localStorage.getItem('wl_script_url') || 'https://script.google.com/macros/s/AKfycbzTxpt480SKaXyqW_xMXpF92Y1ZapGIVND-puBKKLghgLEoJBAE-Userm6l-l75idFw2g/exec';
+let curStates = { l:{acid:22,sweet:65,dark:4,status:'good',title:'均衡 — 符合目標'}, m:{acid:12,sweet:48,dark:35,status:'good',title:'均衡 — 符合目標'}, p:{} };
+let logFilter = 'all';
+let sheetsLogs = null;
+
+// ── Init ──────────────────────────────────────────────────────────
+(function init() {
+  ['l','m','p'].forEach(t => { if (beans[t]) showBean(t); });
+  if (scriptUrl) { document.getElementById('cfg-url').value = scriptUrl; showCfgStatus(true); }
+  const now = new Date().toTimeString().slice(0,5);
+  ['ls-time','ms-time','ps-time'].forEach(id => { document.getElementById(id).value = now; });
+  // init CVA display
+  Object.keys(cvaScores).forEach(k => cvaUpd(k, 5));
+  cvaUpdOverall(5);
+})();
+
+// ── Navigation ────────────────────────────────────────────────────
+function switchPage(name) {
+  var pages = ['light','medium','filter','log','config'];
+  for (var i = 0; i < pages.length; i++) {
+    var p = pages[i];
+    var pageEl = document.getElementById('page-' + p);
+    var navEl  = document.getElementById('nav-'  + p);
+    if (pageEl) {
+      if (p === name) {
+        pageEl.classList.add('active');
+        pageEl.style.display = 'block';
+      } else {
+        pageEl.classList.remove('active');
+        pageEl.style.display = 'none';
+      }
+    }
+    if (navEl) {
+      if (p === name) { navEl.classList.add('active'); }
+      else            { navEl.classList.remove('active'); }
+    }
+  }
+  var subEl = document.getElementById('topbar-sub');
+  var titles = {light:'淺焙 SOE 校正', medium:'中焙 SOE 校正', filter:'濾泡咖啡', log:'今日記錄', config:'設定'};
+  if (subEl) subEl.textContent = titles[name] || '';
+  window.scrollTo(0, 0);
+  if (name === 'log') renderLog();
+  if (name === 'filter') renderPourSoeForecast();
+}
+
+// ── Bean ──────────────────────────────────────────────────────────
+function saveBean(t) {
+  const pre = {l:'fl',m:'fm',p:'fp'}[t];
+  const name = document.getElementById(pre+'-name').value.trim();
+  if (!name) { document.getElementById(pre+'-name').style.borderColor='#C0392B'; return; }
+  document.getElementById(pre+'-name').style.borderColor='';
+  beans[t] = {
+    name, batch: document.getElementById(pre+'-batch').value.trim(),
+    agtronBean: document.getElementById(pre+'-ab').value.trim(),
+    agtronGrind: document.getElementById(pre+'-ag').value.trim(),
+    density: document.getElementById(pre+'-d').value.trim(),
+  };
+  localStorage.setItem('wl_bean_'+t, JSON.stringify(beans[t]));
+  showBean(t);
+}
+
+function showBean(t) {
+  document.getElementById('bean-display-'+t).style.display = 'block';
+  document.getElementById('bean-form-'+t).classList.remove('open');
+  const b = beans[t];
+  document.getElementById('bd-name-'+t).textContent  = b.name || '—';
+  document.getElementById('bd-batch-'+t).textContent = b.batch ? '批次 '+b.batch : '';
+  document.getElementById('bd-ab-'+t).textContent    = b.agtronBean || '—';
+  document.getElementById('bd-ag-'+t).textContent    = b.agtronGrind || '—';
+  document.getElementById('bd-d-'+t).textContent     = b.density ? b.density+' g/L' : '—';
+  if (t !== 'p') document.getElementById('topbar-sub').textContent = b.name;
+  // 觸發同批豆歷史比對
+  if ((t === 'l' || t === 'm') && b.name) fetchBeanHistory(t, b.name, b.batch || '');
+}
+
+function openBeanForm(t) {
+  document.getElementById('bean-form-'+t).classList.add('open');
+  document.getElementById('bean-display-'+t).style.display = 'none';
+  const b = beans[t];
+  if (!b) return;
+  const pre = {l:'fl',m:'fm',p:'fp'}[t];
+  document.getElementById(pre+'-name').value  = b.name || '';
+  document.getElementById(pre+'-batch').value = b.batch || '';
+  document.getElementById(pre+'-ab').value    = b.agtronBean || '';
+  document.getElementById(pre+'-ag').value    = b.agtronGrind || '';
+  document.getElementById(pre+'-d').value     = b.density || '';
+}
+
+// ── Espresso ratio ────────────────────────────────────────────────
+function calcRatio(t) {
+  const pre = t === 'l' ? 'll' : 'ml';
+  const dose  = parseFloat(document.getElementById(pre+'-dose').value);
+  const yld   = parseFloat(document.getElementById(pre+'-yield').value);
+  const el    = document.getElementById(pre+'-ratio');
+  if (dose > 0 && yld > 0) {
+    el.value = '1 : ' + (yld / dose).toFixed(2);
+  } else {
+    el.value = '';
+  }
+}
+
+// ── Tags ──────────────────────────────────────────────────────────
+function tog(el, t) {
+  const k = el.dataset.k;
+  const s = selTags[t];
+  if (s.has(k)) { s.delete(k); el.className='tag'; }
+  else { s.add(k); el.className='tag sel-'+el.dataset.t; }
+  if (t !== 'p') upd(t);
+  else updPour();
+}
+
+// ── Espresso diagnosis ────────────────────────────────────────────
+function setBadge(id, ok) {
+  const el = document.getElementById(id);
+  el.className = 'badge '+(ok?'ok':'ng');
+  el.textContent = ok ? '目標' : '範圍外';
+}
+
+function setSteps(t, a,b,c,d,e, ca,cb,cc,cd,ce) {
+  [['s1','s1'],['s2','s2'],['s3','s3'],['s4','s4'],['s5','s5']].forEach(([base],i) => {
+    const vals = [a,b,c,d,e], cls = [ca,cb,cc,cd,ce];
+    const el = document.getElementById(base+'-'+t);
+    if (!el) return;
+    el.textContent = vals[i];
+    el.className = 'step-desc'+(cls[i]?' '+cls[i]:'');
+  });
+}
+
+function upd(t) {
+  const isL = t === 'l';
+  const pfx = isL ? {sa:'sa-l',ss:'ss-l',sd:'sd-l',va:'va-l',vs:'vs-l',vd:'vd-l',ra:'ra-l',rs:'rs-l',rd:'rd-l',fba:'fba-l',fbs:'fbs-l',fbd:'fbd-l',rbox:'rbox-l',rt:'rt-l',rb:'rb-l'} : {sa:'sa-m',ss:'ss-m',sd:'sd-m',va:'va-m',vs:'vs-m',vd:'vd-m',ra:'ra-m',rs:'rs-m',rd:'rd-m',fba:'fba-m',fbs:'fbs-m',fbd:'fbd-m',rbox:'rbox-m',rt:'rt-m',rb:'rb-m'};
+
+  const acid  = +document.getElementById(pfx.sa).value;
+  const sweet = +document.getElementById(pfx.ss).value;
+  const dark  = +document.getElementById(pfx.sd).value;
+  const basketEl = document.getElementById(isL ? 'll-basket' : 'ml-basket');
+  const basket = basketEl ? basketEl.value : 'eblab';
+  const speedEl = document.getElementById(isL ? 'll-speed' : 'ml-speed');
+  const speed = speedEl ? speedEl.value : 'H';
+  const basketLabel = {bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto'}[basket];
+  const speedLabel = speed === 'H' ? 'H 轉速' : 'M 轉速';
+  const humidEl = document.getElementById(isL ? 'll-humid' : 'ml-humid');
+  const humid = humidEl ? parseFloat(humidEl.value) || 0 : 0;
+  const isHighHumid = humid >= 70;
+  const isVeryHighHumid = humid >= 80;
+
+  document.getElementById(pfx.va).textContent = acid+'%';
+  document.getElementById(pfx.vs).textContent = sweet+'%';
+  document.getElementById(pfx.vd).textContent = dark+'%';
+
+  if (isL) {
+    setBadge(pfx.ra, acid>=20&&acid<=30);
+    setBadge(pfx.rs, sweet>=60&&sweet<=70);
+    setBadge(pfx.rd, dark<5);
+  } else {
+    setBadge(pfx.ra, acid>=0&&acid<=10);
+    setBadge(pfx.rs, sweet>=40&&sweet<=55);
+    setBadge(pfx.rd, dark>=30&&dark<=45);
+  }
+
+  const fa=document.getElementById(pfx.fba), fs=document.getElementById(pfx.fbs), fd=document.getElementById(pfx.fbd);
+  fa.style.flex=acid; fa.textContent=acid>8?`酸 ${acid}%`:'';
+  fs.style.flex=sweet; fs.textContent=sweet>12?`${isL?'甜':'焦糖'} ${sweet}%`:'';
+  fd.style.flex=Math.max(dark,1); fd.textContent=dark>=5?`${isL?'深':'巧/木'} ${dark}%`:'';
+
+  const sel = selTags[t];
+  const hasPeanut=sel.has('peanut'), hasGrass=sel.has('grass');
+  const hasSharp=sel.has('sharp'), hasAstringent=sel.has('astringent');
+  const hasBitter=sel.has('bitter')||(isL&&sel.has('choc'));
+  const hasThin=sel.has('thin'), hasFlatSw=sel.has('flatSw');
+
+  const rb=document.getElementById(pfx.rbox);
+  const rt=document.getElementById(pfx.rt);
+  const rbd=document.getElementById(pfx.rb);
+  let status='good', title='';
+
+  // ── Basket step helpers ──
+  function basketStepOverExtract() {
+    // 過萃：降低萃取 → 換更慢的 basket，轉速改 M
+    const speedStep = speed === 'H' ? '轉速換 M，減少細粉降低萃取' : '轉速已是 M，以研磨與 Basket 為主';
+    if (basket === 'bigbang') return ['研磨往粗的方向調整', '現用 Big Bang 流速最快，→ 換 E&B LAB24 降流速', speedStep, '若仍過萃 → 再換神器 Artefatto（最慢）', '咖啡液往減少方向截斷後段苦味', 'act','act','act-w','act-w',''];
+    if (basket === 'eblab')   return ['研磨往粗的方向調整', speedStep, '水溫往降的方向輔助', '若研磨已粗到極限 → 換神器 Artefatto 降流速', '咖啡液往減少方向截斷後段苦味', 'act','act-w','act-w','act-w',''];
+    /* artefatto */           return ['研磨往粗的方向調整（已是最慢 Basket）', speedStep, '水溫往降的方向輔助', '確認布粉器深度，避免粉餅太扎實出現通道', '咖啡液往減少方向截斷後段苦味', 'act','act-w','act-w','',''];
+  }
+  function basketStepUnderExtract() {
+    // 萃取不足：提升萃取 → 換更快的 basket，轉速改 H
+    const speedStep = speed === 'M' ? '轉速換 H，增加細粉提升萃取' : '轉速已是 H（最高），以研磨與 Basket 為主';
+    if (basket === 'artefatto') return ['研磨往細的方向調整', speedStep, '水溫往升的方向輔助', '換 E&B LAB24（流速↑），重新確認布粉高度', '咖啡液往減少方向提高濃度感', 'act','act-w','act-w','act',''];
+    if (basket === 'eblab')     return ['研磨往細的方向調整', speedStep, '水溫往升的方向輔助', '若研磨已細到極限 → 換 Big Bang 增加流速', '咖啡液往減少方向提高濃度感', 'act','act-w','act-w','act-w',''];
+    /* bigbang */               return ['研磨往細的方向調整（已是最快 Basket）', speedStep, '水溫往升的方向輔助', '已是 Big Bang，研磨是唯一調整手段', '咖啡液往減少方向提高濃度感', 'act','act-w','act-w','',''];
+  }
+  function basketStepAstringent() {
+    const speedStep = speed === 'M' ? '轉速換 H，增加細粉讓甜感提升支撐酸值' : '轉速已是 H，確認布粉均勻度';
+    if (basket === 'bigbang') return ['研磨往細的方向調整，延長接觸時間', '確認布粉器高度與布粉均勻度', '換 E&B LAB24，流速放慢讓甜感溶出', speedStep, '咖啡液往增加方向微調', 'act','act','act','act-w',''];
+    if (basket === 'eblab')   return ['研磨往細的方向調整', '確認布粉器高度（深度往深調）', speedStep, '水溫往升的方向', '確認咖啡液重是否穩定', 'act','act','act-w','act-w',''];
+    /* artefatto */           return ['研磨往細的方向調整', '確認布粉器高度，檢查是否有通道效應', speedStep, '確認水溫是否足夠', '咖啡液往增加方向微調', 'act','act','act-w','act-w',''];
+  }
+
+  // ── 濕度提示（優先判斷，搭配其他症狀）──────────────────────────
+  // 高濕度 + 收斂感 = 通道效應風險，需提高轉速增加細粉壓實粉餅
+  if (isVeryHighHumid && hasAstringent) {
+    status='bad'; title='高濕度通道效應 — 粉餅結構鬆散';
+    rb.className='result-box bad'; rt.textContent=title;
+    rbd.textContent=`濕度 ${humid}% 過高導致粉餅吸水膨脹，產生通道效應。轉速換 H 增加細粉，壓實粉餅結構。`;
+    const speedStep = speed==='M' ? '轉速換 H（關鍵）— 增加細粉壓實粉餅，減少通道' : '轉速已是 H，確認布粉器深度往深調整';
+    setSteps(t, speedStep, '研磨往細的方向微調，配合 H 轉速', '確認布粉器深度（往深調），重新設定高度', '水溫維持，濕度高時勿再降溫', '液重重新設定（粉餅結構改變後吃水不同）', 'crit','act','act','','act-w');
+    curStates[t] = {acid, sweet, dark, status, title, basket: basketLabel, speed: speedLabel};
+    return;
+  }
+  // 高濕度 + 無收斂感 = 研磨可略粗（粉較容易結塊，細粉效果打折）
+  if (isHighHumid && !hasAstringent && status==='good') {
+    // 只加提示，不覆蓋主診斷，在 good 狀態下才加濕度備注
+  }
+
+  if (hasPeanut||hasGrass) {
+    rb.className='result-box crit'; rt.textContent=title;
+    rbd.textContent=(hasPeanut?'花生/穀物味 = 生豆感，萃取極度不足。':'')+(hasGrass?'青草味 = 揮發物殘留，萃取嚴重不足。':'')+' 大幅調整後重新萃取再評估。';
+    setSteps(t,'研磨往細的方向大幅調整','確認水溫是否足夠，往升的方向確認',speed==='M'?'轉速換 H，搭配研磨細全面提升萃取':'轉速已是 H，研磨大幅往細為主',basket==='artefatto'?'換 E&B LAB24 增加流速協助萃取':basket==='eblab'?'考慮換 Big Bang 增加流速':'已是 Big Bang，研磨大幅往細','維持目前液重','crit','crit','crit','crit','');
+  } else if (hasAstringent) {
+    status='bad'; title='收斂感 — 粉餅結構或萃取不均';
+    rb.className='result-box bad'; rt.textContent=title;
+    const humidCtx = isHighHumid ? `（目前濕度 ${humid}%，高濕度會使粉餅吸水膨脹，加劇通道效應）` : '';
+    rbd.textContent='收斂感通常是粉餅結構問題（布粉不均 / 通道效應）或流速過快萃取不均。目前 Basket：' + basketLabel + humidCtx;
+    const s = basketStepAstringent();
+    setSteps(t, s[0],s[1],s[2],s[3],s[4], s[5],s[6],s[7],s[8],s[9]);
+  } else if (hasSharp) {
+    status='bad'; title='酸質不對 — 尖酸';
+    rb.className='result-box bad'; rt.textContent=title;
+    rbd.textContent='尖酸 = 萃取率不足，甜感沒有充分溶出來支撐酸值。目前 Basket：' + basketLabel;
+    const s = basketStepUnderExtract();
+    setSteps(t, s[0],s[1],s[2],s[3],s[4], s[5],s[6],s[7],s[8],s[9]);
+  } else if (isL ? (dark>=5||hasBitter) : (dark>45||hasBitter)) {
+    status='bad'; title=isL?'過萃 — 深調/苦感超標':'過萃 — 巧克力木質過重';
+    rb.className='result-box bad'; rt.textContent=title;
+    rbd.textContent=(isL?'巧克力調超過 5%，萃取過度。':'巧克力木質超過 45%，萃取過度。')+'目前 Basket：'+basketLabel+'（'+{bigbang:'流速最快',eblab:'流速中等',artefatto:'流速最慢'}[basket]+'）';
+    const s = basketStepOverExtract();
+    setSteps(t, s[0],s[1],s[2],s[3],s[4], s[5],s[6],s[7],s[8],s[9]);
+  } else if (isL ? (acid<20||hasThin) : (acid<10||hasThin)) {
+    status='warn'; title='萃取不足 — 酸值偏低/水感';
+    rb.className='result-box warn'; rt.textContent=title;
+    rbd.textContent=(isL?'酸值低於 20% 或有水感，甜感沒有充分溶出。':'中焙甜感與巧克力調尚未充分溶出。')+'目前 Basket：'+basketLabel;
+    const s = basketStepUnderExtract();
+    setSteps(t, s[0],s[1],s[2],s[3],s[4], s[5],s[6],s[7],s[8],s[9]);
+  } else if (isL ? acid>30 : acid>15) {
+    status='warn'; title='酸值偏高 — 甜感被壓過';
+    rb.className='result-box warn'; rt.textContent=title;
+    rbd.textContent=isL?'酸值超過 30%，甜感比例不足，需要提升萃取讓甜感更明顯。':'酸值超過 10%，中焙焦糖甜感被壓制。';
+    const s = basketStepUnderExtract();
+    setSteps(t, s[0],s[1],s[2],s[3],s[4], s[5],s[6],s[7],s[8],s[9]);
+  } else if (isL ? (hasFlatSw||sweet<60) : (hasFlatSw||sweet<40)) {
+    status='warn'; title=isL?'甜感不足 — 低於 60%':'焦糖甜感不足 — 低於 40%';
+    rb.className='result-box warn'; rt.textContent=title;
+    rbd.textContent='甜感比例偏低，確認今日批次 Agtron 是否偏移。增粉為最後手段（不換批次不輕易動粉量）。';
+    setSteps(t,'研磨往細的方向微調','確認水溫是否一致','確認轉速是否維持 M/H','確認 Basket 是否正確（'+basketLabel+'）','維持目前液重，增粉為最後手段','act','','','','');
+  } else {
+    status='good'; title='均衡 — 符合目標';
+    rb.className='result-box good'; rt.textContent=title;
+    const humidNote = isVeryHighHumid ? `　⚠️ 濕度 ${humid}% 偏高，留意通道效應，布粉器深度確認。` : isHighHumid ? `　濕度 ${humid}%，研磨可略粗方向微調。` : '';
+    rbd.textContent=(isL?'酸值明亮多汁（20–30%）、甜感主導（60–70%）、巧克力調收斂（<5%）。':'酸值低調（0–10%）、焦糖甜感主導（40–55%）、巧克力木質收尾（30–45%）。')+'目前 Basket：'+basketLabel+humidNote;
+    setSteps(t,'維持目前刻度','維持今日水溫','維持目前轉速（'+speedLabel+'）','維持目前 Basket（'+basketLabel+'）','維持目前液重','','','','','');
+  }
+  curStates[t] = {acid, sweet, dark, status, title, basket: basketLabel, speed: speedLabel};
+  if (t === 'l') calcPourForecast({acid, sweet, dark, status, humid, hasThin, hasFlatSw, hasSharp, hasBitter, hasAstringent, hasPeanut, hasGrass});
+}
+
+// ── CVA ───────────────────────────────────────────────────────────
+function intensity(v) {
+  v = +v;
+  if (v <= 4)  return '低';
+  if (v <= 6)  return '中低';
+  if (v <= 8)  return '中';
+  if (v <= 10) return '中高';
+  return '高';
+}
+var QUALITY_LABELS = ['','非常低','很低','中低','略低','中等','略高','中高','很高','非常高'];
+var TARGET_RANGES = {
+  'light-wash':    { aroma:[7,12], flavor:[7,12], aftertaste:[6,9],  acidity:[7,12], sweetness:[6,9],  mouthfeel:[6,8],  overall:[7,8], label:'極淺焙 水洗' },
+  'light-natural': { aroma:[8,13], flavor:[8,13], aftertaste:[7,12], acidity:[6,11], sweetness:[6,11], mouthfeel:[7,11], overall:[7,8], label:'極淺焙 日曬' },
+  'light-special': { aroma:[8,14], flavor:[8,14], aftertaste:[6,9],  acidity:[7,13], sweetness:[6,8],  mouthfeel:[6,10], overall:[7,8], label:'極淺焙 特殊發酵' },
+};
+var selectedProfile = 'light-wash';
+function inRange(val, range) { return val >= range[0] && val <= range[1]; }
+function cvaUpd(key, val) {
+  val = +val;
+  cvaScores[key] = val;
+  var el = document.getElementById('cv-' + key + '-s');
+  if (!el) return;
+  var tr = (TARGET_RANGES && selectedProfile && TARGET_RANGES[selectedProfile])
+           ? TARGET_RANGES[selectedProfile][key] : null;
+  var inTgt = tr ? inRange(val, tr) : true;
+  var tgtBadge = tr
+    ? ('<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:'
+       + (inTgt ? '#EAF5E0;color:#2E6B10' : '#FDECEA;color:#A32020')
+       + '">' + (inTgt ? '目標' : '範圍外') + '</span>')
+    : '';
+  el.innerHTML = val
+    + ' <span style="font-size:11px;font-weight:400">' + intensity(val) + '</span> '
+    + tgtBadge;
+  updPour();
+}
+function cvaUpdOverall(val) {
+  const v = +val;
+  const labels = ['','非常低','很低','中低','略低','中等（不高不低）','略高','中高','很高','非常高'];
+  const el = document.getElementById('cv-overall-s');
+  if (el) el.textContent = v + '　' + (labels[v] || '');
+  const tr = (TARGET_RANGES[selectedProfile]||{}).overall;
+  const badge = document.getElementById('cv-overall-badge');
+  if (badge && tr) {
+    const ok = inRange(v, tr);
+    badge.style.background = ok ? '#EAF5E0' : '#FDECEA';
+    badge.style.color       = ok ? '#2E6B10' : '#A32020';
+    badge.textContent = ok ? '目標' : '範圍外';
+  }
+}
+function setProfile(val) {
+  selectedProfile = val;
+  Object.keys(cvaScores).forEach(k => cvaUpd(k, cvaScores[k]));
+  const overallEl = document.getElementById('cv-overall');
+  if (overallEl) cvaUpdOverall(overallEl.value);
+}
+
+function cvaTog(el, key) {
+  const s = cvaTags[key];
+  const txt = el.textContent;
+  if (s.has(txt)) { s.delete(txt); el.classList.remove('sel'); }
+  else { s.add(txt); el.classList.add('sel'); }
+}
+
+// ── Pour diagnosis (Hario Neo+Switch) ────────────────────────────
+function updPour() {
+  const acid      = cvaScores.acidity;
+  const flavor    = cvaScores.flavor;
+  const body      = cvaScores.mouthfeel;
+  const sweetness = cvaScores.sweetness;
+  const aroma     = cvaScores.aroma;
+  const finish    = cvaScores.aftertaste;
+
+  const allTags = new Set([
+    ...cvaTags.aroma, ...cvaTags.flavor, ...cvaTags.aftertaste,
+    ...cvaTags.acidity, ...cvaTags.mouthfeel
+  ]);
+  const hasGrain    = allTags.has('穀物');
+  const hasFerment  = allTags.has('發酵');
+  const hasCocoa    = allTags.has('可可');
+  const hasNut      = allTags.has('堅果');
+  const hasSourTag  = allTags.has('酸');
+  const hasBerry    = allTags.has('莓果');
+  const hasVanilla  = allTags.has('香草甜') || allTags.has('黃糖');
+  const hasSweetTag = hasBerry || hasVanilla || allTags.has('果乾');
+  const hasOverTag  = hasCocoa || hasNut;
+
+  const rb  = document.getElementById('prbox');
+  const rt  = document.getElementById('prt');
+  const rbd = document.getElementById('prb');
+
+  const s = (id, txt, cls) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = txt;
+    el.className = 'step-desc' + (cls ? ' '+cls : '');
+  };
+  const setResult = (status, title, body) => {
+    const map = {good:'result-box good', warn:'result-box warn', bad:'result-box bad', crit:'result-box crit'};
+    rb.className = map[status] || 'result-box good';
+    rt.textContent = title;
+    rbd.textContent = body;
+  };
+
+  // CRIT：穀物/發酵 = 嚴重萃取不足
+  if (hasGrain || hasFerment) {
+    setResult('crit','嚴重萃取不足 — 穀物/發酵感','穀物味 = 生豆感極度萃取不足。請大幅調整後重新萃取評估。');
+    s('ps1','研磨往細大幅調整（Molar # 往下 0.2–0.3）','crit');
+    s('ps2','水溫升至 83°C 提升萃取能量','crit');
+    s('ps3','開閥延長至 1:40（最長浸泡 +10 秒）','act-w');
+    s('ps4','確認注水均勻，確保粉層完全濕潤','act-w');
+    s('ps5','Bypass 暫不加，先確認基礎萃取','');
+    return;
+  }
+
+  // BAD：過萃 — 餘韻過強或堅果/可可標籤
+  const overExtractSignal = finish >= 9 || hasOverTag;
+  if (overExtractSignal) {
+    const reason = [];
+    if (finish >= 9) reason.push(`餘韻強度 ${finish}（過高 = 苦底殘留）`);
+    if (hasCocoa) reason.push('可可標籤（深焦苦）');
+    if (hasNut) reason.push('堅果標籤（烘烤感過重）');
+    setResult('bad','過萃 — 餘韻/堅果/可可偏重', reason.join('；'));
+    s('ps1','研磨往粗方向調整（Molar # 往上 0.1）','act');
+    s('ps2','水溫降至 81°C 或維持 82°C','act-w');
+    s('ps3','縮短浸泡 → 開閥提前至 1:20（-10 秒）','act');
+    s('ps4','第三注注水可稍加快，減少後段接觸','act-w');
+    s('ps5','Bypass 加 5g，稀釋後段苦底','act-w');
+    return;
+  }
+
+  // BAD：可可苦底 + 酸崩塌 + 觸感過重
+  if (hasCocoa && acid <= 5 && body >= 9) {
+    setResult('bad','過萃 — 可可苦底/酸崩塌','可可苦感 + 酸度塌陷 + 觸感過重 = 萃取過度。');
+    s('ps1','研磨往粗方向調整','act');
+    s('ps2','水溫降至 81°C','act-w');
+    s('ps3','縮短浸泡 → 開閥提前至 1:20','act');
+    s('ps4','第三注加快，縮短浸泡接觸時間','act-w');
+    s('ps5','Bypass 加 5g 稀釋苦底','act-w');
+    return;
+  }
+
+  // BAD：尖酸缺甜
+  if (acid >= 9 && hasSourTag && !hasSweetTag && sweetness <= 5) {
+    setResult('bad','尖酸缺甜 — 甜感萃取不足','酸度高但甜感缺失，甜感物質尚未充分溶出。');
+    s('ps1','研磨往細方向調整（Molar # 往下 0.1）','act');
+    s('ps2','水溫升至 83°C，輔助甜感萃取','act-w');
+    s('ps3','延長浸泡 → 開閥延至 1:40（+10 秒）','act');
+    s('ps4','確認第二、三段注水均勻，加強繞圈','act-w');
+    s('ps5','暫不加 Bypass，先確認甜感溶出','');
+    return;
+  }
+
+  // WARN：酸甜失衡 — 注水節奏問題
+  if (acid >= 8 && hasSourTag && hasSweetTag && sweetness >= 6) {
+    setResult('warn','酸甜失衡 — 前段出酸過快','甜感存在但被酸壓過，是注水節奏問題。');
+    s('ps1','研磨維持 — 非萃取量問題','');
+    s('ps2','水溫維持 82°C','');
+    s('ps3','浸泡時間維持 1:30','');
+    s('ps4','第一注放慢，讓前段酸先收斂；第三注加強繞圈讓甜感溶出','act');
+    s('ps5','Bypass 加 3g 微稀釋前段酸感','act-w');
+    return;
+  }
+
+  // WARN：整體萃取不足
+  if (acid <= 5 && body <= 5 && flavor <= 5 && sweetness <= 5) {
+    setResult('warn','萃取不足 — 整體偏低','酸度、觸感、風味、甜感同時偏低，整體萃取量不足。');
+    s('ps1','研磨往細方向調整','act');
+    s('ps2','水溫升至 83°C','act-w');
+    s('ps3','延長浸泡 → 開閥延至 1:40（+10 秒）','act');
+    s('ps4','確認注水均勻，第二注加強繞圈','act-w');
+    s('ps5','暫不加 Bypass，先確認萃取濃度','');
+    return;
+  }
+
+  // WARN：酸度偏低 — 其他維度正常
+  const othersOk = flavor >= 6 && body >= 6 && finish >= 6 && sweetness >= 6;
+  if (acid <= 5 && othersOk) {
+    setResult('warn','酸度偏低 — 其他維度正常','非萃取問題，調整前段注水節奏。');
+    s('ps1','研磨維持','');
+    s('ps2','水溫維持 82°C','');
+    s('ps3','浸泡時間維持 1:30','');
+    s('ps4','第一注放慢，讓前段風味充分溶出','act-w');
+    s('ps5','Bypass 減少或不加，保留酸感亮度','act-w');
+    return;
+  }
+
+  // WARN：觸感薄
+  if (body <= 4 && acid >= 6 && flavor >= 6 && sweetness >= 6) {
+    setResult('warn','觸感偏薄 — 酸/風味正常','觸感厚度不足，以延長浸泡補償。');
+    s('ps1','研磨維持','');
+    s('ps2','水溫維持 82°C','');
+    s('ps3','延長浸泡 +5–10 秒，增加礦物感萃取','act-w');
+    s('ps4','第三注確保粉層完整浸泡均勻','act-w');
+    s('ps5','Bypass 維持或減少，保留礦物感厚度','');
+    return;
+  }
+
+  // WARN：甜感不足
+  if (sweetness <= 4 && acid >= 6 && flavor >= 6 && body >= 6) {
+    setResult('warn','甜感不足 — 酸/風味/觸感正常','甜感物質萃取偏低，延長浸泡輔助。');
+    s('ps1','研磨往細微調（0.1 格）','act-w');
+    s('ps2','水溫維持或升至 83°C','act-w');
+    s('ps3','延長浸泡 → 開閥延至 1:40（+10 秒）','act');
+    s('ps4','第二、三段注水加強繞圈，讓甜感充分溶出','act-w');
+    s('ps5','Bypass 減少，保留甜感濃度','act-w');
+    return;
+  }
+
+  // WARN：風味強度不足
+  if (flavor <= 4 && aroma >= 6 && body >= 5) {
+    setResult('warn','風味強度不足 — 香氣尚可','香氣有但入口風味弱，中段萃取不均。');
+    s('ps1','研磨往細微調','act-w');
+    s('ps2','水溫維持 82°C','');
+    s('ps3','延長浸泡 +5 秒觀察','act-w');
+    s('ps4','第二段注水加強繞圈，確保粉層均勻萃取','act');
+    s('ps5','Bypass 維持，以技術調整為優先','');
+    return;
+  }
+
+  // GOOD
+  setResult('good','均衡 — 符合目標','酸度明亮（'+acid+'）、甜感充足（'+sweetness+'）、觸感清爽（'+body+'）、風味有層次（'+flavor+'）。');
+  s('ps1','均衡 — 維持目前刻度','');
+  s('ps2','維持 82°C 基準水溫','');
+  s('ps3','維持 1:30 開閥（標準浸泡時間）','');
+  s('ps4','維持今日注水節奏','');
+  s('ps5','依情況加 3–5g Bypass','');
+}
+// ── Submit ────────────────────────────────────────────────────────
+async function submitRecord(t) {
+  const staffId = {l:'ls-staff', m:'ms-staff', p:'ps-staff'}[t];
+  const timeId  = {l:'ls-time',  m:'ms-time',  p:'ps-time'}[t];
+  const noteId  = {l:'ls-note',  m:'ms-note',  p:'ps-note'}[t];
+  const staff = document.getElementById(staffId).value.trim();
+  const time  = document.getElementById(timeId).value.trim() || new Date().toTimeString().slice(0,5);
+  const note  = document.getElementById(noteId).value.trim();
+  if (!staff) { document.getElementById(staffId).style.borderColor='#C0392B'; document.getElementById(staffId).focus(); return; }
+  document.getElementById(staffId).style.borderColor='';
+
+  const b = beans[t] || {};
+  const typeMap = {l:'light', m:'medium', p:'pour'};
+
+  let entry = {
+    type: typeMap[t],
+    ts: new Date().toLocaleString('zh-TW'),
+    staff, time, note,
+    beanName: b.name||'', batchNo: b.batch||'',
+    agtronBean: b.agtronBean||'', agtronGrind: b.agtronGrind||'', density: b.density||'',
+  };
+
+  if (t === 'p') {
+    const getVal = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+    Object.assign(entry, {
+      tapTds:    getVal('pl-tap-tds'),
+      tdsAdj:    getVal('pl-tds-adj'),
+      drinkTds:  getVal('pl-drink-tds'),
+      mgAdj:     getVal('pl-mg-adj'),
+      temp:      getVal('pl-temp'),
+      humid:     getVal('pl-humid'),
+      wtemp:     getVal('pl-wtemp'),
+      grind:     getVal('pl-grind'),
+      extractStatus: getVal('pl-extract-status'),
+      tonik:     getVal('pl-tonik'),
+      lylac:     getVal('pl-lylac'),
+      cvaAroma:       cvaScores.aroma,
+      cvaFlavor:      cvaScores.flavor,
+      cvaAftertaste:  cvaScores.aftertaste,
+      cvaAcidity:     cvaScores.acidity,
+      cvaSweetness:   cvaScores.sweetness,
+      cvaMouthfeel:   cvaScores.mouthfeel,
+      cvaTotal:       Object.values(cvaScores).reduce((a,b)=>a+b,0),
+      cvaAromaTags:      [...cvaTags.aroma].join('、'),
+      cvaFlavorTags:     [...cvaTags.flavor].join('、'),
+      cvaAftertasteTags: [...cvaTags.aftertaste].join('、'),
+      cvaAcidityTags:    [...cvaTags.acidity].join('、'),
+      cvaMouthfeelTags:  [...cvaTags.mouthfeel].join('、'),
+      cvaAromaText:      getVal('cvtext-aroma'),
+      cvaFlavorText:     getVal('cvtext-flavor'),
+      cvaAftertasteText: getVal('cvtext-aftertaste'),
+      cvaAcidityText:    getVal('cvtext-acidity'),
+      cvaMouthfeelText:  getVal('cvtext-mouthfeel'),
+      cvaOverall:        getVal('cv-overall'),
+      cvaProfile:        selectedProfile,
+    });
+  } else {
+    const pre = t==='l' ? 'll' : 'ml';
+    Object.assign(entry, {
+      milkCheck: t==='l' ? document.getElementById('ls-milk').value : document.getElementById('ms-milk').value,
+      tapTds:   t==='l' ? document.getElementById(pre+'-tap-tds').value : '',
+      tdsAdj:   t==='l' ? document.getElementById(pre+'-tds-adj').value : '',
+      drinkTds: t==='l' ? document.getElementById(pre+'-drink-tds').value : '',
+      mgAdj:    t==='l' ? document.getElementById(pre+'-mg-adj').value : '',
+      grindAdj: t==='l' ? (document.getElementById('ll-grind-adj')?.value || '') : '',
+      grindNote:t==='l' ? (document.getElementById('ll-grind-note')?.value || '') : '',
+      tempAdj:  t==='l' ? (document.getElementById('ll-temp-adj')?.value  || '') : '',
+      tempNote: t==='l' ? (document.getElementById('ll-temp-note')?.value  || '') : '',
+      temp:  document.getElementById(pre+'-temp').value,
+      humid: document.getElementById(pre+'-humid').value,
+      wtemp: document.getElementById(pre+'-wtemp').value,
+      dose:  document.getElementById(pre+'-dose').value,
+      brewTime: document.getElementById(pre+'-time').value,
+      yield: document.getElementById(pre+'-yield').value,
+      ratio: document.getElementById(pre+'-ratio').value,
+      basket: ({bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto'})[document.getElementById(pre+'-basket').value] || '',
+      speed: (pre==='ll' && document.getElementById(pre+'-speed')) ? document.getElementById(pre+'-speed').value : '',
+      acid:  curStates[t].acid,
+      sweet: curStates[t].sweet,
+      dark:  curStates[t].dark,
+      status: curStates[t].status,
+      title:  curStates[t].title,
+      tags:   [...selTags[t]].join('、')||'—',
+    });
+  }
+
+  // local save
+  const logs = JSON.parse(localStorage.getItem('wl_logs')||'[]');
+  logs.unshift(entry);
+  localStorage.setItem('wl_logs', JSON.stringify(logs.slice(0,300)));
+
+  // send to sheets
+  const btn = document.getElementById('btn-'+t);
+  const toastEl = document.getElementById('toast-'+t);
+  if (scriptUrl) {
+    btn.classList.add('loading'); btn.textContent='傳送中…';
+    try {
+      const params = new URLSearchParams();
+      Object.entries(entry).forEach(([k,v]) => params.append(k, v??''));
+      await fetch(scriptUrl + '?' + params.toString(), { method:'GET', mode:'no-cors' });
+      showToast(toastEl, `已記錄並同步 Google Sheets！${staff} ${time}`, false);
+    } catch(e) {
+      showToast(toastEl, '本地已儲存，Google Sheets 同步失敗', true);
+    } finally {
+      btn.classList.remove('loading'); btn.textContent='送出記錄';
+    }
+  } else {
+    showToast(toastEl, `已儲存本地記錄！${staff} ${time}`, false);
+  }
+  document.getElementById(noteId).value = '';
+}
+
+// ── 玻璃盅密度換算 ─────────────────────────────────────
+function calcDensity() {
+  _calcDensityCore('dc-old-glass','dc-new-glass','dc-old-dose','dc-old-yield','dc-result','dc-ratio','dc-dose','dc-yield','dc-hint','dc-apply-btn');
+}
+function calcDensityL() {
+  _calcDensityCore('dcl-old-glass','dcl-new-glass','dcl-old-dose','dcl-old-yield','dcl-result','dcl-ratio','dcl-dose','dcl-yield','dcl-hint','dcl-apply-btn');
+}
+function _calcDensityCore(oldGlassId, newGlassId, oldDoseId, oldYieldId, resultId, ratioId, doseId, yieldId, hintId, btnId) {
+  const oldG  = parseFloat(document.getElementById(oldGlassId).value);
+  const newG  = parseFloat(document.getElementById(newGlassId).value);
+  const oldD  = parseFloat(document.getElementById(oldDoseId).value);
+  const oldY  = parseFloat(document.getElementById(oldYieldId).value);
+  const result = document.getElementById(resultId);
+  const btn    = document.getElementById(btnId);
+  if (!oldG || !newG || !oldD) { result.classList.remove('show'); btn.style.display='none'; return; }
+  const ratio    = newG / oldG;
+  const newDose  = Math.round(oldD * ratio * 10) / 10;
+  const newYield = oldY ? Math.round(oldY * ratio * 10) / 10 : null;
+  document.getElementById(ratioId).textContent = ratio.toFixed(3) + '（新豆密度為舊豆 ' + Math.round(ratio*100) + '%）';
+  document.getElementById(doseId).textContent  = newDose + ' g';
+  document.getElementById(yieldId).textContent = newYield ? newYield + ' g' : '—';
+  // 提示文字
+  var hints = [];
+  if (ratio > 1.1)       hints.push('⚠️ 新豆密度較高，粉餅阻力會增加，請將研磨度往粗調整。');
+  else if (ratio < 0.9)  hints.push('⚠️ 新豆密度較低，阻力減少，研磨可稍微調細。');
+  if (ratio > 1.15)      hints.push('📏 粉量增加超過 15%，建議同步調整萃取液重維持相同粉水比。');
+  if (ratio > 1.25)      hints.push('🚨 密度差距較大，建議先以此粉量為基準重新校正，調整幅度每次一個變數。');
+  document.getElementById(hintId).innerHTML = hints.join('<br>');
+  result.classList.add('show');
+  btn.style.display = 'block';
+  // 顯示自訂粉量區塊
+  const customPre = oldGlassId.startsWith('dcl') ? 'dcl' : 'dc';
+  const customSection = document.getElementById(customPre+'-custom-section');
+  if (customSection) customSection.style.display = 'block';
+}
+function calcCustomYield(t) {
+  const pre = t === 'm' ? 'dc' : 'dcl';
+  const oldDose  = parseFloat(document.getElementById(pre+'-old-dose').value);
+  const oldYield = parseFloat(document.getElementById(pre+'-old-yield').value);
+  const customDose = parseFloat(document.getElementById(pre+'-custom-dose').value);
+  const applyBtn = document.getElementById(pre+'-custom-apply-btn');
+  if (!oldDose || !oldYield || !customDose) {
+    document.getElementById(pre+'-custom-yield').value = '';
+    applyBtn.style.display = 'none';
+    return;
+  }
+  const ratio = oldYield / oldDose;
+  const suggestedYield = Math.round(customDose * ratio * 10) / 10;
+  document.getElementById(pre+'-custom-yield').value = suggestedYield + ' g';
+  applyBtn.style.display = 'block';
+}
+
+function applyCustomDose(t) {
+  const pre = t === 'm' ? 'dc' : 'dcl';
+  const dose  = document.getElementById(pre+'-custom-dose').value;
+  const yieldVal = document.getElementById(pre+'-custom-yield').value.replace(' g','');
+  if (t === 'm') {
+    if (dose)     { document.getElementById('ml-dose').value  = dose;     calcRatio('m'); }
+    if (yieldVal) { document.getElementById('ml-yield').value = yieldVal; calcRatio('m'); }
+  } else {
+    if (dose)     { document.getElementById('ll-dose').value  = dose;     calcRatio('l'); }
+    if (yieldVal) { document.getElementById('ll-yield').value = yieldVal; calcRatio('l'); }
+  }
+}
+
+function applyDensityCalc(t) {
+  if (t === 'm') {
+    const dose  = document.getElementById('dc-dose').textContent.replace(' g','');
+    const yield_ = document.getElementById('dc-yield').textContent.replace(' g','');
+    if (dose !== '—')  { document.getElementById('ml-dose').value  = dose;  calcRatio('m'); }
+    if (yield_ !== '—') { document.getElementById('ml-yield').value = yield_; calcRatio('m'); }
+  } else {
+    const dose  = document.getElementById('dcl-dose').textContent.replace(' g','');
+    const yield_ = document.getElementById('dcl-yield').textContent.replace(' g','');
+    if (dose !== '—')  { document.getElementById('ll-dose').value  = dose;  calcRatio('l'); }
+    if (yield_ !== '—') { document.getElementById('ll-yield').value = yield_; calcRatio('l'); }
+  }
+}
+
+function showToast(el, msg, isErr) {
+  el.textContent = msg;
+  el.className = 'toast '+(isErr?'err':'ok');
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none', 3000);
+}
+
+// ── Log ───────────────────────────────────────────────────────────
+
+function filterLog(f) {
+  logFilter = f;
+  ['all','light','medium','pour'].forEach(k => {
+    const btn = document.getElementById('lf-'+k);
+    if (!btn) return;
+    const active = k===f;
+    btn.style.background = active?'#1a1a1a':'#fff';
+    btn.style.color = active?'#fff':'#666';
+    btn.style.borderColor = active?'#1a1a1a':'#DDD';
+  });
+  renderLog();
+}
+
+async function syncFromSheets() {
+  // 直欄版：透過 GAS Script URL 讀取（需在設定頁填入 Script URL）
+  const btn = document.getElementById('btn-sync');
+  const st  = document.getElementById('sync-status');
+  if (!scriptUrl) {
+    st.style.display='block';
+    st.innerHTML = '⚠️ 請先在「設定」頁填入 Script URL 才能從雲端讀取。';
+    return;
+  }
+  btn.textContent='讀取中…'; btn.style.opacity='0.6'; btn.style.pointerEvents='none';
+  st.style.display='block'; st.textContent='正在從 Google Sheets 讀取…';
+  try {
+    const res  = await fetch(scriptUrl + '?action=read');
+    const data = await res.json();
+    sheetsLogs = data.records || [];
+    const ts = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+    st.textContent = '✓ 已從雲端更新 ' + sheetsLogs.length + ' 筆記錄（' + ts + '）';
+    renderLog();
+  } catch(e) {
+    st.innerHTML = '⚠️ 讀取失敗。請確認 Script URL 已設定且已重新部署。<br><small style="color:#888">' + e.message + '</small>';
+  }
+  btn.textContent='↓ 從雲端更新'; btn.style.opacity=''; btn.style.pointerEvents='';
+}
+async function syncFromSheets_OLD() {
+  const SHEET_ID = '1gLEtvPnYX4MFlTAbknweRhTlg1rIb7bYVNjUw662RKo';
+  const btn = document.getElementById('btn-sync');
+  const st  = document.getElementById('sync-status');
+  btn.textContent='讀取中…'; btn.style.opacity='0.6'; btn.style.pointerEvents='none';
+  st.style.display='block'; st.textContent='正在從 Google Sheets 讀取…';
+
+  const sheetMap = [
+    {name:'淺焙SOE', type:'light'},
+    {name:'中焙SOE', type:'medium'},
+    {name:'手沖',    type:'pour'}
+  ];
+
+  try {
+    const allRecords = [];
+    for (const {name, type} of sheetMap) {
+      const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+        '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(name);
+      const res  = await fetch(url);
+      const text = await res.text();
+      const match = text.match(/setResponse\(([\s\S]*)\)/);
+      if (!match) continue;
+      const data = JSON.parse(match[1]);
+      if (!data.table) continue;
+      const headers = data.table.cols.map(c => c.label);
+      for (const row of (data.table.rows || [])) {
+        if (!row || !row.c) continue;
+        const obj = {type};
+        headers.forEach((h, i) => {
+          const cell = row.c[i];
+          // 用 formatted value 優先（時間欄位才正確）
+          obj[h] = cell ? String(cell.f ?? cell.v ?? '') : '';
+        });
+        obj.ts       = obj['時間']   || '';
+        obj.staff    = obj['夥伴']   || '';
+        obj.time     = obj['時段']   || '';
+        obj.temp     = obj['氣溫℃']  || '';
+        obj.humid    = obj['濕度%']  || '';
+        obj.wtemp    = obj['水溫℃']  || '';
+        obj.beanName = obj['豆名']   || '';
+        obj.batchNo  = obj['批次']   || '';
+        obj.note     = obj['備注']   || '';
+        if (type === 'pour') {
+          obj.grind    = obj['研磨刻度']   || '';
+          obj.cvaTotal = obj['CVA整體印象'] || '';
+          obj.title    = '手沖記錄';
+          obj.status   = 'good';
+        } else {
+          obj.acid     = obj['酸值%']        || '';
+          obj.sweet    = obj['甜感%']        || '';
+          obj.dark     = obj['深調%']        || '';
+          obj.dose     = obj['粉量g']        || '';
+          obj.brewTime = obj['萃取秒']       || '';
+          obj.ratio    = obj['Espresso比例'] || '';
+          obj.basket   = obj['Basket']       || '';
+          obj.speed    = obj['轉速']         || '';
+          const statusMap = {good:'均衡 — 符合目標', warn:'需調整', bad:'需調整', crit:'嚴重需調整'};
+          obj.status = obj['狀態'] || 'good';
+          obj.title  = statusMap[obj['狀態']] || obj['狀態'] || '記錄';
+          obj.tags   = obj['標籤'] || '';
+        }
+        allRecords.push(obj);
+      }
+    }
+    sheetsLogs = allRecords;
+    const ts = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+    st.textContent = '✓ 已從雲端更新 ' + sheetsLogs.length + ' 筆記錄（' + ts + '）';
+    renderLog();
+  } catch(e) {
+    st.innerHTML = '⚠️ 讀取失敗。<br><small style="color:#888">' + e.message + '</small>';
+  }
+  btn.textContent='↓ 從雲端更新'; btn.style.opacity=''; btn.style.pointerEvents='';
+}
+
+function renderLog() {
+  const all = JSON.parse(localStorage.getItem('wl_logs')||'[]');
+  const filtered = logFilter==='all' ? all : all.filter(e=>e.type===logFilter);
+  const list = document.getElementById('log-list');
+  if (!filtered.length) { list.innerHTML='<div class="log-empty">尚無本機記錄</div>'; return; }
+  const typeLabel = {light:'淺焙 SOE', medium:'中焙 SOE', pour:'手沖'};
+  list.innerHTML = filtered.map(e => {
+    const status = e.status||'good';
+    const detailParts = e.type==='pour'
+      ? [`CVA ${e.cvaTotal||'?'}/60`, e.grind?`刻度 ${e.grind}`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:''].filter(Boolean)
+      : [e.acid?`酸 ${e.acid}%`:'', e.sweet?`甜 ${e.sweet}%`:'', e.dark?`深 ${e.dark}%`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:'', e.dose?`粉 ${e.dose}g`:'', e.brewTime?`${e.brewTime}s`:'', e.yield?`液重 ${e.yield}g`:'', e.ratio?`比例 ${e.ratio}`:'', e.basket?`[${e.basket}]`:'', e.speed?`${e.speed}`:''].filter(Boolean);
+    return `<div class="log-row">
+      <div class="log-dot ${status}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="log-meta">
+          <span class="log-type ${e.type}">${typeLabel[e.type]||e.type}</span>
+          ${e.ts||''}　${e.staff||''}　${e.time||''}
+        </div>
+        <div class="log-main">${e.title||'手沖記錄'}</div>
+        <div class="log-detail">${detailParts.join('　')}${e.note?' ／ '+e.note:''}</div>
+        ${e.beanName?`<div style="font-size:11px;color:#AAA;margin-top:2px">${e.beanName}${e.batchNo?' · '+e.batchNo:''}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Config ────────────────────────────────────────────────────────
+// ── Water Quality Advisory ────────────────────────────────────────
+// 水系統架構：
+//   原水 + 中空絲膜（原水TDS）
+//   NF膜（20–30 TDS）
+//   → 兩路混合 → 飲用水 A（末端TDS目標50–60）
+//   → A 經鎂離子交換濾心 → 沖煮水 B（鎂離子釋放依賴A中的鈣）
+//
+// 核心機制：
+//   自來水TDS↑ → 順時針增加NF比例 → A中鈣↓
+//   → 交換濾心燃料不足 → B的鎂離子↓ → 萃取力↓ → 液重需補償
+//
+//   自來水TDS↓ → A中鈣本身就少 → B的鎂離子也↓
+//   → 主動調高濾心出鎂量補強 → 液重維持30g
+
+function calcWaterAdvisory(t) {
+  const tapEl   = document.getElementById('ll-tap-tds');
+  const drinkEl = document.getElementById('ll-drink-tds');
+  const bodyEl  = document.getElementById('wac-body-l');
+  if (!tapEl || !bodyEl) return;
+
+  const tapTDS   = parseFloat(tapEl.value);
+  const drinkTDS = parseFloat(drinkEl ? drinkEl.value : NaN);
+
+  if (isNaN(tapTDS)) { bodyEl.innerHTML=''; return; }
+
+  const MIN_YIELD = 30;
+  let zone, zoneIcon, zoneBg;
+  let valveHtml, mgHtml, yieldHtml, reasonHtml;
+
+  if (tapTDS >= 140) {
+    // ── 高 TDS 區 ──────────────────────────────────────────────
+    // 自來水濃 → 增加NF比例才能把飲用水A壓回50–60
+    // 但NF大量過濾鈣 → A中鈣↓ → 鎂交換濾心燃料不足 → 沖煮水B鎂↓ → 萃取力↓
+    zone = '高 TDS 區'; zoneIcon = '🔴'; zoneBg = '#FFF8E0';
+    const steps = Math.max(0, Math.floor((tapTDS - 120) / 20));
+    const extraYield = steps * 2;
+    const recYield = MIN_YIELD + extraYield;
+
+    valveHtml  = `<span class="step-desc act">針閥<b>順時針</b>轉，增加 NF 純水比例，把飲用水 A 的 TDS 調回 50–60</span>`;
+    mgHtml     = `<span class="step-desc act-w">⚠️ NF 比例增加 → 飲用水 A 中鈣離子減少 → 鎂離子交換濾心「燃料不足」→ 沖煮水 B 的鎂離子自動減少。<b>無需手動調整濾心</b>，但需靠液重補償。</span>`;
+    yieldHtml  = `<span class="step-desc ${extraYield>0?'act':''}">建議液重 <b>${recYield}g</b>` +
+                 (extraYield>0 ? `（鎂↓ 補償 +${extraYield}g，靠體積延長萃取換回厚度）` : `（正常）`) + `</span>`;
+    reasonHtml = `<div style="margin-top:8px;padding:9px 11px;background:#FFF3E0;border-radius:10px;font-size:11px;color:#7A4800;line-height:1.7">
+      <b>為什麼要加液重？</b><br>
+      NF 膜大量阻擋鈣鎂 → A 鈣↓ → 鎂交換濾心釋出量↓ → B 鎂↓ → 每克水的萃取力下降。<br>
+      多流 ${extraYield}g 水 = 用更多溶劑體積補回萃取總量，保住 SOE 的厚度與甜感結構。
+    </div>`;
+
+    const yEl = document.getElementById('ll-yield');
+    if (yEl && (yEl.dataset.autoFilled==='1' || !yEl.value)) {
+      yEl.value = recYield; yEl.dataset.autoFilled='1';
+      calcRatio('l');
+    }
+
+  } else if (tapTDS < 120) {
+    // ── 低 TDS 區 ──────────────────────────────────────────────
+    // 自來水本身就軟 → A 中鈣天然偏少 → 鎂交換濾心燃料同樣不足
+    // 對策：逆時針減少NF比例（讓更多原水進來），主動調高濾心出鎂量
+    zone = '低 TDS 區'; zoneIcon = '🟡'; zoneBg = '#EAF5E0';
+    const deficit = Math.floor((120 - tapTDS) / 20);
+    const mgDial = (deg, color) => `<svg width="28" height="28" viewBox="0 0 28 28" style="vertical-align:middle;margin-right:5px;flex-shrink:0"><circle cx="14" cy="14" r="11" fill="none" stroke="#DDD" stroke-width="2"/><line x1="14" y1="14" x2="14" y2="4" stroke="#CCC" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/><line x1="14" y1="14" x2="${14 + 10*Math.sin(deg*Math.PI/180)}" y2="${14 - 10*Math.cos(deg*Math.PI/180)}" stroke="${color}" stroke-width="2.2" stroke-linecap="round"/><circle cx="14" cy="14" r="2.5" fill="${color}"/></svg>`;
+    const mgLevel = deficit >= 2
+      ? `<span style="display:flex;align-items:center">${mgDial(135,'#C0392B')}顯著增加（順時針約 135 度，3/4 圈的 75%）</span>`
+      : deficit === 1
+      ? `<span style="display:flex;align-items:center">${mgDial(45,'#D4A017')}小幅增加（順時針 45 度）</span>`
+      : `<span style="display:flex;align-items:center">${mgDial(22,'#3B8B50')}微增（順時針約 22 度，45 度的一半）</span>`;
+
+    valveHtml  = `<span class="step-desc act">針閥<b>逆時針</b>轉，減少 NF 比例，讓更多原水進入飲用水 A，補充天然鈣離子</span>`;
+    mgHtml     = `<span class="step-desc act">主動調高鎂離子交換濾心出鎂量：${mgLevel}<br><span style="font-size:11px;color:#3A7A18">原水鈣本身就少 → 濾心交換量不足 → 需手動補強出鎂量，維持沖煮水 B 的萃取力</span><br><span style="font-size:11px;color:#888;font-style:italic">※ 最後以感官為準，鎂離子過多可能導致黏舌感</span></span>`;
+    yieldHtml  = `<span class="step-desc">液重維持 <b>30g</b>（鎂離子補強後萃取力回復，不需增加液重）</span>`;
+    reasonHtml = `<div style="margin-top:8px;padding:9px 11px;background:#E0F2EB;border-radius:10px;font-size:11px;color:#1A5C3A;line-height:1.7">
+      <b>為什麼要調濾心而非加液重？</b><br>
+      低 TDS 原水鈣少是「根源」，從源頭補鎂（調高濾心出鎂量）比加液重更精準，不會稀釋濃度。液重 30g 是底線，鎂補到位就不需要犧牲濃度感。
+    </div>`;
+
+    const yEl = document.getElementById('ll-yield');
+    if (yEl && yEl.dataset.autoFilled==='1') {
+      yEl.value = 30; yEl.dataset.autoFilled='1';
+      calcRatio('l');
+    }
+
+  } else {
+    // ── 正常區 120–139 ─────────────────────────────────────────
+    zone = '正常區'; zoneIcon = '🟢'; zoneBg = '#F2F0EB';
+    valveHtml  = `<span class="step-desc">針閥維持現有設定，無需調整</span>`;
+    mgHtml     = `<span class="step-desc">鎂離子交換濾心維持基準設定</span>`;
+    yieldHtml  = `<span class="step-desc">液重維持 <b>30g</b></span>`;
+    reasonHtml = '';
+
+    const yEl = document.getElementById('ll-yield');
+    if (yEl && yEl.dataset.autoFilled==='1') {
+      yEl.value = 30; yEl.dataset.autoFilled='1';
+      calcRatio('l');
+    }
+  }
+
+  // ── 飲用水 A 的 TDS 核對 ──────────────────────────────────────
+  let drinkCheck = '';
+  if (!isNaN(drinkTDS)) {
+    if (drinkTDS > 65) {
+      drinkCheck = `<div style="margin-top:8px;padding:9px 11px;background:#FDECEA;border-radius:10px;font-size:12px;color:#A32020">
+        ⚠️ 飲用水 A TDS <b>${drinkTDS}</b> 仍偏高。繼續順時針轉針閥，目標 50–60。
+      </div>`;
+    } else if (drinkTDS >= 50 && drinkTDS <= 60) {
+      drinkCheck = `<div style="margin-top:8px;padding:9px 11px;background:#EAF5E0;border-radius:10px;font-size:12px;color:#2E6B10">
+        ✓ 飲用水 A TDS <b>${drinkTDS}</b>　目標區間 50–60 達標。
+      </div>`;
+    } else if (drinkTDS > 60 && drinkTDS <= 65) {
+      drinkCheck = `<div style="margin-top:8px;padding:9px 11px;background:#FFF8E0;border-radius:10px;font-size:12px;color:#7A5500">
+        飲用水 A TDS <b>${drinkTDS}</b> 略高，順時針再微調針閥。
+      </div>`;
+    } else if (drinkTDS < 45) {
+      drinkCheck = `<div style="margin-top:8px;padding:9px 11px;background:#FFF8E0;border-radius:10px;font-size:12px;color:#7A5500">
+        飲用水 A TDS <b>${drinkTDS}</b> 偏低，逆時針微調針閥，減少 NF 比例。
+      </div>`;
+    } else {
+      drinkCheck = `<div style="margin-top:8px;padding:9px 11px;background:#F8F6F3;border-radius:10px;font-size:12px;color:#888">
+        飲用水 A TDS <b>${drinkTDS}</b>（目標 50–60）
+      </div>`;
+    }
+  }
+
+  bodyEl.innerHTML = `
+    <div style="background:${zoneBg};border-radius:12px;padding:13px 14px">
+      <div style="font-size:12px;font-weight:700;color:#555;letter-spacing:.04em;margin-bottom:11px">
+        ${zoneIcon} ${zone}　自來水 TDS：<b style="color:#1a1a1a;font-size:14px">${tapTDS}</b>
+      </div>
+      <div class="step-row">
+        <div class="step-num">1</div>
+        <div><div class="step-title">針閥方向</div>${valveHtml}</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">2</div>
+        <div><div class="step-title">鎂離子交換濾心</div>${mgHtml}</div>
+      </div>
+      <div class="step-row" style="margin-bottom:0">
+        <div class="step-num">3</div>
+        <div><div class="step-title">建議液重</div>${yieldHtml}</div>
+      </div>
+    </div>
+    ${reasonHtml}
+    ${drinkCheck}
+    <div id="wac-history-l" style="margin-top:8px;padding:10px 12px;background:#F8F6F3;border-radius:10px;font-size:11px;color:#BBB">${scriptUrl ? '📊 歷史比對載入中…' : '📊 設定 Script URL 後可顯示歷史比對'}</div>
+  `;
+
+  // 非同步載入歷史比對（debounced）
+  clearTimeout(window._wacHistoryTimer);
+  if (scriptUrl) {
+    window._wacHistoryTimer = setTimeout(() => fetchWaterHistory(tapTDS), 800);
+  }
+}
+
+// ── Pour-Over Forecast ───────────────────────────────────────────
+// Hario Neo+Switch：基準 1:30 開閥（浸泡 50 秒），可調 ±10 秒
+
+let pourForecastState = null; // 存放上次 SOE 狀態給手沖頁使用
+
+function calcPourForecast(s) {
+  // 儲存狀態供手沖頁讀取
+  pourForecastState = s;
+
+  // ── 更新淺焙 SOE 頁的快速預覽卡片 ────────────────────────────
+  const card = document.getElementById('pour-forecast-card');
+  const body = document.getElementById('pour-forecast-body');
+  if (card && body) {
+    if (s.status !== 'good') {
+      card.style.display = 'none';
+    } else {
+      card.style.display = 'block';
+      const grindAdj  = document.getElementById('ll-grind-adj')?.value || '不動';
+      const grindNote = document.getElementById('ll-grind-note')?.value || '';
+      const tempAdj   = document.getElementById('ll-temp-adj')?.value  || '不動';
+      const tempNote  = document.getElementById('ll-temp-note')?.value  || '';
+      const humid = s.humid || 0;
+      const humidNote = humid >= 80
+        ? `<br><span style="font-size:11px;color:#8A4800">⚠️ 濕度 ${humid}%：粉層結塊風險，建議延長浸泡觀察流速。</span>`
+        : humid >= 70 ? `<br><span style="font-size:11px;color:#888">濕度 ${humid}%，粉層略結實，研磨可在建議基礎稍往粗調。</span>` : '';
+
+      const extractionLow  = grindAdj === '調細' || tempAdj === '升溫';
+      const extractionHigh = grindAdj === '調粗' || tempAdj === '降溫';
+      let headerBg, headerColor, headerText, adjRows;
+
+      if (!extractionLow && !extractionHigh) {
+        headerBg='#EAF5E0'; headerColor='#2E6B10';
+        headerText='✅ 義式均衡，研磨/水溫不動 — 手沖維持基準';
+        adjRows=[['研磨刻度','維持基準刻度（依玻璃盅換算）',''],['水溫','維持 82°C',''],['浸泡時間','開閥維持 1:30（標準）',''],['注水節奏','維持三段節奏','']];
+      } else if (extractionLow) {
+        const parts=[];
+        if (grindAdj==='調細') parts.push(`研磨調細${grindNote?'（'+grindNote+'）':''}`);
+        if (tempAdj==='升溫')  parts.push(`水溫升溫${tempNote?'（'+tempNote+'）':''}`);
+        headerBg='#FFF8E0'; headerColor='#7A5500';
+        headerText=`⬆️ 萃取率偏低（${parts.join('、')}）— 手沖提升萃取`;
+        adjRows=[['微調 — 浸泡時間','延長浸泡 +10 秒 → 開閥改為 1:40','act'],['大調備選 — 研磨刻度','義式大幅調整時：Molar 刻度往下 0.1 格','act-w'],['大調備選 — 水溫','義式升溫幅度大時：手沖水溫 82 → 83°C','act-w'],['注水節奏','維持三段節奏，優先以浸泡時間微調','']];
+      } else {
+        const parts=[];
+        if (grindAdj==='調粗') parts.push(`研磨調粗${grindNote?'（'+grindNote+'）':''}`);
+        if (tempAdj==='降溫')  parts.push(`水溫降溫${tempNote?'（'+tempNote+'）':''}`);
+        headerBg='#FFF8E0'; headerColor='#7A5500';
+        headerText=`⬇️ 萃取率偏高（${parts.join('、')}）— 手沖降低萃取`;
+        adjRows=[['微調 — 浸泡時間','縮短浸泡 -10 秒 → 開閥改為 1:20','act'],['大調備選 — 研磨刻度','義式大幅調整時：Molar 刻度往上 0.1 格','act-w'],['大調備選 — 水溫','義式降溫幅度大時：手沖水溫 82 → 81°C','act-w'],['注水節奏','維持三段節奏，優先以浸泡時間微調','']];
+      }
+
+      const renderRows = rows => rows.map(([title, desc, cls], i) => `
+        <div class="step-row" style="margin-bottom:8px">
+          <div class="step-num" style="background:${cls==='act'?'#3B6E30':cls==='act-w'?'#8A6000':'#CCC'};color:#fff">${i+1}</div>
+          <div><div class="step-title">${title}</div><span class="step-desc ${cls}">${desc}</span></div>
+        </div>`).join('');
+
+      body.innerHTML = `
+        <div style="padding:11px 13px;background:${headerBg};border-radius:10px;font-size:12px;font-weight:600;color:${headerColor};margin-bottom:12px;line-height:1.7">
+          ${headerText}${humidNote}
+        </div>
+        ${renderRows(adjRows)}
+        <div style="margin-top:10px;padding:9px 11px;background:#F8F6F3;border-radius:9px;font-size:11px;color:#888;line-height:1.7">
+          💡 義式（9 bar）靈敏度約為手沖的 3–5 倍。義式每調 1 格，手沖約 1/3 格。<b>微調優先，感官確認後再大調。</b>
+        </div>`;
+    }
+  }
+
+  // ── 同步更新手沖頁的 SOE 連動建議卡片 ──────────────────────────
+  renderPourSoeForecast();
+}
+
+function renderPourSoeForecast() {
+  const soeBody = document.getElementById('pour-soe-body');
+  const soeSub  = document.getElementById('pour-soe-sub');
+  if (!soeBody) return;
+
+  const s = pourForecastState;
+  if (!s) {
+    soeBody.innerHTML = '<div style="font-size:12px;color:#AAA;font-style:italic;padding:4px 0">請先完成淺焙 SOE 校正，系統將自動推算手沖建議。</div>';
+    if (soeSub) soeSub.textContent = '根據今日淺焙 SOE 校正自動更新';
+    return;
+  }
+
+  if (s.status !== 'good') {
+    if (soeSub) soeSub.textContent = '淺焙 SOE 尚未達到均衡';
+    soeBody.innerHTML = `<div style="padding:10px 12px;background:#FFF8E0;border-radius:10px;font-size:12px;color:#7A5500;line-height:1.7">
+      ⚠️ 淺焙 SOE 尚未校正至均衡狀態（${s.title || ''}）<br>
+      <span style="font-size:11px;color:#888">請先完成義式校正，手沖建議將在均衡後自動推算。</span>
+    </div>`;
+    return;
+  }
+
+  const grindAdj  = document.getElementById('ll-grind-adj')?.value || '不動';
+  const grindNote = document.getElementById('ll-grind-note')?.value || '';
+  const tempAdj   = document.getElementById('ll-temp-adj')?.value  || '不動';
+  const tempNote  = document.getElementById('ll-temp-note')?.value  || '';
+  const humid = s.humid || 0;
+
+  const extractionLow  = grindAdj === '調細' || tempAdj === '升溫';
+  const extractionHigh = grindAdj === '調粗' || tempAdj === '降溫';
+
+  let headerBg, headerColor, headerText, rows, valveMode;
+
+  if (!extractionLow && !extractionHigh) {
+    headerBg='#EAF5E0'; headerColor='#2E6B10'; valveMode='normal';
+    headerText='✅ 義式均衡，研磨/水溫不動';
+    rows=[['研磨刻度','維持基準刻度（依玻璃盅重量換算）',''],['水溫','維持 82°C',''],['浸泡時間','開閥維持 1:30（標準，浸泡 50 秒）',''],['注水節奏','維持三段注水節奏','']];
+    if (soeSub) soeSub.textContent = '✅ 淺焙 SOE 均衡 — 手沖維持基準';
+  } else if (extractionLow) {
+    const parts=[];
+    if (grindAdj==='調細') parts.push(`研磨調細${grindNote?'（'+grindNote+'）':''}`);
+    if (tempAdj==='升溫')  parts.push(`水溫升溫${tempNote?'（'+tempNote+'）':''}`);
+    headerBg='#FFF8E0'; headerColor='#7A5500'; valveMode='micro-up';
+    headerText=`⬆️ 萃取率偏低（${parts.join('、')}）— 手沖建議提升萃取`;
+    rows=[
+      ['微調優先 — 浸泡時間','延長浸泡 +10 秒 → 開閥改為 1:40（讓粉層多吸水 10 秒）','act'],
+      ['大調備選 — 研磨刻度','義式調整幅度大時：Molar 刻度往細 0.1 格','act-w'],
+      ['大調備選 — 水溫','義式升溫幅度大時：手沖水溫 82°C → 83°C','act-w'],
+      ['注水節奏','維持三段節奏，以浸泡時間為主要調整手段',''],
+    ];
+    if (soeSub) soeSub.textContent = '⬆️ 淺焙 SOE 萃取偏低 — 建議延長浸泡';
+  } else {
+    const parts=[];
+    if (grindAdj==='調粗') parts.push(`研磨調粗${grindNote?'（'+grindNote+'）':''}`);
+    if (tempAdj==='降溫')  parts.push(`水溫降溫${tempNote?'（'+tempNote+'）':''}`);
+    headerBg='#FFF8E0'; headerColor='#7A5500'; valveMode='micro-down';
+    headerText=`⬇️ 萃取率偏高（${parts.join('、')}）— 手沖建議降低萃取`;
+    rows=[
+      ['微調優先 — 浸泡時間','縮短浸泡 -10 秒 → 開閥改為 1:20（提早結束萃取）','act'],
+      ['大調備選 — 研磨刻度','義式調整幅度大時：Molar 刻度往粗 0.1 格','act-w'],
+      ['大調備選 — 水溫','義式降溫幅度大時：手沖水溫 82°C → 81°C','act-w'],
+      ['注水節奏','維持三段節奏，以浸泡時間為主要調整手段',''],
+    ];
+    if (soeSub) soeSub.textContent = '⬇️ 淺焙 SOE 萃取偏高 — 建議縮短浸泡';
+  }
+
+  if (humid >= 80) headerText += `<br><span style="font-size:11px;font-weight:400">⚠️ 濕度 ${humid}%：粉層結塊風險，注水確保均勻。</span>`;
+  else if (humid >= 70) headerText += `<br><span style="font-size:11px;font-weight:400">濕度 ${humid}%，粉層略結實，注意注水均勻度。</span>`;
+
+  const renderRows = rows => rows.map(([title, desc, cls], i) => `
+    <div class="step-row" style="margin-bottom:8px">
+      <div class="step-num" style="background:${cls==='act'?'#3B6E30':cls==='act-w'?'#8A6000':'#CCC'};color:#fff">${i+1}</div>
+      <div><div class="step-title">${title}</div><span class="step-desc ${cls}">${desc}</span></div>
+    </div>`).join('');
+
+  soeBody.innerHTML = `
+    <div style="padding:11px 13px;background:${headerBg};border-radius:10px;font-size:12px;font-weight:600;color:${headerColor};margin-bottom:12px;line-height:1.7">
+      ${headerText}
+    </div>
+    ${renderRows(rows)}
+    <div style="margin-top:10px;padding:9px 11px;background:#F8F6F3;border-radius:9px;font-size:11px;color:#888;line-height:1.7">
+      💡 義式（9 bar）靈敏度約為手沖的 3–5 倍。<b>微調優先，感官確認後再大調。</b>
+    </div>`;
+
+  updateValveTime(valveMode);
+}
+
+function updateValveTime(mode) {
+  const el = document.getElementById('ph-valve-time');
+  if (!el) return;
+  if (mode === 'micro-up') {
+    el.innerHTML = '1:40&emsp;開閥結束萃取<span style="font-size:10px;font-weight:400;color:#C4862A;margin-left:8px">（延長 +10 秒）</span>';
+  } else if (mode === 'micro-down') {
+    el.innerHTML = '1:20&emsp;開閥結束萃取<span style="font-size:10px;font-weight:400;color:#C4862A;margin-left:8px">（縮短 -10 秒）</span>';
+  } else {
+    el.innerHTML = '1:30&emsp;開閥結束萃取<span style="font-size:10px;font-weight:400;color:#888;margin-left:8px">（標準）</span>';
+  }
+}
+
+// ── 研磨刻度換算（玻璃盅重量 → Molar #）────────────────────────────
+// 公式：Molar# = 4.0 + (17.4 - 重量) × 0.143
+// 資料來源：6 個豆款的實際使用記錄
+function calcMolarGrind() {
+  const glass = parseFloat(document.getElementById('ph-glass').value);
+  const resultEl  = document.getElementById('ph-grind-result');
+  const iceEl     = document.getElementById('ph-grind-ice');
+  const detailEl  = document.getElementById('ph-grind-detail');
+  const formulaEl = document.getElementById('ph-grind-formula');
+  const iceFormEl = document.getElementById('ph-grind-ice-formula');
+  const hintEl    = document.getElementById('ph-grind-hint');
+  if (isNaN(glass) || glass <= 0) {
+    resultEl.value = '';
+    if (iceEl) iceEl.value = '';
+    if (detailEl) detailEl.style.display = 'none';
+    return;
+  }
+  // 熱手沖：4.0 + (17.4 - 重量) × 0.143
+  const rawHot  = 4.0 + (17.4 - glass) * 0.143;
+  const hot     = Math.round(rawHot * 10) / 10;
+  // 冰手沖：3.0 + (17.4 - 重量) × 0.294
+  const rawIce  = 3.0 + (17.4 - glass) * 0.294;
+  const ice     = Math.round(rawIce * 10) / 10;
+  resultEl.value = '# ' + hot.toFixed(1);
+  if (iceEl) iceEl.value = '# ' + ice.toFixed(1);
+  if (formulaEl) formulaEl.textContent = `熱手沖 # ${hot.toFixed(1)}　（4.0 + (17.4 − ${glass}) × 0.143 = ${rawHot.toFixed(2)}）`;
+  if (iceFormEl) iceFormEl.textContent = `冰手沖 # ${ice.toFixed(1)}　（3.0 + (17.4 − ${glass}) × 0.294 = ${rawIce.toFixed(2)}）`;
+  const zone = glass >= 16.5 ? '高密度（衣索比亞型），熱手沖偏細保留萃取率'
+             : glass >= 15.5 ? '中密度（肯亞/巴拿馬型），研磨中間值'
+             :                  '低密度（哥倫比亞型），研磨偏粗以免過萃';
+  if (hintEl) hintEl.textContent = zone;
+  if (detailEl) detailEl.style.display = 'block';
+}
+
+// ── Bean History Comparison ───────────────────────────────────────
+async function fetchBeanHistory(t, beanName, batchNo) {
+  const cardEl = document.getElementById('bean-history-card-'+t);
+  const subEl  = document.getElementById('bean-history-sub-'+t);
+  const bodyEl = document.getElementById('bean-history-body-'+t);
+  if (!cardEl || !bodyEl) return;
+
+  cardEl.style.display = 'block';
+  if (subEl) subEl.textContent = batchNo ? `批次 ${batchNo}` : beanName;
+  bodyEl.innerHTML = `<div style="font-size:12px;color:#BBB;padding:4px 0">載入中…</div>`;
+
+  const typeKey = t === 'l' ? 'light' : 'medium';
+
+  const matchBean = r => {
+    if (r.type !== typeKey) return false;
+    if ((r.beanName||'').trim() !== beanName.trim()) return false;
+    if (batchNo) return (r.batchNo||'').trim() === batchNo.trim();
+    return true;
+  };
+
+  // ── 1. 本機記錄（wl_logs，不需網路）────────────────────────────
+  const localAll = JSON.parse(localStorage.getItem('wl_logs') || '[]');
+  let combined = localAll.filter(matchBean);
+
+  // ── 2. Sheets 補充（有 scriptUrl 才嘗試，失敗不影響本機顯示）──
+  if (scriptUrl) {
+    try {
+      const res  = await fetch(scriptUrl + '?action=read');
+      const data = await res.json();
+      const sheetMatched = (data.records || []).filter(matchBean);
+      const localKeys = new Set(combined.map(r => r.ts));
+      sheetMatched.forEach(r => { if (!localKeys.has(r.ts)) combined.push(r); });
+    } catch(e) { /* Sheets 失敗不影響本機 */ }
+  }
+
+  combined.sort((a, b) => new Date(a.ts) - new Date(b.ts));
+
+  if (!combined.length) {
+    window._pourHistoryGoodCount = 0;
+    bodyEl.innerHTML = `<div style="font-size:12px;color:#AAA;font-style:italic">尚無這批豆的歷史記錄，送出第一筆後開始追蹤。</div>`;
+    return;
+  }
+
+  const goodRecords = combined.filter(r => r.status === 'good');
+  window._pourHistoryGoodCount = goodRecords.length;
+
+  const matched = combined; // 保持下方程式碼相容
+
+    const last = matched[matched.length - 1];
+    const total = matched.length;
+
+    // ── Sparkline：酸 / 甜 / 深 趨勢 ────────────────────────────
+    const recent = matched.slice(-12);
+    const statusColor = s => s==='good'?'#3B8B50':s==='warn'?'#D4A017':'#C0392B';
+
+    const sparkRow = (values, color, label) => {
+      const nums = values.map(v => parseFloat(v)||0);
+      const max = Math.max(...nums, 1);
+      return `<div style="display:flex;align-items:flex-end;gap:2px;margin-bottom:3px">
+        <span style="font-size:10px;color:#AAA;width:22px;flex-shrink:0">${label}</span>
+        ${nums.map((v,i) => {
+          const h = Math.round(4 + (v/max)*16);
+          const isLast = i === nums.length-1;
+          return `<span title="${recent[i]?.ts?.slice(5,10)||''} ${label} ${v}%" style="display:inline-block;width:10px;height:${h}px;background:${color};border-radius:2px 2px 0 0;vertical-align:bottom;opacity:${isLast?1:0.5};${isLast?'outline:2px solid #1a1a1a;outline-offset:-1px':''}"></span>`;
+        }).join('')}
+      </div>`;
+    };
+
+    const acids  = recent.map(r => r.acid||'0');
+    const sweets = recent.map(r => r.sweet||'0');
+    const darks  = recent.map(r => r.dark||'0');
+    const yields = recent.map(r => r.yield||r.咖啡液重g||'—');
+    const tapTdsList = recent.map(r => r.tapTds||'—');
+
+    // ── 上一筆 vs 近期平均 ────────────────────────────────────────
+    const avg = arr => {
+      const nums = arr.map(v=>parseFloat(v)).filter(v=>!isNaN(v));
+      return nums.length ? (nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(1) : '—';
+    };
+    const avgAcid  = avg(matched.slice(-5).map(r=>r.acid));
+    const avgSweet = avg(matched.slice(-5).map(r=>r.sweet));
+    const avgDark  = avg(matched.slice(-5).map(r=>r.dark));
+    const avgYield = avg(matched.slice(-5).map(r=>r.yield||r.咖啡液重g));
+    const avgTime  = avg(matched.slice(-5).map(r=>r.brewTime));
+
+    // ── 趨勢提示：上一筆 status ──────────────────────────────────
+    const lastStatus = last.status || 'good';
+    const statusLabel = {'good':'✅ 均衡','warn':'⚠️ 需調整','bad':'⚠️ 需調整','crit':'🚨 嚴重'}[lastStatus] || lastStatus;
+    const lastDate = (last.ts||'').slice(0,10)||'—';
+    const lastYield = last.yield || last['咖啡液重g'] || '—';
+    const lastTapTds = last.tapTds || '—';
+    const lastTags = last.tags && last.tags !== '—' ? last.tags : '';
+
+    // ── 連續趨勢警告（最近 3 筆同方向偏移）────────────────────────
+    let trendWarning = '';
+    if (matched.length >= 3) {
+      const last3 = matched.slice(-3);
+      const allWarnOrBad = last3.every(r => r.status === 'warn' || r.status === 'bad' || r.status === 'crit');
+      if (allWarnOrBad) {
+        trendWarning = `<div style="margin-top:8px;padding:9px 11px;background:#FDECEA;border-radius:8px;font-size:12px;color:#A32020">⚠️ 最近 3 筆連續需調整，建議確認研磨或豆況是否有系統性偏移。</div>`;
+      }
+    }
+
+    bodyEl.innerHTML = `
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:7px">近 ${recent.length} 筆趨勢</div>
+        <div style="padding:8px;background:#fff;border-radius:8px;border:1px solid #EEE">
+          ${sparkRow(acids,  '#F5C542', '酸')}
+          ${sparkRow(sweets, '#D4537E', '甜')}
+          ${sparkRow(darks,  '#6B3A2A', '深')}
+          <div style="display:flex;align-items:flex-end;gap:2px;margin-top:4px">
+            <span style="font-size:10px;color:#AAA;width:22px;flex-shrink:0">液重</span>
+            ${recent.map((r,i) => {
+              const v = parseFloat(r.yield||r['咖啡液重g'])||0;
+              const isLast = i===recent.length-1;
+              const col = v>30?'#D4A017':v===30?'#AAA':'#3B8B50';
+              return `<span title="${r.ts?.slice(5,10)||''} ${v}g" style="display:inline-block;width:10px;height:${Math.round(4+(Math.max(v-28,0)/6)*16)}px;background:${col};border-radius:2px 2px 0 0;vertical-align:bottom;opacity:${isLast?1:0.5};${isLast?'outline:2px solid #1a1a1a;outline-offset:-1px':''}"></span>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#F8F6F3;border-radius:10px;padding:11px 13px;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:8px">近 5 筆平均值</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px">
+          ${[['酸','#8A6200',avgAcid+'%'],['甜','#9B1A50',avgSweet+'%'],['深','#5A2E1A',avgDark+'%'],['液重','#2A7A5A',avgYield+'g'],['萃取秒','#555',avgTime+'s'],['共記錄','#AAA',total+'筆']].map(([l,c,v])=>`
+            <div style="text-align:center;background:#fff;border-radius:7px;padding:6px 4px">
+              <div style="font-size:10px;color:#AAA;margin-bottom:2px">${l}</div>
+              <div style="font-size:14px;font-weight:700;color:${c}">${v}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div style="background:#F0EDE8;border-radius:10px;padding:11px 13px;font-size:12px;color:#555;line-height:1.9">
+        <b>上一筆</b>　${lastDate}　${statusLabel}<br>
+        液重 <b>${lastYield}g</b>　自來水TDS <b>${lastTapTds}</b>${lastTags ? `　<span style="color:#888">${lastTags}</span>` : ''}
+      </div>
+      ${trendWarning}
+    `;
+}
+
+// ── Water History Comparison ──────────────────────────────────────
+async function fetchWaterHistory(todayTap) {
+  const histEl = document.getElementById('wac-history-l');
+  if (!histEl || !scriptUrl) return;
+
+  const tdsZone = tds => tds >= 140 ? 'high' : tds < 120 ? 'low' : 'normal';
+  const zoneLabel = z => z === 'high' ? '高 TDS 區 🔴' : z === 'low' ? '低 TDS 區 🟡' : '正常區 🟢';
+
+  try {
+    // ── 本機記錄優先 ──────────────────────────────────────────
+    const localAll = JSON.parse(localStorage.getItem('wl_logs') || '[]');
+    let records = localAll.filter(r => r.type === 'light' && r.tapTds && !isNaN(parseFloat(r.tapTds)));
+
+    // ── Sheets 補充 ────────────────────────────────────────────
+    if (scriptUrl) {
+      try {
+        const res  = await fetch(scriptUrl + '?action=read');
+        const data = await res.json();
+        const sheetRecs = (data.records || []).filter(r => r.type === 'light' && r.tapTds && !isNaN(parseFloat(r.tapTds)));
+        const localKeys = new Set(records.map(r => r.ts));
+        sheetRecs.forEach(r => { if (!localKeys.has(r.ts)) records.push(r); });
+      } catch(e) { /* Sheets 失敗不影響 */ }
+    }
+
+    records.sort((a, b) => new Date(a.ts) - new Date(b.ts));
+
+    if (!records.length) {
+      histEl.innerHTML = '<span style="color:#AAA">尚無歷史水質記錄，送出第一筆後會開始追蹤。</span>';
+      return;
+    }
+
+    // ── 計算鎂離子濾心目前估計偏移 ──────────────────────────────
+    // 從最近一次「正常區 + 不動」的記錄作為基準點，往後累積 +1/-1
+    let resetIdx = -1;
+    for (let i = records.length - 1; i >= 0; i--) {
+      const z = tdsZone(parseFloat(records[i].tapTds));
+      if (z === 'normal' && (!records[i].mgAdj || records[i].mgAdj === '不動')) {
+        resetIdx = i; break;
+      }
+    }
+    const sinceReset = resetIdx >= 0 ? records.slice(resetIdx + 1) : records;
+    let mgOffset = 0;
+    sinceReset.forEach(r => {
+      if (r.mgAdj === '增加+') mgOffset++;
+      else if (r.mgAdj === '減少-') mgOffset--;
+    });
+
+    // ── 上次記錄 ────────────────────────────────────────────────
+    const last     = records[records.length - 1];
+    const lastTap  = parseFloat(last.tapTds);
+    const lastZone = tdsZone(lastTap);
+    const todayZone = tdsZone(todayTap);
+    const lastDate = (last.ts || '').slice(0, 10) || '—';
+
+    // ── 濾心狀態描述 ─────────────────────────────────────────────
+    const dialState = mgOffset > 0
+      ? `濾心目前比基準偏高 <b>${mgOffset}</b> 格（累積手動增加）`
+      : mgOffset < 0
+      ? `濾心目前比基準偏低 <b>${Math.abs(mgOffset)}</b> 格（累積手動減少）`
+      : '濾心目前在基準位置';
+
+    // ── 區間轉換 → 鎂離子 delta 建議 ────────────────────────────
+    let deltaBg, deltaColor, deltaText;
+
+    if (lastZone === todayZone) {
+      // 同區間：看偏移量決定是否需要動
+      if (todayZone === 'low' && mgOffset > 0) {
+        deltaBg = '#EAF5E0'; deltaColor = '#2E6B10';
+        deltaText = `✓ 連續低 TDS 區，濾心上次已增加（+${mgOffset} 格），<b>今日維持不動</b>，確認感官無黏舌即可。`;
+      } else if (todayZone === 'low' && mgOffset <= 0) {
+        deltaBg = '#FFF8E0'; deltaColor = '#7A5500';
+        deltaText = `⚠️ 低 TDS 持續但濾心未曾增加（或已回調），建議依今日讀數執行增加動作。`;
+      } else if (todayZone === 'high') {
+        deltaBg = '#EAF5E0'; deltaColor = '#2E6B10';
+        deltaText = `✓ 連續高 TDS 區，NF 比例維持，液重維持補償量，濾心不動。`;
+      } else {
+        deltaBg = '#EAF5E0'; deltaColor = '#2E6B10';
+        deltaText = `✓ 水質穩定（正常區），各項維持不動。`;
+      }
+    } else if (lastZone === 'low' && todayZone === 'normal') {
+      deltaBg = '#FFF8E0'; deltaColor = '#7A5500';
+      deltaText = `🔄 水質從低 TDS 回升至正常區。上次手動增加的鎂離子（+${mgOffset} 格）需<b>逆時針轉回</b>對應幅度，否則鎂會過高導致黏舌感。`;
+    } else if (lastZone === 'low' && todayZone === 'high') {
+      deltaBg = '#FFF8E0'; deltaColor = '#7A5500';
+      deltaText = `🔄 從低 TDS 大幅升至高 TDS。針閥順時針調整之外，上次手動增加的鎂離子（+${mgOffset} 格）也需<b>轉回基準</b>，高 TDS 下 NF 會自動減少鈣供給，無需再補鎂。`;
+    } else if (lastZone === 'normal' && todayZone === 'low') {
+      deltaBg = '#FFF8E0'; deltaColor = '#7A5500';
+      deltaText = `🔄 從正常區進入低 TDS，濾心目前在基準，需依今日讀數<b>手動增加出鎂量</b>（見上方建議角度）。`;
+    } else if (lastZone === 'high' && todayZone === 'low') {
+      deltaBg = '#FFF8E0'; deltaColor = '#7A5500';
+      deltaText = `🔄 從高 TDS 降至低 TDS。針閥逆時針調回，鎂離子由自動補充模式轉為需<b>手動增加</b>，依上方建議角度調整濾心。`;
+    } else if (lastZone === 'high' && todayZone === 'normal') {
+      deltaBg = '#EAF5E0'; deltaColor = '#2E6B10';
+      deltaText = `✓ 水質從高 TDS 回穩至正常區。NF 比例調回，鎂離子自動回升，<b>液重恢復 30g</b>，濾心不動。`;
+    } else if (lastZone === 'normal' && todayZone === 'high') {
+      deltaBg = '#EAF5E0'; deltaColor = '#2E6B10';
+      deltaText = `從正常區進入高 TDS，濾心目前在基準（鎂自動隨 NF 減少），<b>靠液重補償即可</b>，無需手動調濾心。`;
+    } else {
+      deltaBg = '#EAF5E0'; deltaColor = '#2E6B10';
+      deltaText = `水質維持，各項參考上方建議。`;
+    }
+
+    // ── Sparkline（近 14 筆，今日另標） ──────────────────────────
+    const recent = records.slice(-14);
+    const allTds = recent.map(r => parseFloat(r.tapTds)).concat(todayTap);
+    const minT = Math.min(...allTds), maxT = Math.max(...allTds);
+    const barH = tds => {
+      const range = maxT - minT || 1;
+      return Math.round(6 + ((tds - minT) / range) * 18);
+    };
+    const barCol = tds => {
+      const z = tdsZone(tds);
+      return z === 'high' ? '#D4A017' : z === 'low' ? '#3B8B50' : '#AAAAAA';
+    };
+    const sparkBars = recent.map(r => {
+      const tds = parseFloat(r.tapTds);
+      const d = (r.ts||'').slice(5,10);
+      return `<span title="${d} TDS ${tds}" style="display:inline-block;width:9px;height:${barH(tds)}px;background:${barCol(tds)};border-radius:2px 2px 0 0;margin-right:2px;vertical-align:bottom;opacity:0.7"></span>`;
+    }).join('');
+    const todayBar = `<span title="今日 TDS ${todayTap}" style="display:inline-block;width:9px;height:${barH(todayTap)}px;background:${barCol(todayTap)};border-radius:2px 2px 0 0;margin-right:2px;vertical-align:bottom;outline:2px solid #1a1a1a;outline-offset:-1px"></span>`;
+
+    histEl.innerHTML = `
+      <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:9px">📊 歷史水質比對</div>
+      <div style="display:flex;align-items:flex-end;padding:8px;background:#fff;border-radius:8px;margin-bottom:9px;gap:0;overflow-x:auto">
+        ${sparkBars}${todayBar}
+        <span style="font-size:10px;color:#AAA;margin-left:8px;white-space:nowrap;align-self:center">今日 ↑</span>
+      </div>
+      <div style="font-size:11px;color:#666;line-height:1.8;margin-bottom:6px">
+        上次記錄：${lastDate}　TDS <b>${lastTap}</b>（${zoneLabel(lastZone)}）<br>
+        ${dialState}
+      </div>
+      <div style="padding:9px 11px;background:${deltaBg};border-radius:8px;font-size:12px;color:${deltaColor};line-height:1.7">${deltaText}</div>
+    `;
+
+  } catch(e) {
+    if (histEl) histEl.innerHTML = '<span style="color:#AAA;font-size:11px">歷史記錄讀取失敗，請確認 Script URL 已設定。</span>';
+  }
+}
+
+function saveConfig() {
+  const url = document.getElementById('cfg-url').value.trim();
+  scriptUrl = url;
+  localStorage.setItem('wl_script_url', url);
+  showCfgStatus(!!url);
+  if (url) alert('設定已儲存！請試著送出一筆記錄測試連線。');
+}
+
+function showCfgStatus(ok) {
+  const el = document.getElementById('cfg-status');
+  el.style.display='flex';
+  el.innerHTML=`<span class="sdot ${ok?'ok':'ng'}"></span>${ok?'已設定 Google Sheets 連線':'尚未設定，記錄僅存在本地'}`;
+}
+</script>
+</body>
+</html>
