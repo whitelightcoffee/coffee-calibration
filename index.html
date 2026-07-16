@@ -33,6 +33,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 .nav-item.nav-filter.active .nav-icon svg{stroke:#2A7A5A}
 .nav-item.nav-yiyu.active .nav-label{color:#1A6B9A}
 .nav-item.nav-yiyu.active .nav-icon svg{stroke:#1A6B9A}
+.nav-item.nav-soe.active .nav-label{color:#6E4B9E}
+.nav-item.nav-soe.active .nav-icon svg{stroke:#6E4B9E}
 
 /* pages */
 .page{display:none}.page.active{display:block}
@@ -160,6 +162,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
 .log-type.medium{background:#F0E8DF;color:#6B4C2A}
 .log-type.yiyu{background:#EEF5FF;color:#1A6B9A}
 .log-type.pour{background:#E0F2EB;color:#2A7A5A}
+.log-type.soe_grind{background:#F6F2FA;color:#6E4B9E}
 .log-main{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px}
 .log-detail{font-size:11px;color:#888;line-height:1.5}
 
@@ -958,6 +961,100 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   </div>
 </div>
 
+<!-- ══════════════ PAGE: SOE 校正 (Mazzer Kony) ══════════════ -->
+<div class="page" id="page-soe" style="display:none">
+
+  <!-- 研磨刻度推估 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">☕ Mazzer Kony 研磨刻度推估</div>
+      <div class="card-sub">固定 18g in / 40g out / 30 秒　秤完盅重直接給起手刻度</div>
+    </div>
+    <div class="card-body">
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="field"><label>豆名</label><input id="sg-bean" type="text" placeholder="衣索比亞 日曬 kokosa"></div>
+        <div class="field"><label>玻璃盅重量 (g)</label><input id="sg-glass" type="number" inputmode="decimal" step="0.1" placeholder="17.2" oninput="calcSoeGrind()"></div>
+      </div>
+
+      <div style="background:#F6F2FA;border:1px solid #D8C9E8;border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:#6E4B9E;letter-spacing:.5px;margin-bottom:8px">⚙️ MAZZER KONY　建議起手刻度</div>
+        <div id="sg-grind" style="font-size:34px;font-weight:700;color:#6E4B9E;line-height:1.1">—</div>
+        <div id="sg-formula" style="font-size:11px;color:#AAA;margin-top:6px">刻度 = 0.465 × 盅重 − 5.31（四捨五入至 0.05）</div>
+        <div id="sg-warn" style="display:none;margin-top:8px;font-size:11px;color:#C4862A;font-weight:600">⚠️ 超出已驗證範圍 16.3–18.2g，數值僅供方向參考，請務必試杯</div>
+      </div>
+
+      <div style="background:#F8F6F3;border-radius:10px;padding:10px 12px;font-size:11px;color:#888;line-height:1.8">
+        <div style="font-weight:600;color:#666;margin-bottom:4px">📌 驗證錨點（2026-07）</div>
+        <div>尼羅河衣索比亞水洗 18.2g → <b style="color:#6E4B9E">#3.2</b>　哥倫比亞玫瑰寶 16.3g → <b style="color:#6E4B9E">#2.3</b>　衣索比亞日曬 kokosa 17.2g → <b style="color:#6E4B9E">#2.6</b></div>
+        <div style="margin-top:4px;color:#AAA">n=5，其中玻利維雅朝陽 / 巴拿馬藝伎為修正推估值。這是起手式，不能取代試杯。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 回填實測 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">📊 回填實測</div>
+      <div class="card-sub">每支豆都填　累積 12–15 支後可重跑回歸、把養豆天數納入變數</div>
+    </div>
+    <div class="card-body">
+      <div class="grid3" style="margin-bottom:10px">
+        <div class="field"><label>養豆天數</label><input id="sg-rest" type="number" inputmode="numeric" step="1" placeholder="14"></div>
+        <div class="field"><label>實際秒數</label><input id="sg-time" type="number" inputmode="decimal" step="0.5" placeholder="30" oninput="calcSoeGrind()"></div>
+        <div class="field"><label>實際液重 (g)</label><input id="sg-yield" type="number" inputmode="decimal" step="0.5" placeholder="40"></div>
+      </div>
+
+      <div id="sg-hint" style="display:none;background:#FFF8F0;border:1px solid #EDD9B8;border-radius:10px;padding:10px 12px;font-size:12px;color:#8B5A2B;line-height:1.7;margin-bottom:10px"></div>
+
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>最後定案刻度</label><input id="sg-final" type="number" inputmode="decimal" step="0.05" placeholder="2.6" oninput="calcSoeGrind()"></div>
+        <div class="field">
+          <label>效果</label>
+          <select id="sg-result">
+            <option value="">— 請選擇 —</option>
+            <option value="good">good</option>
+            <option value="ok">ok</option>
+            <option value="soso">soso</option>
+            <option value="待修正">待修正</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="sg-delta" style="display:none;font-size:12px;color:#666;background:#F8F6F3;border-radius:10px;padding:10px 12px;line-height:1.7"></div>
+    </div>
+  </div>
+
+  <!-- 豆子條件（選填，給未來回歸用） -->
+  <div class="card">
+    <div class="card-head" style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="card-title">🫘 豆子條件</div>
+        <div class="card-sub">選填　Agtron 目前對刻度無顯著貢獻，記著是為了之後驗證</div>
+      </div>
+      <button id="sb-toggle" onclick="toggleSoeBean()" style="font-size:11px;color:#6E4B9E;border:1px solid #D8C9E8;border-radius:8px;padding:5px 12px;background:#F6F2FA;cursor:pointer;white-space:nowrap">展開</button>
+    </div>
+    <div id="sb-body" style="display:none">
+      <div class="card-body">
+        <div class="grid3">
+          <div class="field"><label>Agtron 豆表</label><input id="sg-ab" type="number" inputmode="decimal" placeholder="77"></div>
+          <div class="field"><label>Agtron 豆心</label><input id="sg-ac" type="number" inputmode="decimal" placeholder="111"></div>
+          <div class="field"><label>批次</label><input id="sg-batch" type="text" placeholder="2026-07-A"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit SOE -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-body">
+      <div class="field" style="margin-bottom:10px"><label>夥伴姓名</label><input id="sgs-staff" type="text" placeholder="你的名字"></div>
+      <div class="field" style="margin-bottom:10px"><label>備注（可選）</label><input id="sgs-note" type="text" placeholder="流速偏慢、下一次再磨粗一點…"></div>
+      <button class="btn-submit" id="btn-soe" onclick="submitSoeGrind()">送出記錄</button>
+      <div class="toast" id="toast-soe"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════ PAGE: FILTER COFFEE ══════════════ -->
 <div class="page" id="page-filter" style="display:none">
 
@@ -1061,6 +1158,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       <button onclick="filterLog('light')" id="lf-light" style="font-size:12px;padding:6px 12px;border-radius:16px;border:1px solid #DDD;background:#fff;color:#666;cursor:pointer">淺焙 SOE</button>
       <button onclick="filterLog('medium')" id="lf-medium" style="font-size:12px;padding:6px 12px;border-radius:16px;border:1px solid #DDD;background:#fff;color:#666;cursor:pointer">中焙 SOE</button>
       <button onclick="filterLog('yiyu')" id="lf-yiyu" style="font-size:12px;padding:6px 12px;border-radius:16px;border:1px solid #DDD;background:#fff;color:#666;cursor:pointer">一隅 SOE</button>
+      <button onclick="filterLog('soe_grind')" id="lf-soe_grind" style="font-size:12px;padding:6px 12px;border-radius:16px;border:1px solid #DDD;background:#fff;color:#666;cursor:pointer">SOE 刻度</button>
       <button onclick="filterLog('pour')" id="lf-pour" style="font-size:12px;padding:6px 12px;border-radius:16px;border:1px solid #DDD;background:#fff;color:#666;cursor:pointer">手沖</button>
       <a href="https://docs.google.com/spreadsheets/d/1gLEtvPnYX4MFlTAbknweRhTlg1rIb7bYVNjUw662RKo" target="_blank" style="font-size:12px;padding:6px 12px;border-radius:16px;border:1px solid #2A7A5A;background:#E0F2EB;color:#2A7A5A;cursor:pointer;margin-left:auto;text-decoration:none;display:flex;align-items:center">📊 開啟完整記錄</a>
     </div>
@@ -1091,7 +1189,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   if (p.action === 'read') {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var allRecords = [];
-    var sheetMap = {light:'淺焙SOE', medium:'中焙SOE', yiyu:'一隅SOE', pour:'手沖', sop:'校正SOP', water_record:'水質紀錄', water_record_yiyu:'一隅水質紀錄', filter_replace:'濾芯更換紀錄'};
+    var sheetMap = {light:'淺焙SOE', medium:'中焙SOE', yiyu:'一隅SOE', soe_grind:'SOE刻度', pour:'手沖', sop:'校正SOP', water_record:'水質紀錄', filter_replace:'濾芯更換紀錄'};
     Object.entries(sheetMap).forEach(function([type, name]) {
       var sheet = ss.getSheetByName(name);
       if (!sheet || sheet.getLastColumn() &lt; 2) return;
@@ -1163,12 +1261,11 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
     return ContentService.createTextOutput('OK');
   }
 
-  // 水質紀錄 — 寫入「水質紀錄」或「一隅水質紀錄」sheet
+  // 水質紀錄 — 寫入「水質紀錄」sheet
   if (p.type === 'water_record') {
-    var wrSheetName = (p.branch === '一隅') ? '一隅水質紀錄' : '水質紀錄';
-    var wrSheet = ss.getSheetByName(wrSheetName) || ss.insertSheet(wrSheetName);
-    var wrHeaders = ['時間','夥伴','分店','自來水TDS','飲用水TDS','GH滴數','KH滴數','NF針閥操作','鎂濾芯操作','豆況','濾芯流量計讀數','濾芯累積循環','濾芯累積用量L','備注'];
-    var wrValues  = [p.ts,p.staff||'',p.branch||'白光',p.tapTds||'',p.drinkTds||'',p.gh||'',p.kh||'',p.nfAdj||'不動',p.mgAdj||'不動',p.beanResult||'',p.mgFilterReading||'',p.mgFilterCycles||'',p.mgFilterUsed||'',p.note||''];
+    var wrSheet = ss.getSheetByName('水質紀錄') || ss.insertSheet('水質紀錄');
+    var wrHeaders = ['時間','夥伴','自來水TDS','飲用水TDS','GH滴數','KH滴數','NF針閥操作','鎂濾芯操作','豆況','濾芯流量計讀數','濾芯累積循環','濾芯累積用量L','備注'];
+    var wrValues  = [p.ts,p.staff||'',p.tapTds||'',p.drinkTds||'',p.gh||'',p.kh||'',p.nfAdj||'不動',p.mgAdj||'不動',p.beanResult||'',p.mgFilterReading||'',p.mgFilterCycles||'',p.mgFilterUsed||'',p.note||''];
     if (wrSheet.getLastColumn() === 0) {
       wrSheet.getRange(1,1,wrHeaders.length,1).setValues(wrHeaders.map(function(h){return[h];}));
     }
@@ -1286,11 +1383,18 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
     return ContentService.createTextOutput('OK');
   }
 
-  var sheetName = p.type==='light'?'淺焙SOE':p.type==='medium'?'中焙SOE':p.type==='yiyu'?'一隅SOE':'手沖';
+  var sheetName = p.type==='light'?'淺焙SOE':p.type==='medium'?'中焙SOE':p.type==='yiyu'?'一隅SOE':p.type==='soe_grind'?'SOE刻度':'手沖';
   var sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
 
   var headers, values;
-  if (p.type === 'pour') {
+  if (p.type === 'soe_grind') {
+    headers = ['時間','夥伴','豆名','批次','磨豆機',
+               '玻璃盅重量g','Agtron豆表','Agtron豆心','養豆天數',
+               '粉量g','公式建議刻度','實際秒數','實際液重g','最後定案刻度','刻度誤差','效果','備注'];
+    values = [p.ts,p.staff,p.beanName,p.batchNo,p.grinder,
+              p.glass,p.agtronBean,p.agtronCore,p.restDays,
+              p.dose,p.suggested,p.actualTime,p.actualYield,p.finalGrind,p.deltaGrind,p.result,p.note];
+  } else if (p.type === 'pour') {
     headers = ['時間','夥伴',
                '氣溫℃','濕度%','水溫℃','研磨刻度','Tonik下','LyLac下',
                '豆名','批次','Agtron豆','Agtron粉','密度',
@@ -1350,16 +1454,22 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
 
   // ── 通知 JANDI ────────────────────────────────────────
   try {
-    var typeLabel = p.type==='light' ? '☕ 淺焙 SOE' : p.type==='medium' ? '🟤 中焙 SOE' : p.type==='yiyu' ? '🔷 一隅 SOE' : '🫖 手沖';
+    var typeLabel = p.type==='light' ? '☕ 淺焙 SOE' : p.type==='medium' ? '🟤 中焙 SOE' : p.type==='yiyu' ? '🔷 一隅 SOE' : p.type==='soe_grind' ? '⚙️ SOE 刻度' : '🫖 手沖';
     var statusText = p.status==='good' ? '✅ 均衡' : p.status==='warn' ? '⚠️ 需調整' : p.status==='bad' ? '⚠️ 需調整' : '🚨 嚴重需調整';
-    var color = p.type==='light' ? '#F5C542' : p.type==='medium' ? '#8B5E3C' : p.type==='yiyu' ? '#1A6B9A' : '#4CAF50';
+    var color = p.type==='light' ? '#F5C542' : p.type==='medium' ? '#8B5E3C' : p.type==='yiyu' ? '#1A6B9A' : p.type==='soe_grind' ? '#6E4B9E' : '#4CAF50';
 
     var connectInfo = [
       { title: '夥伴 / 時段', description: (p.staff||'—') + '　' + (p.time||'—') },
       { title: '豆名', description: (p.beanName||'—') + (p.batchNo ? ' · ' + p.batchNo : '') }
     ];
 
-    if (p.type === 'pour') {
+    if (p.type === 'soe_grind') {
+      connectInfo.push({ title: '玻璃盅重量', description: (p.glass||'—') + ' g' });
+      connectInfo.push({ title: '刻度', description: '公式建議 #' + (p.suggested||'—') + (p.finalGrind ? '　→　定案 #' + p.finalGrind + '（誤差 ' + (p.deltaGrind||'—') + '）' : '') });
+      connectInfo.push({ title: '實測', description: '18g in　' + (p.actualYield||'—') + 'g out　' + (p.actualTime||'—') + 's' + (p.restDays ? '　養豆 ' + p.restDays + ' 天' : '') });
+      if (p.result) connectInfo.push({ title: '效果', description: p.result });
+      if (p.note) connectInfo.push({ title: '備注', description: p.note });
+    } else if (p.type === 'pour') {
       connectInfo.push({ title: '參數', description: '水溫 ' + (p.wtemp||'—') + '℃　研磨 ' + (p.grind||'—') });
       connectInfo.push({ title: '萃取狀態', description: p.extractStatus || '正常' });
       if (p.note) connectInfo.push({ title: '備注', description: p.note });
@@ -1449,21 +1559,6 @@ function testJandi() {
 <!-- SOP PAGE -->
 <div class="page" id="page-sop" style="display:none">
 
-  <!-- ── 分店選擇 ─────────────────────────────────────── -->
-  <div style="margin:12px 12px 0;display:flex;border-radius:12px;overflow:hidden;border:1.5px solid #E0DDD8;background:#F8F6F3">
-    <button id="sop-branch-wl"
-      onclick="setSopBranch('wl')"
-      style="flex:1;padding:11px 6px;border:none;background:#1a1a1a;color:#fff;font-size:13px;font-weight:700;cursor:pointer;border-radius:0">
-      ☕ 白光咖啡
-    </button>
-    <button id="sop-branch-yy"
-      onclick="setSopBranch('yy')"
-      style="flex:1;padding:11px 6px;border:none;background:#F8F6F3;color:#AAA;font-size:13px;font-weight:700;cursor:pointer;border-radius:0">
-      🫙 一隅
-    </button>
-  </div>
-  <!-- /分店選擇 -->
-
   <div class="sop-progress">
     <div class="sop-prog-step spcur" id="pg0"><div class="sop-prog-dot">💧</div><span class="sop-prog-lbl">水質</span></div>
     <div class="sop-prog-step"       id="pg1"><div class="sop-prog-dot">🫘</div><span class="sop-prog-lbl">豆況</span></div>
@@ -1476,26 +1571,21 @@ function testJandi() {
   <div class="sop-step spcur" id="st0">
 
     <!-- 黃金密碼 banner -->
-    <div id="st0-banner" style="margin:10px 12px 0;background:#3D1F7A;border-radius:14px;padding:14px 16px;color:#fff;text-align:center;cursor:pointer">
-      <div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:4px">
-        <div id="st0-banner-title" style="font-size:11px;font-weight:700;letter-spacing:.1em;opacity:.7">白光咖啡 黃金水質密碼</div>
-        <span id="st0-banner-mode" style="display:none;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.16)"></span>
-      </div>
+    <div style="margin:10px 12px 0;background:#3D1F7A;border-radius:14px;padding:14px 16px;color:#fff;text-align:center">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;opacity:.7;margin-bottom:4px">白光咖啡 黃金水質密碼</div>
       <div style="display:flex;justify-content:center;align-items:center;gap:16px">
-        <div><div id="st0-banner-gh" style="font-size:28px;font-weight:700">4</div><div style="font-size:11px;opacity:.75">GH 滴數</div></div>
+        <div><div style="font-size:28px;font-weight:700">4</div><div style="font-size:11px;opacity:.75">GH 滴數</div></div>
         <div style="font-size:22px;opacity:.4">/</div>
-        <div><div id="st0-banner-kh" style="font-size:28px;font-weight:700">3</div><div style="font-size:11px;opacity:.75">KH 滴數</div></div>
+        <div><div style="font-size:28px;font-weight:700">3</div><div style="font-size:11px;opacity:.75">KH 滴數</div></div>
       </div>
-      <div id="st0-banner-foot" style="font-size:10px;opacity:.6;margin-top:6px">唯有水質達標，才能動磨豆機刻度與水溫</div>
-      <div id="st0-banner-hint" style="font-size:10px;font-weight:700;opacity:.85;margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.15)">👆 點此調整季節基準</div>
+      <div style="font-size:10px;opacity:.6;margin-top:6px">唯有水質達標，才能動磨豆機刻度與水溫</div>
     </div>
 
     <!-- 放流確認 -->
     <div class="card" style="margin:10px 12px 0">
       <div class="card-head"><div class="card-title">① 大放流</div><div class="card-sub">開始滴定前先完成放流</div></div>
       <div class="card-body">
-        <!-- 白光放流說明 -->
-        <div id="flush-wl" style="font-size:13px;color:#444;line-height:2;margin-bottom:12px">
+        <div style="font-size:13px;color:#444;line-height:2;margin-bottom:12px">
           <div style="display:flex;align-items:baseline;gap:6px">
             <span style="font-size:16px">💧</span>
             <span>飲用水放流 <b>5 分鐘</b></span>
@@ -1506,21 +1596,6 @@ function testJandi() {
           </div>
           <div style="margin-left:26px;margin-top:-4px;margin-bottom:6px">
             <span style="background:#FFF3E0;border:1px solid #F0C880;border-radius:8px;padding:3px 10px;font-size:12px;font-weight:700;color:#A35000">☕ 開始熱機！</span>
-          </div>
-          <div style="display:flex;align-items:baseline;gap:6px">
-            <span style="font-size:16px">🌀</span>
-            <span style="color:#666">排空 NF 膜停滯蠕變水與隔夜高濃度水</span>
-          </div>
-        </div>
-        <!-- 一隅放流說明 -->
-        <div id="flush-yy" style="display:none;font-size:13px;color:#444;line-height:2;margin-bottom:12px">
-          <div style="display:flex;align-items:baseline;gap:6px">
-            <span style="font-size:16px">☕</span>
-            <span>咖啡機開機大放流 <b>3 大鋼杯</b></span>
-          </div>
-          <div style="display:flex;align-items:baseline;gap:6px">
-            <span style="font-size:16px">🫖</span>
-            <span>手沖吧放流 <b>1 L</b></span>
           </div>
           <div style="display:flex;align-items:baseline;gap:6px">
             <span style="font-size:16px">🌀</span>
@@ -1566,7 +1641,7 @@ function testJandi() {
             </div>
           </div>
           <div class="field" style="margin-bottom:0">
-            <label>今日 GH 滴數<span id="st0-gh-target-lbl" style="font-size:10px;color:#AAA;font-weight:400;margin-left:6px">目標 4 滴</span></label>
+            <label>今日 GH 滴數<span style="font-size:10px;color:#AAA;font-weight:400;margin-left:6px">目標 4 滴</span></label>
             <div style="display:flex;align-items:center;gap:10px">
               <input id="st0-gh" type="number" inputmode="numeric" placeholder="4" style="flex:1">
               <div id="st0-gh-badge" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;display:none"></div>
@@ -1599,7 +1674,7 @@ function testJandi() {
             </div>
           </div>
           <div class="field" style="margin-bottom:0">
-            <label>今日 KH 滴數<span id="st0-kh-target-lbl" style="font-size:10px;color:#AAA;font-weight:400;margin-left:6px">目標 3 滴</span></label>
+            <label>今日 KH 滴數<span style="font-size:10px;color:#AAA;font-weight:400;margin-left:6px">目標 3 滴</span></label>
             <div style="display:flex;align-items:center;gap:10px">
               <input id="st0-kh" type="number" inputmode="numeric" placeholder="2" style="flex:1">
               <div id="st0-kh-badge" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;display:none"></div>
@@ -1634,7 +1709,7 @@ function testJandi() {
       <div id="st0-valve-b" style="display:none;background:#EEE8FF;border:1px solid #C8B0FF;border-radius:10px;padding:11px 13px;font-size:12px;color:#5A1FA0;line-height:1.8"></div>
       <!-- 放流複測提醒 -->
       <div id="st0-retest-hint" style="display:none;margin-top:6px;background:#FDECEA;border:1px solid #F0C0C0;border-radius:10px;padding:10px 13px;font-size:12px;color:#A32020;line-height:1.7">
-        <b>⚠️ 鐵則：</b>調整閥門後，必須<b>強制放流水 1 分鐘</b>洗管，再重新取水複測，直到回到 <span id="st0-retest-target">GH 4 / KH 3</span>！
+        <b>⚠️ 鐵則：</b>調整閥門後，必須<b>強制放流水 1 分鐘</b>洗管，再重新取水複測，直到回到 GH 4 / KH 3！
       </div>
     </div>
 
@@ -1663,7 +1738,7 @@ function testJandi() {
     </div>
 
     <!-- 黃金基準線卡片（可展開設定） -->
-    <div class="card" id="st0-baseline-card" style="margin:10px 12px 0">
+    <div class="card" style="margin:10px 12px 0">
       <div class="card-head" style="display:flex;justify-content:space-between;align-items:center">
         <div><div class="card-title">黃金基準線</div><div class="card-sub" id="st0-target-sub">目標 GH 4 / KH 3</div></div>
         <button id="st0-set-btn" style="font-size:11px;color:#7A4FB5;border:1px solid #C8B0FF;border-radius:8px;padding:5px 10px;background:#F8F5FF;cursor:pointer">更新</button>
@@ -1677,42 +1752,23 @@ function testJandi() {
             <div style="width:1px;background:#EEE;align-self:stretch"></div>
             <div style="text-align:center;flex:1"><div style="font-size:11px;color:#AAA;font-weight:700">建立日期</div><div id="st0-tdate" style="font-size:12px;font-weight:600;color:#555">—</div></div>
           </div>
-          <!-- 季節模式 + 已生效天數 -->
-          <div id="st0-mode-row" style="display:none;margin-top:6px;display:flex;align-items:center;gap:8px;font-size:12px">
-            <span id="st0-mode-chip" style="font-weight:700;padding:3px 10px;border-radius:10px"></span>
-            <span id="st0-mode-days" style="color:#888"></span>
-          </div>
           <div id="st0-tnote" style="display:none;font-size:11px;color:#888;margin-top:6px;padding:6px 8px;background:#F8F6F3;border-radius:8px"></div>
-          <!-- 一隅唯讀提示 -->
-          <div id="st0-follow-note" style="display:none;margin-top:6px;padding:7px 10px;background:#EAF2F8;border:1px solid #BCD9EC;border-radius:8px;font-size:11px;color:#1A6B9A;line-height:1.6">🔗 一隅水質基準<b>跟隨白光本店</b>，由本店早班抓到方向後同步下來，此處不需自行設定。</div>
           <span id="st0-sync-status" style="display:none;font-size:10px;margin-top:6px;display:block"></span>
         </div>
         <div id="st0-target-form" style="display:none;margin-top:10px">
-          <!-- 季節快速套用 -->
-          <div style="font-size:11px;color:#AAA;font-weight:700;letter-spacing:.04em;margin-bottom:6px">季節建議（一次設定，整季沿用 · GH 固定 4）</div>
-          <div style="display:flex;gap:8px;margin-bottom:6px">
-            <button type="button" id="st0-mode-summer" style="flex:1;font-size:12px;font-weight:700;padding:9px 6px;border-radius:10px;border:1px solid #F0C0A0;background:#FFF4EC;color:#A35000;cursor:pointer">🔥 夏日模式<br><span style="font-size:10px;font-weight:400;opacity:.8">KH 2 · 高溫排氣快</span></button>
-            <button type="button" id="st0-mode-winter" style="flex:1;font-size:12px;font-weight:700;padding:9px 6px;border-radius:10px;border:1px solid #AECBE6;background:#EEF4FF;color:#1A4F8A;cursor:pointer">❄️ 冬日模式<br><span style="font-size:10px;font-weight:400;opacity:.8">KH 3 · 低溫排氣慢</span></button>
-          </div>
-          <details style="margin-bottom:8px">
-            <summary style="font-size:11px;color:#7A4FB5;cursor:pointer">為什麼水質要跟著天氣走？</summary>
-            <div style="font-size:11px;color:#777;line-height:1.7;margin-top:5px;padding:7px 9px;background:#F8F6F3;border-radius:8px">
-              用化學解法對抗化學變化。高溫＋養豆期變長 → 豆內 CO₂ 排得快、極易萃取 → 中後段厚重發酵味被大量拉出。調降 KH（削弱酸值緩衝墊）→ 明亮果酸銳利起來，切開並中和厚重感，風味回到乾淨甜蜜點。GH 維持 4 不動。
-            </div>
-          </details>
-          <div style="font-size:12px;color:#7A4FB5;font-weight:600;margin-bottom:8px">或感官確認好喝後，直接填入當下滴定數字：</div>
+          <div style="font-size:12px;color:#7A4FB5;font-weight:600;margin-bottom:8px">感官確認好喝後，填入當下滴定數字：</div>
           <div class="grid2" style="margin-bottom:8px">
             <div class="field"><label>目標 GH（滴）</label><input id="st0-newgh" type="number" inputmode="numeric" placeholder="4"></div>
             <div class="field"><label>目標 KH（滴）</label><input id="st0-newkh" type="number" inputmode="numeric" placeholder="3"></div>
           </div>
-          <div class="field" style="margin-bottom:8px"><label>備注（可選）</label><input id="st0-newnote" type="text" placeholder="例：因應 34°C 高溫切夏日模式"></div>
+          <div class="field" style="margin-bottom:8px"><label>備注（可選）</label><input id="st0-newnote" type="text" placeholder="例：濾芯換新後首次建立"></div>
           <button id="st0-save-target" class="btn-submit" style="background:#7A4FB5;font-size:13px;padding:10px">儲存黃金基準線</button>
         </div>
       </div>
     </div>
 
     <!-- 鎂離子濾芯流量追蹤 -->
-    <div id="mg-filter-card" class="card" style="margin:10px 12px 0">
+    <div class="card" style="margin:10px 12px 0">
       <div class="card-head">
         <div class="card-title">🔵 鎂離子濾芯流量紀錄</div>
         <div class="card-sub" id="mg-filter-sub">累積用量追蹤，預估壽命 2500–3000L</div>
@@ -1804,11 +1860,6 @@ function testJandi() {
       </div>
     </div>
 
-    <!-- 鎂離子濾芯（一隅省略提示） -->
-    <div id="mg-filter-yiyu-note" style="display:none;margin:10px 12px 0;background:#EEF5FF;border:1px solid #A8C8F0;border-radius:12px;padding:12px 14px;font-size:12px;color:#1A4A6B;line-height:1.7">
-      🔵 <b>一隅無鎂離子濾芯追蹤</b>，此項略過。
-    </div>
-
     <!-- 團隊協作提醒 -->
     <div style="margin:10px 12px 0;background:#F8F6F3;border-radius:12px;padding:12px 14px;font-size:12px;color:#555;line-height:1.8">
       <div style="font-weight:700;color:#333;margin-bottom:4px">💡 團隊鐵則</div>
@@ -1826,7 +1877,7 @@ function testJandi() {
   <div class="sop-step" id="st1">
 
     <!-- 放水量提醒 -->
-    <div id="water-to-machine-card" style="margin:12px 12px 0;background:#FFF3E0;border:1.5px solid #F0C880;border-radius:13px;padding:13px 16px;text-align:center">
+    <div style="margin:12px 12px 0;background:#FFF3E0;border:1.5px solid #F0C880;border-radius:13px;padding:13px 16px;text-align:center">
       <div style="font-size:12px;font-weight:700;color:#7A4000;letter-spacing:.04em;margin-bottom:6px">💧 放水給咖啡機</div>
       <div style="display:flex;justify-content:center;gap:20px">
         <div style="flex:1;background:#fff;border-radius:10px;padding:9px 8px;border:1px solid #F0C880">
@@ -2112,48 +2163,28 @@ function testJandi() {
 
   // ── Step 0: 水質 ───────────────────────────────────────────────
   // ── GH/KH Target helpers ───────────────────────────────────────
-  // 季節模式標籤 helpers — 模式收進「備注」欄做 Sheets 往返（不需改 GAS）
-  var MODE_LABEL = { summer: '夏日模式', winter: '冬日模式' };
-  function encodeNote(mode, note) {
-    var tag = mode === 'summer' ? '【夏日模式】' : mode === 'winter' ? '【冬日模式】' : '';
-    note = note || '';
-    return tag ? (tag + (note ? ' ' + note : '')) : note;
-  }
-  function decodeNote(raw) {
-    raw = String(raw || '');
-    if (raw.indexOf('【夏日模式】') === 0) return { mode: 'summer', note: raw.replace('【夏日模式】', '').trim() };
-    if (raw.indexOf('【冬日模式】') === 0) return { mode: 'winter', note: raw.replace('【冬日模式】', '').trim() };
-    return { mode: '', note: raw };
-  }
-  function daysSince(dateStr) {
-    if (!dateStr) return null;
-    var d = new Date(dateStr);
-    if (isNaN(d.getTime())) return null;
-    return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
-  }
-
   function getTarget() {
     try {
       var t = JSON.parse(localStorage.getItem('wl_ghkh_target') || 'null');
-      if (t) { if (t.mode === undefined) t.mode = ''; return t; }
-      // Pre-seed default: GH 4, KH 3（未指定季節）
-      var def = { gh: 4, kh: 3, mode: '', note: '黃金標準預設值', date: '2026-05-05' };
+      if (t) return t;
+      // Pre-seed default: GH 4, KH 3
+      var def = { gh: 4, kh: 3, note: '黃金標準預設值', date: '2026-05-05' };
       localStorage.setItem('wl_ghkh_target', JSON.stringify(def));
       return def;
-    } catch(e) { return { gh: 4, kh: 3, mode: '', note: '', date: '' }; }
+    } catch(e) { return { gh: 4, kh: 3, note: '', date: '' }; }
   }
-  function saveTarget(gh, kh, note, dateOverride, mode) {
-    var d = { gh: gh, kh: kh, mode: mode || '', note: note || '', date: dateOverride || new Date().toISOString().slice(0,10) };
+  function saveTarget(gh, kh, note, dateOverride) {
+    var d = { gh: gh, kh: kh, note: note || '', date: dateOverride || new Date().toISOString().slice(0,10) };
     localStorage.setItem('wl_ghkh_target', JSON.stringify(d));
     return d;
   }
 
-  // Push GH/KH target to Google Sheets so all devices share same baseline（模式編入 note）
+  // Push GH/KH target to Google Sheets so all devices share same baseline
   function pushTargetToSheets(target) {
     var sUrl = localStorage.getItem('wl_script_url');
     if (!sUrl) return;
     var params = 'type=ghkh_target&gh=' + target.gh + '&kh=' + target.kh +
-      '&note=' + encodeURIComponent(encodeNote(target.mode, target.note)) + '&ts=' + encodeURIComponent(target.date);
+      '&note=' + encodeURIComponent(target.note || '') + '&ts=' + encodeURIComponent(target.date);
     fetch(sUrl + '?' + params).catch(function(){});
   }
 
@@ -2173,8 +2204,7 @@ function testJandi() {
           var local = getTarget();
           // Use Sheets data if no local, or if Sheets is newer
           if (!local || data.date >= local.date) {
-            var dec = decodeNote(data.note || '');
-            saveTarget(parseInt(data.gh), parseInt(data.kh), dec.note, data.date, dec.mode);
+            saveTarget(parseInt(data.gh), parseInt(data.kh), data.note || '', data.date);
             renderTarget();
           }
           if (syncEl) { syncEl.style.display='block'; syncEl.style.color='#3B8B50'; syncEl.textContent='✅ 已從 Sheets 同步'; }
@@ -2188,65 +2218,15 @@ function testJandi() {
   }
   function renderTarget() {
     var t = getTarget();
-    var isYY = (sopData.branch === 'yy');
     var tgh = el('st0-tgh'), tkh = el('st0-tkh'), tdate = el('st0-tdate'), tnote = el('st0-tnote'), sub = el('st0-target-sub');
-
     if (t) {
-      tgh.textContent = t.gh; tkh.textContent = t.kh; tdate.textContent = t.date || '—';
-      if (sub) sub.textContent = '目標 GH ' + t.gh + ' / KH ' + t.kh;
-
-      // 季節模式 chip + 已生效天數
-      var modeRow = el('st0-mode-row'), modeChip = el('st0-mode-chip'), modeDays = el('st0-mode-days');
-      if (modeRow && modeChip) {
-        if (t.mode && MODE_LABEL[t.mode]) {
-          modeRow.style.display = 'flex';
-          var summer = t.mode === 'summer';
-          modeChip.textContent = (summer ? '🔥 ' : '❄️ ') + MODE_LABEL[t.mode];
-          modeChip.style.cssText = 'font-weight:700;padding:3px 10px;border-radius:10px;' +
-            (summer ? 'background:#FFF4EC;color:#A35000' : 'background:#EEF4FF;color:#1A4F8A');
-          var d = daysSince(t.date);
-          modeDays.textContent = (d === null) ? '' : (d === 0 ? '今日設定' : '已生效 ' + d + ' 天');
-        } else {
-          modeRow.style.display = 'none';
-        }
-      }
-
-      // 備注
+      tgh.textContent = t.gh; tkh.textContent = t.kh; tdate.textContent = t.date;
       if (t.note) { tnote.style.display='block'; tnote.textContent = '📝 ' + t.note; }
       else { tnote.style.display='none'; }
-
-      // 上方 banner 同步
-      var bgh = el('st0-banner-gh'), bkh = el('st0-banner-kh'), bmode = el('st0-banner-mode');
-      if (bgh) bgh.textContent = t.gh;
-      if (bkh) bkh.textContent = t.kh;
-      if (bmode) {
-        if (t.mode && MODE_LABEL[t.mode]) { bmode.style.display='inline-block'; bmode.textContent = (t.mode==='summer'?'🔥 ':'❄️ ') + MODE_LABEL[t.mode]; }
-        else { bmode.style.display='none'; }
-      }
-      // 滴定欄目標標籤 + 複測提醒
-      var ghLbl = el('st0-gh-target-lbl'), khLbl = el('st0-kh-target-lbl'), retest = el('st0-retest-target');
-      if (ghLbl) ghLbl.textContent = '目標 ' + t.gh + ' 滴';
-      if (khLbl) khLbl.textContent = '目標 ' + t.kh + ' 滴';
-      if (retest) retest.textContent = 'GH ' + t.gh + ' / KH ' + t.kh;
+      if (sub) sub.textContent = '感官最佳狀態下滴定的目標數值';
     } else {
       tgh.textContent = '—'; tkh.textContent = '—'; tdate.textContent = '尚未建立';
-      if (sub) sub.textContent = '⚠️ 尚未建立基準線';
-    }
-
-    // 分店：白光可設定／一隅跟隨本店（唯讀）
-    var setBtn = el('st0-set-btn'), form = el('st0-target-form'), followNote = el('st0-follow-note');
-    var bTitle = el('st0-banner-title'), bHint = el('st0-banner-hint');
-    if (isYY) {
-      if (setBtn) setBtn.style.display = 'none';
-      if (form) form.style.display = 'none';
-      if (followNote) followNote.style.display = 'block';
-      if (bTitle) bTitle.textContent = '一隅（跟隨本店基準）';
-      if (bHint) bHint.textContent = '🔗 跟隨白光本店，此處不可調整';
-    } else {
-      if (setBtn) setBtn.style.display = '';
-      if (followNote) followNote.style.display = 'none';
-      if (bTitle) bTitle.textContent = '白光咖啡 黃金水質密碼';
-      if (bHint) bHint.textContent = '👆 點此調整季節基準';
+      if (sub) sub.textContent = '⚠️ 尚未建立基準線，請在感官確認好喝後點右上角「設定」';
     }
   }
 
@@ -2262,7 +2242,7 @@ function testJandi() {
     sopData.drinkTds = parseFloat(el('st0-drink').value) || null;
     var t = getTarget();
     var tGH = t ? parseInt(t.gh) : 4;
-    var tKH = t ? parseInt(t.kh) : 3;
+    var tKH = t ? parseInt(t.kh) : 2;
 
     // badges
     function setBadge(id, val, target) {
@@ -2584,13 +2564,11 @@ function testJandi() {
     var staff = (el('st1-staff') && el('st1-staff').value.trim()) || '';
     var note  = (el('st1-note')  && el('st1-note').value.trim())  || '';
     var toast = el('st1-water-toast');
-    var branch = (sopData.branch === 'yy') ? '一隅' : '白光';
 
     var record = {
       type: 'water_record',
       ts:       new Date().toISOString(),
       staff:    staff,
-      branch:   branch,
       tapTds:   sopData.tapTds   || '',
       drinkTds: sopData.drinkTds || '',
       gh:       sopData.gh       || '',
@@ -2613,8 +2591,7 @@ function testJandi() {
 
     var scriptUrl = window.scriptUrl || localStorage.getItem('wl_script_url') || '';
     function goLight() {
-      var target = (sopData.branch === 'yy') ? 'yiyu' : 'light';
-      if (typeof window.switchPage === 'function') window.switchPage(target);
+      if (typeof window.switchPage === 'function') window.switchPage('light');
     }
     if (scriptUrl) {
       var params = Object.keys(record).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(record[k]||''); }).join('&');
@@ -2624,7 +2601,7 @@ function testJandi() {
       }
       fetch(scriptUrl + '?' + params, { method:'GET', mode:'no-cors' })
         .then(function(){
-          if (toast) { toast.style.background='#EAF5E0'; toast.style.color='#2E6B10'; toast.textContent = '✅ ' + branch + ' 水質紀錄已送出！'; }
+          if (toast) { toast.style.background='#EAF5E0'; toast.style.color='#2E6B10'; toast.textContent = '✅ 水質紀錄已送出！'; }
           setTimeout(goLight, 600);
         })
         .catch(function(){
@@ -2634,7 +2611,7 @@ function testJandi() {
     } else {
       if (toast) {
         toast.style.cssText = 'display:block;padding:10px 12px;border-radius:10px;background:#EAF5E0;color:#2E6B10;font-size:13px;text-align:center;font-weight:600';
-        toast.textContent = '✅ ' + branch + ' 水質紀錄已存本地！（尚未設定 Sheets 連線）';
+        toast.textContent = '✅ 已存本地！（尚未設定 Sheets 連線）';
       }
       setTimeout(goLight, 600);
     }
@@ -2809,104 +2786,27 @@ function testJandi() {
     }
   }
 
-  // ── 分店切換 ──────────────────────────────────────────────────
-  function setSopBranch(b) {
-    sopData.branch = b;
-    var wlBtn = el('sop-branch-wl');
-    var yyBtn = el('sop-branch-yy');
-    if (!wlBtn || !yyBtn) return;
-    if (b === 'yy') {
-      wlBtn.style.background = '#F8F6F3'; wlBtn.style.color = '#AAA';
-      yyBtn.style.background = '#1A6B9A'; yyBtn.style.color = '#fff';
-      // 放流說明
-      if (el('flush-wl')) el('flush-wl').style.display = 'none';
-      if (el('flush-yy')) el('flush-yy').style.display = 'block';
-      // 鎂離子卡片
-      if (el('mg-filter-card'))      el('mg-filter-card').style.display      = 'none';
-      if (el('mg-filter-yiyu-note')) el('mg-filter-yiyu-note').style.display = 'block';
-      // 放水給咖啡機
-      if (el('water-to-machine-card')) el('water-to-machine-card').style.display = 'none';
-    } else {
-      wlBtn.style.background = '#1a1a1a'; wlBtn.style.color = '#fff';
-      yyBtn.style.background = '#F8F6F3'; yyBtn.style.color = '#AAA';
-      // 放流說明
-      if (el('flush-wl')) el('flush-wl').style.display = 'block';
-      if (el('flush-yy')) el('flush-yy').style.display = 'none';
-      // 鎂離子卡片
-      if (el('mg-filter-card'))      el('mg-filter-card').style.display      = 'block';
-      if (el('mg-filter-yiyu-note')) el('mg-filter-yiyu-note').style.display = 'none';
-      // 放水給咖啡機
-      if (el('water-to-machine-card')) el('water-to-machine-card').style.display = 'block';
-    }
-    // 基準線顯示隨分店切換（一隅唯讀跟隨本店）
-    if (typeof renderTarget === 'function') renderTarget();
-  }
-
   // ── Wire up all events ─────────────────────────────────────────
   function wire() {
     // GH/KH target form
     renderTarget();
     renderMgFilter(); // init mg filter display
-
-    // 季節模式：暫存選取，儲存時寫入
-    var pendingMode = '';
-    function highlightModeBtn() {
-      var s = el('st0-mode-summer'), w = el('st0-mode-winter');
-      if (s) s.style.boxShadow = (pendingMode === 'summer') ? '0 0 0 2px #E8820C inset' : 'none';
-      if (w) w.style.boxShadow = (pendingMode === 'winter') ? '0 0 0 2px #2255CC inset' : 'none';
-    }
-    function applyMode(mode) {
-      pendingMode = mode;
-      el('st0-newgh').value = 4;
-      el('st0-newkh').value = (mode === 'summer') ? 2 : 3;
-      var noteEl = el('st0-newnote');
-      if (!noteEl.value.trim()) {
-        noteEl.value = (mode === 'summer') ? '夏日模式：高溫排氣快，降 KH 釋放果酸切厚重' : '冬日模式：低溫排氣慢，升 KH 補緩衝與甜厚';
-      }
-      highlightModeBtn();
-    }
-    if (el('st0-mode-summer')) el('st0-mode-summer').addEventListener('click', function(){ applyMode('summer'); });
-    if (el('st0-mode-winter')) el('st0-mode-winter').addEventListener('click', function(){ applyMode('winter'); });
-    // 手動改動 KH 視為自訂，清掉季節標籤
-    if (el('st0-newkh')) el('st0-newkh').addEventListener('input', function(){ pendingMode=''; highlightModeBtn(); });
-
     el('st0-set-btn').addEventListener('click', function() {
       var form = el('st0-target-form');
-      var opening = form.style.display === 'none';
-      form.style.display = opening ? 'block' : 'none';
-      if (opening) {
-        // 預填目前基準線，方便微調
-        var cur = getTarget();
-        pendingMode = cur.mode || '';
-        el('st0-newgh').value = cur.gh || 4;
-        el('st0-newkh').value = cur.kh || '';
-        el('st0-newnote').value = cur.note || '';
-        highlightModeBtn();
-      }
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
     });
-    // 點 banner → 跳到基準線卡片，白光自動展開設定
-    if (el('st0-banner')) el('st0-banner').addEventListener('click', function() {
-      var card = el('st0-baseline-card');
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      var form = el('st0-target-form'), setBtn = el('st0-set-btn');
-      if (sopData.branch !== 'yy' && form && setBtn && form.style.display === 'none') {
-        setBtn.click();
-      }
-    });
-
     el('st0-save-target').addEventListener('click', function() {
       var gh = parseInt(el('st0-newgh').value);
       var kh = parseInt(el('st0-newkh').value);
       if (isNaN(gh) || isNaN(kh)) { alert('請填入 GH 和 KH 數字'); return; }
       var note = el('st0-newnote').value.trim();
-      var target = saveTarget(gh, kh, note, null, pendingMode);
+      var target = saveTarget(gh, kh, note);
       pushTargetToSheets(target);   // sync to Sheets immediately
       renderTarget();
       el('st0-target-form').style.display = 'none';
       el('st0-newgh').value = ''; el('st0-newkh').value = ''; el('st0-newnote').value = '';
-      pendingMode = ''; highlightModeBtn();
       var syncEl = el('st0-sync-status');
-      if (syncEl) { syncEl.style.display='block'; syncEl.style.color='#7A4FB5'; syncEl.textContent='☁️ 已儲存並同步至 Sheets，一隅與所有裝置可讀取'; }
+      if (syncEl) { syncEl.style.display='block'; syncEl.style.color='#7A4FB5'; syncEl.textContent='☁️ 已儲存並同步至 Sheets，所有裝置可讀取'; }
     });
 
     el('st0-flush-done').addEventListener('click', function() {
@@ -2949,9 +2849,6 @@ function testJandi() {
     el('st3-nxt').addEventListener('click',     function(){ showStep(4); });
     el('st4-submit').addEventListener('click',sopSubmit);
     el('st4-reset').addEventListener('click', sopReset);
-
-    // 預設分店：白光
-    setSopBranch('wl');
   }
 
   // Run after DOM is ready
@@ -2967,7 +2864,6 @@ function testJandi() {
   window.mgFilterReplace     = mgFilterReplace;
   window.toggleMgCyclePanel  = toggleMgCyclePanel;
   window.toggleMgReplacePanel= toggleMgReplacePanel;
-  window.setSopBranch        = setSopBranch;
 
 })(); // end IIFE
 </script>
@@ -2993,6 +2889,10 @@ function testJandi() {
   <div class="nav-item nav-filter" id="nav-filter" onclick="switchPage('filter')">
     <div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l-4 8v6l-4 2v-8Z"/></svg></div>
     <span class="nav-label">濾泡</span>
+  </div>
+  <div class="nav-item nav-soe" id="nav-soe" onclick="switchPage('soe')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div>
+    <span class="nav-label">SOE</span>
   </div>
   <div class="nav-item" id="nav-log" onclick="switchPage('log')">
     <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
@@ -3037,7 +2937,7 @@ let sheetsLogs = null;
 
 // ── Navigation ────────────────────────────────────────────────────
 function switchPage(name) {
-  var pages = ['light','medium','yiyu','filter','log','config','sop'];
+  var pages = ['light','medium','yiyu','soe','filter','log','config','sop'];
   for (var i = 0; i < pages.length; i++) {
     var p = pages[i];
     var pageEl = document.getElementById('page-' + p);
@@ -3057,7 +2957,7 @@ function switchPage(name) {
     }
   }
   var subEl = document.getElementById('topbar-sub');
-  var titles = {light:'淺焙 SOE 校正', medium:'中焙 SOE 校正', yiyu:'一隅 SOE 校正', filter:'濾泡咖啡', log:'今日記錄', config:'設定', sop:'水質／咖啡豆體檢'};
+  var titles = {light:'淺焙 SOE 校正', medium:'中焙 SOE 校正', yiyu:'一隅 SOE 校正', soe:'SOE 校正 — Mazzer Kony 研磨刻度', filter:'濾泡咖啡', log:'今日記錄', config:'設定', sop:'水質／咖啡豆體檢'};
   if (subEl) subEl.textContent = titles[name] || '';
   window.scrollTo(0, 0);
   if (name === 'log') renderLog();
@@ -3801,6 +3701,157 @@ async function submitRecord(t) {
   document.getElementById(noteId).value = '';
 }
 
+// ── SOE 校正：Mazzer Kony 研磨刻度推估 ──────────────────────
+// 回歸自 2026-07 五支豆（其中 2 支為修正推估值）
+//   刻度 = 0.4653 × 玻璃盅重量 − 5.306   r = 0.99
+// 已驗證盅重範圍 16.3–18.2g；固定 18g in / 40g out / 30s
+function soeGrindFromGlass(glass) {
+  var raw = 0.4653 * glass - 5.306;
+  var clamped = Math.min(3.2, Math.max(2.2, raw));
+  return Math.round(clamped * 20) / 20; // 至 0.05
+}
+
+function toggleSoeBean() {
+  var body = document.getElementById('sb-body');
+  var btn  = document.getElementById('sb-toggle');
+  if (!body || !btn) return;
+  var open = body.style.display === 'none';
+  body.style.display = open ? 'block' : 'none';
+  btn.textContent = open ? '收合' : '展開';
+}
+
+function calcSoeGrind() {
+  var glassEl = document.getElementById('sg-glass');
+  if (!glassEl) return;
+  var glass   = parseFloat(glassEl.value);
+  var outEl   = document.getElementById('sg-grind');
+  var warnEl  = document.getElementById('sg-warn');
+  var hintEl  = document.getElementById('sg-hint');
+  var deltaEl = document.getElementById('sg-delta');
+
+  if (isNaN(glass) || glass <= 0) {
+    if (outEl)   outEl.textContent = '—';
+    if (warnEl)  warnEl.style.display = 'none';
+    if (hintEl)  hintEl.style.display = 'none';
+    if (deltaEl) deltaEl.style.display = 'none';
+    return;
+  }
+
+  var g = soeGrindFromGlass(glass);
+  if (outEl) outEl.textContent = '# ' + g.toFixed(2);
+  if (warnEl) warnEl.style.display = (glass < 16.3 || glass > 18.2) ? 'block' : 'none';
+
+  // 微調提示：0.1 刻度 ≈ 4 秒
+  var t = parseFloat(document.getElementById('sg-time').value);
+  if (hintEl) {
+    if (!isNaN(t) && t > 0) {
+      var diff = t - 30;
+      if (Math.abs(diff) < 2) {
+        hintEl.innerHTML = '✅ ' + t + ' 秒落在 30 秒目標的 ±2 秒內，刻度先不用動。';
+      } else {
+        var adj  = Math.round((diff / 40) * 100) / 100;
+        var dirn = diff > 0 ? '磨粗（刻度往上）' : '磨細（刻度往下）';
+        hintEl.innerHTML = (diff > 0 ? '🐢 慢了 ' : '🐇 快了 ') + Math.abs(diff) + ' 秒 → 建議' + dirn +
+          ' <b>' + Math.abs(adj).toFixed(2) + '</b>，約 <b>#' + (g + adj).toFixed(2) + '</b>' +
+          '<br><span style="color:#BBA;font-size:11px">依 0.1 刻度 ≈ 4 秒推估，僅供起手，仍以實際口感為準</span>';
+      }
+      hintEl.style.display = 'block';
+    } else {
+      hintEl.style.display = 'none';
+    }
+  }
+
+  // 建議 vs 定案 的誤差
+  var f = parseFloat(document.getElementById('sg-final').value);
+  if (deltaEl) {
+    if (!isNaN(f) && f > 0) {
+      var d = Math.round((f - g) * 100) / 100;
+      var msg = Math.abs(d) <= 0.05
+        ? '🎯 定案 #' + f.toFixed(2) + '　公式命中（誤差 ' + (d >= 0 ? '+' : '') + d.toFixed(2) + '）'
+        : '📌 定案 #' + f.toFixed(2) + '　公式誤差 ' + (d > 0 ? '+' : '') + d.toFixed(2) +
+          '（公式' + (d > 0 ? '偏細' : '偏粗') + '）—— 送出後這筆會進 Sheets，之後重跑回歸用';
+      deltaEl.innerHTML = msg;
+      deltaEl.style.display = 'block';
+    } else {
+      deltaEl.style.display = 'none';
+    }
+  }
+}
+
+async function submitSoeGrind() {
+  var btn = document.getElementById('btn-soe');
+  if (btn && btn.classList.contains('loading')) return;
+  if (btn) { btn.classList.add('loading'); btn.textContent = '傳送中…'; }
+
+  var gv = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  var staff = gv('sgs-staff');
+  var unlock = function() { if (btn) { btn.classList.remove('loading'); btn.textContent = '送出記錄'; } };
+
+  if (!staff) {
+    document.getElementById('sgs-staff').style.borderColor = '#C0392B';
+    document.getElementById('sgs-staff').focus();
+    unlock(); return;
+  }
+  document.getElementById('sgs-staff').style.borderColor = '';
+
+  var glass = parseFloat(gv('sg-glass'));
+  if (isNaN(glass) || glass <= 0) {
+    document.getElementById('sg-glass').style.borderColor = '#C0392B';
+    document.getElementById('sg-glass').focus();
+    unlock(); return;
+  }
+  document.getElementById('sg-glass').style.borderColor = '';
+
+  var suggested = soeGrindFromGlass(glass);
+  var finalG    = parseFloat(gv('sg-final'));
+  var result    = gv('sg-result');
+
+  var entry = {
+    type: 'soe_grind',
+    ts: new Date().toLocaleString('zh-TW'),
+    staff: staff,
+    note: gv('sgs-note'),
+    beanName: gv('sg-bean'),
+    batchNo: gv('sg-batch'),
+    grinder: 'Mazzer Kony',
+    glass: glass,
+    agtronBean: gv('sg-ab'),
+    agtronCore: gv('sg-ac'),
+    restDays: gv('sg-rest'),
+    dose: 18,
+    suggested: suggested.toFixed(2),
+    actualTime: gv('sg-time'),
+    actualYield: gv('sg-yield'),
+    finalGrind: isNaN(finalG) ? '' : finalG.toFixed(2),
+    deltaGrind: isNaN(finalG) ? '' : (Math.round((finalG - suggested) * 100) / 100).toFixed(2),
+    result: result,
+    status: result === 'good' ? 'good' : result === 'ok' ? 'good' : result ? 'warn' : 'good',
+    title: (gv('sg-bean') || '未命名豆') + ' — 盅重 ' + glass + 'g → #' + (isNaN(finalG) ? suggested.toFixed(2) : finalG.toFixed(2))
+  };
+
+  var logs = JSON.parse(localStorage.getItem('wl_logs') || '[]');
+  logs.unshift(entry);
+  localStorage.setItem('wl_logs', JSON.stringify(logs.slice(0, 300)));
+
+  var toastEl = document.getElementById('toast-soe');
+  if (scriptUrl) {
+    try {
+      var params = new URLSearchParams();
+      Object.entries(entry).forEach(function(kv) { params.append(kv[0], kv[1] == null ? '' : kv[1]); });
+      await fetch(scriptUrl + '?' + params.toString(), { method: 'GET', mode: 'no-cors' });
+      showToast(toastEl, '已記錄並同步 Google Sheets！' + staff, false);
+    } catch (e) {
+      showToast(toastEl, '本地已儲存，Google Sheets 同步失敗', true);
+    } finally {
+      unlock();
+    }
+  } else {
+    showToast(toastEl, '已儲存本地記錄！' + staff, false);
+    unlock();
+  }
+  document.getElementById('sgs-note').value = '';
+}
+
 // ── 一隅 研磨刻度換算 ─────────────────────────────────────
 function calcYiyuGrind() {
   const glassEl = document.getElementById('yg-glass');
@@ -3831,11 +3882,16 @@ function calcYiyuGrind() {
   const eg1Grind     = Math.round((3.8 + eg1GrindSlope * delta) * 10) / 10;
   const eg1GrindIce  = Math.round((eg1Grind - 0.5) * 10) / 10;
 
+  const _lf = Math.floor(lagomDose), _ld = lagomDose - _lf;
+  const lagomDoseRounded = _ld < 0.35 ? _lf : _ld < 0.75 ? _lf + 0.5 : _lf + 1;
   if (lagomGrindEl) lagomGrindEl.textContent = '# ' + lagomGrind.toFixed(1);
-  if (lagomDoseEl)  lagomDoseEl.textContent  = lagomDose.toFixed(1) + ' g';
+  if (lagomDoseEl)  lagomDoseEl.textContent  = lagomDoseRounded + ' g';
   if (eg1GrindEl)   eg1GrindEl.textContent   = '# ' + eg1Grind.toFixed(1);
   const eg1IceEl = document.getElementById('yg-eg1-grind-ice');
   if (eg1IceEl) eg1IceEl.textContent = '# ' + eg1GrindIce.toFixed(1);
+  // 同步帶入調煮參數粉量欄位
+  const doseInput = document.getElementById('yl-dose');
+  if (doseInput) { doseInput.value = lagomDoseRounded; calcRatio('y'); }
   // Warn if outside reference range
   if (warnEl) warnEl.style.display = (glass < 15.3 || glass > 17.6) ? 'block' : 'none';
   // Sync 咖啡液重 from 換豆粉量換算 card
@@ -3962,7 +4018,7 @@ function showToast(el, msg, isErr) {
 
 function filterLog(f) {
   logFilter = f;
-  ['all','light','medium','yiyu','pour'].forEach(k => {
+  ['all','light','medium','yiyu','soe_grind','pour'].forEach(k => {
     const btn = document.getElementById('lf-'+k);
     if (!btn) return;
     const active = k===f;
@@ -4075,10 +4131,12 @@ function renderLog() {
   const filtered = logFilter==='all' ? all : all.filter(e=>e.type===logFilter);
   const list = document.getElementById('log-list');
   if (!filtered.length) { list.innerHTML='<div class="log-empty">尚無本機記錄</div>'; return; }
-  const typeLabel = {light:'淺焙 SOE', medium:'中焙 SOE', yiyu:'一隅 SOE', pour:'手沖'};
+  const typeLabel = {light:'淺焙 SOE', medium:'中焙 SOE', yiyu:'一隅 SOE', pour:'手沖', soe_grind:'SOE 刻度'};
   list.innerHTML = filtered.map(e => {
     const status = e.status||'good';
-    const detailParts = e.type==='pour'
+    const detailParts = e.type==='soe_grind'
+      ? [e.glass?`盅重 ${e.glass}g`:'', e.suggested?`建議 #${e.suggested}`:'', e.finalGrind?`定案 #${e.finalGrind}`:'', e.actualTime?`${e.actualTime}s`:'', e.actualYield?`液重 ${e.actualYield}g`:'', e.restDays?`養豆 ${e.restDays}天`:'', e.deltaGrind?`誤差 ${e.deltaGrind}`:''].filter(Boolean)
+      : e.type==='pour'
       ? [`CVA ${e.cvaTotal||'?'}/60`, e.grind?`刻度 ${e.grind}`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:''].filter(Boolean)
       : [e.acid?`酸 ${e.acid}%`:'', e.sweet?`甜 ${e.sweet}%`:'', e.dark?`深 ${e.dark}%`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:'', e.dose?`粉 ${e.dose}g`:'', e.brewTime?`${e.brewTime}s`:'', e.yield?`液重 ${e.yield}g`:'', e.ratio?`比例 ${e.ratio}`:'', e.basket?`[${e.basket}]`:'', e.speed?`${e.speed}`:''].filter(Boolean);
     return `<div class="log-row">
