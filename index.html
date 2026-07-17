@@ -971,6 +971,19 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       <div class="card-sub">固定 18g in / 40g out / 30 秒　秤完盅重直接給起手刻度</div>
     </div>
     <div class="card-body">
+      <div class="field" style="margin-bottom:10px">
+        <label>磨豆機</label>
+        <select id="sg-grinder" onchange="calcSoeGrind()">
+          <option value="Mazzer Kony">Mazzer Kony（71mm 錐刀）</option>
+          <option value="Molar X2">Molar X2（慢磨錐刀）</option>
+        </select>
+      </div>
+
+      <div id="sg-pair" style="display:none;background:#F0F7FF;border:1px solid #C5DDF5;border-radius:10px;padding:10px 12px;font-size:11px;color:#1A6B9A;line-height:1.8;margin-bottom:12px">
+        <b>🔗 配對記錄</b><br>
+        同一支豆兩台都拉一次，<b>批次欄填一樣的值</b>。湊到 4–5 支配對就能算出兩台刻度盤的對照關係，X2 的公式可以直接從 Kony 推出來，不用重跑 12–15 支。
+      </div>
+
       <div class="grid2" style="margin-bottom:12px">
         <div class="field"><label>豆名</label><input id="sg-bean" type="text" placeholder="衣索比亞 日曬 kokosa"></div>
         <div class="field"><label>玻璃盅重量 (g)</label><input id="sg-glass" type="number" inputmode="decimal" step="0.1" placeholder="17.2" oninput="calcSoeGrind()"></div>
@@ -983,7 +996,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
         <div id="sg-warn" style="display:none;margin-top:8px;font-size:11px;color:#C4862A;font-weight:600">⚠️ 超出已驗證範圍 16.3–18.2g，數值僅供方向參考，請務必試杯</div>
       </div>
 
-      <div style="background:#F8F6F3;border-radius:10px;padding:10px 12px;font-size:11px;color:#888;line-height:1.8">
+      <div id="sg-anchors" style="background:#F8F6F3;border-radius:10px;padding:10px 12px;font-size:11px;color:#888;line-height:1.8">
         <div style="font-weight:600;color:#666;margin-bottom:4px">📌 驗證錨點（2026-07）</div>
         <div>尼羅河衣索比亞水洗 18.2g → <b style="color:#6E4B9E">#3.2</b>　哥倫比亞玫瑰寶 16.3g → <b style="color:#6E4B9E">#2.3</b>　衣索比亞日曬 kokosa 17.2g → <b style="color:#6E4B9E">#2.6</b></div>
         <div style="margin-top:4px;color:#AAA">n=5，其中玻利維雅朝陽 / 巴拿馬藝伎為修正推估值。這是起手式，不能取代試杯。</div>
@@ -3701,14 +3714,37 @@ async function submitRecord(t) {
   document.getElementById(noteId).value = '';
 }
 
-// ── SOE 校正：Mazzer Kony 研磨刻度推估 ──────────────────────
-// 回歸自 2026-07 五支豆（其中 2 支為修正推估值）
-//   刻度 = 0.4653 × 玻璃盅重量 − 5.306   r = 0.99
-// 已驗證盅重範圍 16.3–18.2g；固定 18g in / 40g out / 30s
-function soeGrindFromGlass(glass) {
-  var raw = 0.4653 * glass - 5.306;
-  var clamped = Math.min(3.2, Math.max(2.2, raw));
-  return Math.round(clamped * 20) / 20; // 至 0.05
+// ── SOE 校正：研磨刻度推估 ──────────────────────────────────
+// 每台磨豆機一組係數。刻度盤單位彼此無關，公式絕對不可互相套用。
+// fit 為 null = 尚無資料，只記錄、不推估。
+var SOE_GRINDERS = {
+  'Mazzer Kony': {
+    // 回歸自 2026-07 五支豆（其中 2 支為修正推估值）r = 0.99
+    fit: { slope: 0.4653, intercept: -5.306 },
+    min: 2.2, max: 3.2, round: 20,      // round:20 → 至 0.05
+    validLo: 16.3, validHi: 18.2,
+    secPerStep: 40,                      // 0.1 刻度 ≈ 4 秒
+    formulaText: '刻度 = 0.465 × 盅重 − 5.31（四捨五入至 0.05）',
+    step: '0.05'
+  },
+  'Molar X2': {
+    fit: null,                           // 資料累積中
+    step: '0.01'
+  }
+};
+
+function soeCfg() {
+  var el = document.getElementById('sg-grinder');
+  var name = el ? el.value : 'Mazzer Kony';
+  return { name: name, cfg: SOE_GRINDERS[name] || { fit: null, step: '0.01' } };
+}
+
+// 回傳 null 代表該台尚無公式
+function soeGrindFromGlass(glass, cfg) {
+  if (!cfg || !cfg.fit) return null;
+  var raw = cfg.fit.slope * glass + cfg.fit.intercept;
+  var clamped = Math.min(cfg.max, Math.max(cfg.min, raw));
+  return Math.round(clamped * cfg.round) / cfg.round;
 }
 
 function toggleSoeBean() {
@@ -3728,6 +3764,45 @@ function calcSoeGrind() {
   var warnEl  = document.getElementById('sg-warn');
   var hintEl  = document.getElementById('sg-hint');
   var deltaEl = document.getElementById('sg-delta');
+  var formEl  = document.getElementById('sg-formula');
+  var pairEl  = document.getElementById('sg-pair');
+  var anchEl  = document.getElementById('sg-anchors');
+  var finalEl = document.getElementById('sg-final');
+
+  var G = soeCfg();
+  var cfg = G.cfg;
+  var hasFit = !!cfg.fit;
+
+  // 只有有公式的機器才顯示錨點；沒公式的顯示配對提示
+  if (anchEl) anchEl.style.display = hasFit ? 'block' : 'none';
+  if (pairEl) pairEl.style.display = hasFit ? 'none' : 'block';
+  if (finalEl) finalEl.step = cfg.step || '0.01';
+
+  var f = finalEl ? parseFloat(finalEl.value) : NaN;
+  var t = parseFloat(document.getElementById('sg-time').value);
+
+  // ── 尚無公式：純記錄模式 ──
+  if (!hasFit) {
+    if (outEl)  { outEl.style.fontSize = '17px'; outEl.textContent = '資料累積中 — 尚無公式'; }
+    if (formEl) formEl.textContent = G.name + ' 的刻度盤與 Kony 無關，不能套用 Kony 的公式。照你自己調出來的刻度填「最後定案刻度」即可。';
+    if (warnEl) warnEl.style.display = 'none';
+    if (hintEl) hintEl.style.display = 'none';
+    if (deltaEl) {
+      if (!isNaN(f) && f > 0) {
+        deltaEl.innerHTML = '📝 定案 #' + f + '　已記錄。' +
+          (!isNaN(t) && t > 0 ? '　實測 ' + t + ' 秒。' : '') +
+          '<br><span style="color:#BBA;font-size:11px">' + G.name + ' 目前沒有公式，所以不計算誤差。累積夠了再回歸。</span>';
+        deltaEl.style.display = 'block';
+      } else {
+        deltaEl.style.display = 'none';
+      }
+    }
+    return;
+  }
+
+  // ── 有公式 ──
+  if (outEl) outEl.style.fontSize = '34px';
+  if (formEl) formEl.textContent = cfg.formulaText;
 
   if (isNaN(glass) || glass <= 0) {
     if (outEl)   outEl.textContent = '—';
@@ -3737,19 +3812,18 @@ function calcSoeGrind() {
     return;
   }
 
-  var g = soeGrindFromGlass(glass);
+  var g = soeGrindFromGlass(glass, cfg);
   if (outEl) outEl.textContent = '# ' + g.toFixed(2);
-  if (warnEl) warnEl.style.display = (glass < 16.3 || glass > 18.2) ? 'block' : 'none';
+  if (warnEl) warnEl.style.display = (glass < cfg.validLo || glass > cfg.validHi) ? 'block' : 'none';
 
-  // 微調提示：0.1 刻度 ≈ 4 秒
-  var t = parseFloat(document.getElementById('sg-time').value);
+  // 微調提示
   if (hintEl) {
     if (!isNaN(t) && t > 0) {
       var diff = t - 30;
       if (Math.abs(diff) < 2) {
         hintEl.innerHTML = '✅ ' + t + ' 秒落在 30 秒目標的 ±2 秒內，刻度先不用動。';
       } else {
-        var adj  = Math.round((diff / 40) * 100) / 100;
+        var adj  = Math.round((diff / cfg.secPerStep) * 100) / 100;
         var dirn = diff > 0 ? '磨粗（刻度往上）' : '磨細（刻度往下）';
         hintEl.innerHTML = (diff > 0 ? '🐢 慢了 ' : '🐇 快了 ') + Math.abs(diff) + ' 秒 → 建議' + dirn +
           ' <b>' + Math.abs(adj).toFixed(2) + '</b>，約 <b>#' + (g + adj).toFixed(2) + '</b>' +
@@ -3761,8 +3835,7 @@ function calcSoeGrind() {
     }
   }
 
-  // 建議 vs 定案 的誤差
-  var f = parseFloat(document.getElementById('sg-final').value);
+  // 建議 vs 定案
   if (deltaEl) {
     if (!isNaN(f) && f > 0) {
       var d = Math.round((f - g) * 100) / 100;
@@ -3802,7 +3875,8 @@ async function submitSoeGrind() {
   }
   document.getElementById('sg-glass').style.borderColor = '';
 
-  var suggested = soeGrindFromGlass(glass);
+  var G  = soeCfg();
+  var suggested = soeGrindFromGlass(glass, G.cfg);   // null = 該台尚無公式
   var finalG    = parseFloat(gv('sg-final'));
   var result    = gv('sg-result');
 
@@ -3813,20 +3887,21 @@ async function submitSoeGrind() {
     note: gv('sgs-note'),
     beanName: gv('sg-bean'),
     batchNo: gv('sg-batch'),
-    grinder: 'Mazzer Kony',
+    grinder: G.name,
     glass: glass,
     agtronBean: gv('sg-ab'),
     agtronCore: gv('sg-ac'),
     restDays: gv('sg-rest'),
     dose: 18,
-    suggested: suggested.toFixed(2),
+    suggested: suggested == null ? '' : suggested.toFixed(2),
     actualTime: gv('sg-time'),
     actualYield: gv('sg-yield'),
     finalGrind: isNaN(finalG) ? '' : finalG.toFixed(2),
-    deltaGrind: isNaN(finalG) ? '' : (Math.round((finalG - suggested) * 100) / 100).toFixed(2),
+    deltaGrind: (suggested == null || isNaN(finalG)) ? '' : (Math.round((finalG - suggested) * 100) / 100).toFixed(2),
     result: result,
     status: result === 'good' ? 'good' : result === 'ok' ? 'good' : result ? 'warn' : 'good',
-    title: (gv('sg-bean') || '未命名豆') + ' — 盅重 ' + glass + 'g → #' + (isNaN(finalG) ? suggested.toFixed(2) : finalG.toFixed(2))
+    title: (gv('sg-bean') || '未命名豆') + '（' + G.name + '）— 盅重 ' + glass + 'g → #' +
+           (!isNaN(finalG) ? finalG : (suggested == null ? '?' : suggested.toFixed(2)))
   };
 
   var logs = JSON.parse(localStorage.getItem('wl_logs') || '[]');
