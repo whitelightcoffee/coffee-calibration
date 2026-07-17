@@ -979,6 +979,18 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
         </select>
       </div>
 
+      <div class="field" id="sg-speed-wrap" style="display:none;margin-bottom:10px">
+        <label>轉速</label>
+        <select id="sg-speed">
+          <option value="L">L — 低速</option>
+          <option value="M" selected>M — 中速（預設）</option>
+          <option value="H">H — 高速</option>
+        </select>
+        <div style="font-size:11px;color:#C4862A;margin-top:6px;line-height:1.7">
+          ⚠️ 轉速會改變細粉比例，等於換一台磨豆機。<b>累積配對資料期間請固定 M</b>，不要中途改。
+        </div>
+      </div>
+
       <div id="sg-pair" style="display:none;background:#F0F7FF;border:1px solid #C5DDF5;border-radius:10px;padding:10px 12px;font-size:11px;color:#1A6B9A;line-height:1.8;margin-bottom:12px">
         <b>🔗 配對記錄</b><br>
         同一支豆兩台都拉一次，<b>批次欄填一樣的值</b>。湊到 4–5 支配對就能算出兩台刻度盤的對照關係，X2 的公式可以直接從 Kony 推出來，不用重跑 12–15 支。
@@ -1403,10 +1415,10 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   if (p.type === 'soe_grind') {
     headers = ['時間','夥伴','豆名','批次','磨豆機',
                '玻璃盅重量g','Agtron豆表','Agtron豆心','養豆天數',
-               '粉量g','公式建議刻度','實際秒數','實際液重g','最後定案刻度','刻度誤差','效果','備注'];
+               '粉量g','公式建議刻度','實際秒數','實際液重g','最後定案刻度','刻度誤差','效果','備注','轉速'];
     values = [p.ts,p.staff,p.beanName,p.batchNo,p.grinder,
               p.glass,p.agtronBean,p.agtronCore,p.restDays,
-              p.dose,p.suggested,p.actualTime,p.actualYield,p.finalGrind,p.deltaGrind,p.result,p.note];
+              p.dose,p.suggested,p.actualTime,p.actualYield,p.finalGrind,p.deltaGrind,p.result,p.note,p.speed];
   } else if (p.type === 'pour') {
     headers = ['時間','夥伴',
                '氣溫℃','濕度%','水溫℃','研磨刻度','Tonik下','LyLac下',
@@ -1477,6 +1489,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
     ];
 
     if (p.type === 'soe_grind') {
+      connectInfo.push({ title: '磨豆機', description: (p.grinder||'—') + (p.speed ? '　轉速 ' + p.speed : '') });
       connectInfo.push({ title: '玻璃盅重量', description: (p.glass||'—') + ' g' });
       connectInfo.push({ title: '刻度', description: '公式建議 #' + (p.suggested||'—') + (p.finalGrind ? '　→　定案 #' + p.finalGrind + '（誤差 ' + (p.deltaGrind||'—') + '）' : '') });
       connectInfo.push({ title: '實測', description: '18g in　' + (p.actualYield||'—') + 'g out　' + (p.actualTime||'—') + 's' + (p.restDays ? '　養豆 ' + p.restDays + ' 天' : '') });
@@ -3729,14 +3742,22 @@ var SOE_GRINDERS = {
   },
   'Molar X2': {
     fit: null,                           // 資料累積中
-    step: '0.01'
+    step: '0.01',
+    speeds: true,                        // L/M/H 可調；擬合時必須分開處理
+    defaultSpeed: 'M'
   }
 };
 
 function soeCfg() {
   var el = document.getElementById('sg-grinder');
   var name = el ? el.value : 'Mazzer Kony';
-  return { name: name, cfg: SOE_GRINDERS[name] || { fit: null, step: '0.01' } };
+  var cfg = SOE_GRINDERS[name] || { fit: null, step: '0.01' };
+  var speed = '';
+  if (cfg.speeds) {
+    var sp = document.getElementById('sg-speed');
+    speed = sp ? sp.value : (cfg.defaultSpeed || '');
+  }
+  return { name: name, cfg: cfg, speed: speed };
 }
 
 // 回傳 null 代表該台尚無公式
@@ -3776,6 +3797,8 @@ function calcSoeGrind() {
   // 只有有公式的機器才顯示錨點；沒公式的顯示配對提示
   if (anchEl) anchEl.style.display = hasFit ? 'block' : 'none';
   if (pairEl) pairEl.style.display = hasFit ? 'none' : 'block';
+  var spWrap = document.getElementById('sg-speed-wrap');
+  if (spWrap) spWrap.style.display = cfg.speeds ? 'block' : 'none';
   if (finalEl) finalEl.step = cfg.step || '0.01';
 
   var f = finalEl ? parseFloat(finalEl.value) : NaN;
@@ -3784,7 +3807,7 @@ function calcSoeGrind() {
   // ── 尚無公式：純記錄模式 ──
   if (!hasFit) {
     if (outEl)  { outEl.style.fontSize = '17px'; outEl.textContent = '資料累積中 — 尚無公式'; }
-    if (formEl) formEl.textContent = G.name + ' 的刻度盤與 Kony 無關，不能套用 Kony 的公式。照你自己調出來的刻度填「最後定案刻度」即可。';
+    if (formEl) formEl.textContent = G.name + (G.speed ? '（' + G.speed + ' 速）' : '') + ' 的刻度盤與 Kony 無關，不能套用 Kony 的公式。照你自己調出來的刻度填「最後定案刻度」即可。';
     if (warnEl) warnEl.style.display = 'none';
     if (hintEl) hintEl.style.display = 'none';
     if (deltaEl) {
@@ -3888,6 +3911,7 @@ async function submitSoeGrind() {
     beanName: gv('sg-bean'),
     batchNo: gv('sg-batch'),
     grinder: G.name,
+    speed: G.speed,
     glass: glass,
     agtronBean: gv('sg-ab'),
     agtronCore: gv('sg-ac'),
@@ -3900,7 +3924,7 @@ async function submitSoeGrind() {
     deltaGrind: (suggested == null || isNaN(finalG)) ? '' : (Math.round((finalG - suggested) * 100) / 100).toFixed(2),
     result: result,
     status: result === 'good' ? 'good' : result === 'ok' ? 'good' : result ? 'warn' : 'good',
-    title: (gv('sg-bean') || '未命名豆') + '（' + G.name + '）— 盅重 ' + glass + 'g → #' +
+    title: (gv('sg-bean') || '未命名豆') + '（' + G.name + (G.speed ? ' / ' + G.speed : '') + '）— 盅重 ' + glass + 'g → #' +
            (!isNaN(finalG) ? finalG : (suggested == null ? '?' : suggested.toFixed(2)))
   };
 
@@ -4210,7 +4234,7 @@ function renderLog() {
   list.innerHTML = filtered.map(e => {
     const status = e.status||'good';
     const detailParts = e.type==='soe_grind'
-      ? [e.glass?`盅重 ${e.glass}g`:'', e.suggested?`建議 #${e.suggested}`:'', e.finalGrind?`定案 #${e.finalGrind}`:'', e.actualTime?`${e.actualTime}s`:'', e.actualYield?`液重 ${e.actualYield}g`:'', e.restDays?`養豆 ${e.restDays}天`:'', e.deltaGrind?`誤差 ${e.deltaGrind}`:''].filter(Boolean)
+      ? [e.grinder?`${e.grinder}${e.speed?' / '+e.speed:''}`:'', e.glass?`盅重 ${e.glass}g`:'', e.suggested?`建議 #${e.suggested}`:'', e.finalGrind?`定案 #${e.finalGrind}`:'', e.actualTime?`${e.actualTime}s`:'', e.actualYield?`液重 ${e.actualYield}g`:'', e.restDays?`養豆 ${e.restDays}天`:'', e.deltaGrind?`誤差 ${e.deltaGrind}`:''].filter(Boolean)
       : e.type==='pour'
       ? [`CVA ${e.cvaTotal||'?'}/60`, e.grind?`刻度 ${e.grind}`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:''].filter(Boolean)
       : [e.acid?`酸 ${e.acid}%`:'', e.sweet?`甜 ${e.sweet}%`:'', e.dark?`深 ${e.dark}%`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:'', e.dose?`粉 ${e.dose}g`:'', e.brewTime?`${e.brewTime}s`:'', e.yield?`液重 ${e.yield}g`:'', e.ratio?`比例 ${e.ratio}`:'', e.basket?`[${e.basket}]`:'', e.speed?`${e.speed}`:''].filter(Boolean);
