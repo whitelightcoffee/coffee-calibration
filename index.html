@@ -2948,10 +2948,15 @@ let logFilter = 'all';
 let sheetsLogs = null;
 
 // ── Init ──────────────────────────────────────────────────────────
-(function init() {
+// init() 必須等整個 script block 跑完才能執行。
+// var 的「賦值」不會提升（只有宣告會），所以在這裡直接呼叫的話，
+// TARGET_RANGES / SOE_GRINDERS 等後面才賦值的常數全都還是 undefined，
+// cvaUpdOverall() 會丟 TypeError，init() 中斷，
+// 而且因為 function 宣告有提升，畫面看起來還是正常的 —— 非常難發現。
+// 交給 microtask 排到 block 尾端執行。
+function init() {
   ['l','m','y','p'].forEach(t => { if (beans[t]) showBean(t); });
   if (scriptUrl) { document.getElementById('cfg-url').value = scriptUrl; showCfgStatus(true); }
-  const now = new Date().toTimeString().slice(0,5);
   ['ls-staff','ms-staff','ps-staff'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
@@ -2959,7 +2964,10 @@ let sheetsLogs = null;
   Object.keys(cvaScores).forEach(k => cvaUpd(k, 5));
   cvaUpdOverall(5);
   switchPage('sop');
-})();
+}
+Promise.resolve().then(function () {
+  try { init(); } catch (e) { console.error('init() failed:', e); }
+});
 
 // ── Navigation ────────────────────────────────────────────────────
 function switchPage(name) {
