@@ -1330,8 +1330,8 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   // 水質紀錄 — 寫入「水質紀錄」sheet
   if (p.type === 'water_record') {
     var wrSheet = ss.getSheetByName('水質紀錄') || ss.insertSheet('水質紀錄');
-    var wrHeaders = ['時間','夥伴','自來水TDS','飲用水TDS','GH滴數','KH滴數','NF針閥操作','鎂濾芯操作','豆況','濾芯流量計讀數','濾芯累積循環','濾芯累積用量L','備注'];
-    var wrValues  = [p.ts,p.staff||'',p.tapTds||'',p.drinkTds||'',p.gh||'',p.kh||'',p.nfAdj||'不動',p.mgAdj||'不動',p.beanResult||'',p.mgFilterReading||'',p.mgFilterCycles||'',p.mgFilterUsed||'',p.note||''];
+    var wrHeaders = ['時間','夥伴','自來水TDS','飲用水TDS','GH滴數','KH滴數','NF針閥操作','鎂濾芯操作','豆況','濾芯流量計讀數','濾芯累積循環','濾芯累積用量L','備注','門市'];
+    var wrValues  = [p.ts,p.staff||'',p.tapTds||'',p.drinkTds||'',p.gh||'',p.kh||'',p.nfAdj||'不動',p.mgAdj||'不動',p.beanResult||'',p.mgFilterReading||'',p.mgFilterCycles||'',p.mgFilterUsed||'',p.note||'',p.storeName||''];
     if (wrSheet.getLastColumn() === 0) {
       wrSheet.getRange(1,1,wrHeaders.length,1).setValues(wrHeaders.map(function(h){return[h];}));
     }
@@ -1344,8 +1344,8 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   // 濾芯更換紀錄 — 寫入「濾芯更換紀錄」sheet
   if (p.type === 'filter_replace') {
     var frSheet = ss.getSheetByName('濾芯更換紀錄') || ss.insertSheet('濾芯更換紀錄');
-    var frHeaders = ['更換時間','操作人','安裝日期','換芯前累積循環','換芯前累積用量L'];
-    var frValues  = [p.ts, p.staff||'', p.installDate||'', p.prevCycles||'0', p.prevUsedL||'0'];
+    var frHeaders = ['更換時間','操作人','安裝日期','換芯前累積循環','換芯前累積用量L','門市'];
+    var frValues  = [p.ts, p.staff||'', p.installDate||'', p.prevCycles||'0', p.prevUsedL||'0', p.storeName||''];
     if (frSheet.getLastColumn() === 0) {
       frSheet.getRange(1,1,frHeaders.length,1).setValues(frHeaders.map(function(h){return[h];}));
     }
@@ -1358,8 +1358,8 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   // SOP 開吧記錄 — 寫入「校正SOP」sheet
   if (p.type === 'sop') {
     var sSheet = ss.getSheetByName('校正SOP') || ss.insertSheet('校正SOP');
-    var sHeaders = ['時間','夥伴','GH','KH','NF針閥','鎂濾芯','豆況','萃取秒','液重g','研磨調整','感官','Tonik','水溫調整','備注'];
-    var sValues  = [p.ts,p.staff,p.gh,p.kh,p.nfAdj||'',p.mgAdj||'',p.beanResult||'',p.brewTime||'',p.yieldG||'',p.grindAdj||'',p.tasteResult||'',p.tonikResult||'',p.tempAdj||'',p.note||''];
+    var sHeaders = ['時間','夥伴','GH','KH','NF針閥','鎂濾芯','豆況','萃取秒','液重g','研磨調整','感官','Tonik','水溫調整','備注','門市'];
+    var sValues  = [p.ts,p.staff,p.gh,p.kh,p.nfAdj||'',p.mgAdj||'',p.beanResult||'',p.brewTime||'',p.yieldG||'',p.grindAdj||'',p.tasteResult||'',p.tonikResult||'',p.tempAdj||'',p.note||'',p.storeName||''];
     if (sSheet.getLastColumn() === 0) {
       sSheet.getRange(1,1,sHeaders.length,1).setValues(sHeaders.map(function(h){return[h];}));
     }
@@ -1419,6 +1419,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
     var statusLine = hasWarn ? '⚠️ 有異常，已完成調整' : '✅ 四道防線全通過，可以開始營業';
 
     var sopConnectInfo = [
+      { title: '門市', description: p.storeName || '—' },
       { title: '夥伴 / 時段', description: (p.staff||'—') + '　' + (p.time||'—') },
       { title: '水質 GH / KH', description: waterDesc }
     ];
@@ -2580,7 +2581,7 @@ function testJandi() {
     var note  = el('st4-note').value.trim();
     var toast = el('st4-toast');
     var record = {
-      type:'sop', ts:new Date().toISOString(), staff:staff, note:note,
+      type:'sop', storeName:(STORES[currentStore]||{name:currentStore}).name, storeKey:currentStore, ts:new Date().toISOString(), staff:staff, note:note,
       tapTds:sopData.tapTds, drinkTds:sopData.drinkTds,
       gh:sopData.gh, kh:sopData.kh,
       nfAdj:sopData.nfAdj||'', mgAdj:sopData.mgAdj||'', waterZone:sopData.waterZone||'',
@@ -2639,6 +2640,7 @@ function testJandi() {
 
     var record = {
       type: 'water_record',
+      storeName: (STORES[currentStore]||{name:currentStore}).name, storeKey: currentStore,
       ts:       new Date().toISOString(),
       staff:    staff,
       tapTds:   sopData.tapTds   || '',
@@ -2827,6 +2829,8 @@ function testJandi() {
     var toast = el('mg-replace-toast');
     var record = {
       type:        'filter_replace',
+      storeName:   (STORES[currentStore]||{name:currentStore}).name,
+      storeKey:    currentStore,
       ts:          new Date().toISOString(),
       staff:       staff,
       installDate: today,
@@ -3045,7 +3049,7 @@ var POUR_GRINDERS = {
 var ALWAYS_TASKS = ['log','config'];   // 每間店都有
 var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
 
-var BUILD_ID = '2026-07-18b · 門市欄位';
+var BUILD_ID = '2026-07-18c · 水質也分門市';
 var currentStore = localStorage.getItem('wl_store') || 'linkou';
 if (!STORES[currentStore]) currentStore = 'linkou';
 
