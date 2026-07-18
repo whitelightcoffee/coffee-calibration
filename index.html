@@ -1463,45 +1463,45 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
                'CVA香氣','CVA風味','CVA餘韻','CVA酸度','CVA甜感','CVA觸感',
                'CVA整體印象','CVA豆子類型',
                'CVA香氣詞','CVA風味詞','CVA餘韻詞','CVA酸度詞','CVA觸感詞',
-               'CVA香氣補充','CVA風味補充','CVA餘韻補充','CVA酸度補充','CVA觸感補充','備注'];
+               'CVA香氣補充','CVA風味補充','CVA餘韻補充','CVA酸度補充','CVA觸感補充','備注','門市'];
     values = [p.ts,p.staff,
               p.temp,p.humid,p.wtemp,p.grind,p.tonik,p.lylac,
               p.beanName,p.batchNo,p.agtronBean,p.agtronGrind,p.density,
               p.cvaAroma,p.cvaFlavor,p.cvaAftertaste,p.cvaAcidity,p.cvaSweetness,p.cvaMouthfeel,
               p.cvaOverall,p.cvaProfile,
               p.cvaAromaTags,p.cvaFlavorTags,p.cvaAftertasteTags,p.cvaAcidityTags,p.cvaMouthfeelTags,
-              p.cvaAromaText,p.cvaFlavorText,p.cvaAftertasteText,p.cvaAcidityText,p.cvaMouthfeelText,p.note];
+              p.cvaAromaText,p.cvaFlavorText,p.cvaAftertasteText,p.cvaAcidityText,p.cvaMouthfeelText,p.note,p.storeName];
   } else if (p.type === 'light') {
     headers = ['時間','夥伴','確認加奶效果',
                '自來水TDS','TDS增減','飲用水TDS','鎂離子增減','研磨調整','研磨說明','水溫調整','水溫說明',
                '氣溫℃','濕度%','水溫℃','粉量g','萃取秒','咖啡液重g','Espresso比例',
                '豆名','批次','Agtron豆','Agtron粉','密度',
-               '酸值%','甜感%','深調%','狀態','Basket','轉速','RDT','標籤','備注'];
+               '酸值%','甜感%','深調%','狀態','Basket','轉速','標籤','備注','門市','RDT'];
     values = [p.ts,p.staff,p.milkCheck,
               p.tapTds,p.tdsAdj,p.drinkTds,p.mgAdj,p.grindAdj,p.grindNote,p.tempAdj,p.tempNote,
               p.temp,p.humid,p.wtemp,p.dose,p.brewTime,p.yield,p.ratio,
               p.beanName,p.batchNo,p.agtronBean,p.agtronGrind,p.density,
-              p.acid,p.sweet,p.dark,p.status,p.basket,p.speed,p.rdt,p.tags,p.note];
+              p.acid,p.sweet,p.dark,p.status,p.basket,p.speed,p.tags,p.note,p.storeName,p.rdt];
   } else if (p.type === 'yiyu') {
     headers = ['時間','夥伴','確認加奶效果',
                '研磨調整','研磨刻度','水溫調整','水溫說明',
                '氣溫℃','濕度%','水溫℃','粉量g','預浸秒','萃取秒','咖啡液重g','Espresso比例',
                '豆名','批次','Agtron豆','Agtron粉','密度',
-               '酸值%','甜感%','深調%','狀態','Basket','Swan轉速','標籤','備注'];
+               '酸值%','甜感%','深調%','狀態','Basket','Swan轉速','標籤','備注','門市'];
     values = [p.ts,p.staff,p.milkCheck,
               p.grindAdj,p.grindNote,p.tempAdj,p.tempNote,
               p.temp,p.humid,p.wtemp,p.dose,p.prebrew||'',p.brewTime,p.yield,p.ratio,
               p.beanName,p.batchNo,p.agtronBean,p.agtronGrind,p.density,
-              p.acid,p.sweet,p.dark,p.status,p.basket,p.speed,p.tags,p.note];
+              p.acid,p.sweet,p.dark,p.status,p.basket,p.speed,p.tags,p.note,p.storeName];
   } else {
     headers = ['時間','夥伴','確認加奶效果',
                '氣溫℃','濕度%','水溫℃','粉量g','萃取秒','咖啡液重g','Espresso比例',
                '豆名','批次','Agtron豆','Agtron粉','密度',
-               '酸值%','甜感%','深調%','狀態','Basket','標籤','備注'];
+               '酸值%','甜感%','深調%','狀態','Basket','標籤','備注','門市'];
     values = [p.ts,p.staff,p.milkCheck,
               p.temp,p.humid,p.wtemp,p.dose,p.brewTime,p.yield,p.ratio,
               p.beanName,p.batchNo,p.agtronBean,p.agtronGrind,p.density,
-              p.acid,p.sweet,p.dark,p.status,p.basket,p.tags,p.note];
+              p.acid,p.sweet,p.dark,p.status,p.basket,p.tags,p.note,p.storeName];
   }
 
   if (sheet.getLastColumn() === 0) {
@@ -1534,10 +1534,12 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       if (p.result) connectInfo.push({ title: '效果', description: p.result });
       if (p.note) connectInfo.push({ title: '備注', description: p.note });
     } else if (p.type === 'pour') {
+      connectInfo.push({ title: '門市', description: p.storeName || '—' });
       connectInfo.push({ title: '參數', description: '水溫 ' + (p.wtemp||'—') + '℃　研磨 ' + (p.grind||'—') });
       connectInfo.push({ title: '萃取狀態', description: p.extractStatus || '正常' });
       if (p.note) connectInfo.push({ title: '備注', description: p.note });
     } else if (p.type === 'light') {
+      connectInfo.push({ title: '門市', description: p.storeName || '—' });
       connectInfo.push({ title: '參數', description: '水溫 ' + (p.wtemp||'—') + '℃　粉量 ' + (p.dose||'—') + 'g　' + (p.brewTime||'—') + 's　液重 ' + (p.yield||'—') + 'g　1:' + (p.ratio||'—') });
       connectInfo.push({ title: '環境', description: '氣溫 ' + (p.temp||'—') + '℃　濕度 ' + (p.humid||'—') + '%　飲用水TDS ' + (p.drinkTds||'—') });
       connectInfo.push({ title: '器材', description: 'Basket ' + (p.basket||'—') + '　Molar ' + (p.speed||'—') + (p.rdt ? '　RDT ' + p.rdt : '') });
@@ -1547,6 +1549,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       connectInfo.push({ title: '狀態', description: statusText });
       if (p.note) connectInfo.push({ title: '備注', description: p.note });
     } else if (p.type === 'yiyu') {
+      connectInfo.push({ title: '門市', description: p.storeName || '—' });
       connectInfo.push({ title: '參數', description: '水溫 ' + (p.wtemp||'—') + '℃　粉量 ' + (p.dose||'—') + 'g' + (p.prebrew ? '　預浸 ' + p.prebrew + 's' : '') + '　' + (p.brewTime||'—') + 's　液重 ' + (p.yield||'—') + 'g　1:' + (p.ratio||'—') });
       connectInfo.push({ title: '環境', description: '氣溫 ' + (p.temp||'—') + '℃　濕度 ' + (p.humid||'—') + '%' });
       connectInfo.push({ title: '器材', description: 'WAFO B/O　Swan ' + (p.speed||'—') });
@@ -1556,6 +1559,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       connectInfo.push({ title: '狀態', description: statusText });
       if (p.note) connectInfo.push({ title: '備注', description: p.note });
     } else {
+      connectInfo.push({ title: '門市', description: p.storeName || '—' });
       connectInfo.push({ title: '參數', description: '水溫 ' + (p.wtemp||'—') + '℃　粉量 ' + (p.dose||'—') + 'g　' + (p.brewTime||'—') + 's　液重 ' + (p.yield||'—') + 'g　1:' + (p.ratio||'—') });
       connectInfo.push({ title: '酸甜比例', description: '酸 ' + (p.acid||'—') + '%　甜 ' + (p.sweet||'—') + '%　深 ' + (p.dark||'—') + '%' });
       if (p.tags &amp;&amp; p.tags !== '—') connectInfo.push({ title: '風味感受', description: p.tags });
@@ -3757,10 +3761,12 @@ async function submitRecord(t) {
 
   const b = beans[t] || {};
   const typeMap = {l:'light', m:'medium', y:'yiyu', p:'pour'};
+  const st = STORES[currentStore] || { name: currentStore };
 
   let entry = {
     type: typeMap[t],
     ts: new Date().toLocaleString('zh-TW'),
+    storeKey: currentStore, storeName: st.name,
     staff, note,
     beanName: b.name||'', batchNo: b.batch||'',
     agtronBean: b.agtronBean||'', agtronGrind: b.agtronGrind||'', density: b.density||'',
@@ -4405,8 +4411,8 @@ function renderLog() {
     const detailParts = e.type==='soe_grind'
       ? [e.storeName?`${e.storeName}`:'', e.grinder?`${e.grinder}${e.speed?' / '+e.speed:''}`:'', e.glass?`盅重 ${e.glass}g`:'', e.suggested?`建議 #${e.suggested}`:'', e.finalGrind?`定案 #${e.finalGrind}`:'', e.actualTime?`${e.actualTime}s`:'', e.actualYield?`液重 ${e.actualYield}g`:'', e.restDays?`養豆 ${e.restDays}天`:'', e.rdt==='有'?'RDT':'', e.deltaGrind?`誤差 ${e.deltaGrind}`:''].filter(Boolean)
       : e.type==='pour'
-      ? [`CVA ${e.cvaTotal||'?'}/60`, e.grind?`刻度 ${e.grind}`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:''].filter(Boolean)
-      : [e.acid?`酸 ${e.acid}%`:'', e.sweet?`甜 ${e.sweet}%`:'', e.dark?`深 ${e.dark}%`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:'', e.dose?`粉 ${e.dose}g`:'', e.brewTime?`${e.brewTime}s`:'', e.yield?`液重 ${e.yield}g`:'', e.ratio?`比例 ${e.ratio}`:'', e.basket?`[${e.basket}]`:'', e.speed?`${e.speed}`:'', e.rdt==='有'?'RDT':''].filter(Boolean);
+      ? [e.storeName?`${e.storeName}`:'', `CVA ${e.cvaTotal||'?'}/60`, e.grind?`刻度 ${e.grind}`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:''].filter(Boolean)
+      : [e.storeName?`${e.storeName}`:'', e.acid?`酸 ${e.acid}%`:'', e.sweet?`甜 ${e.sweet}%`:'', e.dark?`深 ${e.dark}%`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:'', e.dose?`粉 ${e.dose}g`:'', e.brewTime?`${e.brewTime}s`:'', e.yield?`液重 ${e.yield}g`:'', e.ratio?`比例 ${e.ratio}`:'', e.basket?`[${e.basket}]`:'', e.speed?`${e.speed}`:'', e.rdt==='有'?'RDT':''].filter(Boolean);
     return `<div class="log-row">
       <div class="log-dot ${status}"></div>
       <div style="flex:1;min-width:0">
