@@ -224,9 +224,15 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
 <body>
 <div class="app">
 
-<div class="topbar">
-  <div class="topbar-title">白光咖啡 風味校正</div>
-  <div class="topbar-sub" id="topbar-sub">請先填入豆子資訊</div>
+<div class="topbar" id="topbar">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+    <div style="min-width:0">
+      <div class="topbar-title">白光咖啡 風味校正</div>
+      <div class="topbar-sub" id="topbar-sub">請先填入豆子資訊</div>
+    </div>
+    <select id="store-pick" onchange="setStore(this.value)"
+      style="flex:none;font-size:13px;font-weight:600;color:#fff;background:#333;border:1px solid #555;border-radius:999px;padding:7px 12px;cursor:pointer;-webkit-appearance:none;appearance:none;text-align:center"></select>
+  </div>
 </div>
 
 <!-- ══════════════ PAGE: LIGHT SOE ══════════════ -->
@@ -961,22 +967,19 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   </div>
 </div>
 
-<!-- ══════════════ PAGE: SOE 校正 (Mazzer Kony) ══════════════ -->
+<!-- ══════════════ PAGE: 淺焙 SOE 校正 (Molar X2) ══════════════ -->
 <div class="page" id="page-soe" style="display:none">
 
   <!-- 研磨刻度推估 -->
   <div class="card">
     <div class="card-head">
-      <div class="card-title">☕ Mazzer Kony 研磨刻度推估</div>
+      <div class="card-title">☕ 淺焙 SOE 研磨刻度推估</div>
       <div class="card-sub">固定 18g in / 40g out / 30 秒　秤完盅重直接給起手刻度</div>
     </div>
     <div class="card-body">
       <div class="field" style="margin-bottom:10px">
         <label>磨豆機</label>
-        <select id="sg-grinder" onchange="calcSoeGrind()">
-          <option value="Mazzer Kony">Mazzer Kony（71mm 錐刀）</option>
-          <option value="Molar X2">Molar X2（慢磨錐刀）</option>
-        </select>
+        <select id="sg-grinder" onchange="calcSoeGrind()"></select>
       </div>
 
       <div class="field" id="sg-speed-wrap" style="display:none;margin-bottom:10px">
@@ -997,7 +1000,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       </div>
 
       <div class="grid2" style="margin-bottom:12px">
-        <div class="field"><label>豆名</label><input id="sg-bean" type="text" placeholder="衣索比亞 日曬 kokosa"></div>
+        <div class="field"><label>豆名</label><input id="sg-bean" type="text" placeholder="衣索比亞 日曬 processing"></div>
         <div class="field"><label>玻璃盅重量 (g)</label><input id="sg-glass" type="number" inputmode="decimal" step="0.1" placeholder="17.2" oninput="calcSoeGrind()"></div>
       </div>
 
@@ -1008,10 +1011,9 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
         <div id="sg-warn" style="display:none;margin-top:8px;font-size:11px;color:#C4862A;font-weight:600">⚠️ 超出已驗證範圍 16.3–18.2g，數值僅供方向參考，請務必試杯</div>
       </div>
 
-      <div id="sg-anchors" style="background:#F8F6F3;border-radius:10px;padding:10px 12px;font-size:11px;color:#888;line-height:1.8">
-        <div style="font-weight:600;color:#666;margin-bottom:4px">📌 驗證錨點（2026-07）</div>
-        <div>尼羅河衣索比亞水洗 18.2g → <b style="color:#6E4B9E">#3.2</b>　哥倫比亞玫瑰寶 16.3g → <b style="color:#6E4B9E">#2.3</b>　衣索比亞日曬 kokosa 17.2g → <b style="color:#6E4B9E">#2.6</b></div>
-        <div style="margin-top:4px;color:#AAA">n=5，其中玻利維雅朝陽 / 巴拿馬藝伎為修正推估值。這是起手式，不能取代試杯。</div>
+      <div id="sg-anchors" style="display:none;background:#F8F6F3;border-radius:10px;padding:10px 12px;font-size:11px;color:#888;line-height:1.8">
+        <div style="font-weight:600;color:#666;margin-bottom:4px">📌 驗證錨點</div>
+        <div id="sg-anchors-body" style="color:#AAA">此磨豆機尚未建立公式，累積足夠資料後這裡會顯示驗證錨點。</div>
       </div>
     </div>
   </div>
@@ -1083,11 +1085,11 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
 <!-- ══════════════ PAGE: FILTER COFFEE ══════════════ -->
 <div class="page" id="page-filter" style="display:none">
 
-  <!-- 研磨刻度換算 — Molar -->
-  <div class="card">
+  <!-- 研磨刻度換算 — Molar Z（林口白光）-->
+  <div class="card" id="pour-molarz-card">
     <div class="card-head">
-      <div class="card-title">⚙️ 研磨刻度換算 — Molar</div>
-      <div class="card-sub">Molar 400 RPM · 玻璃盅重量 → 熱手沖 / 冰手沖建議刻度</div>
+      <div class="card-title">⚙️ 研磨刻度換算 — Molar Z</div>
+      <div class="card-sub">大Z LABSWEET 刀 · 400 RPM · 玻璃盅重量 → 熱手沖 / 冰手沖建議刻度</div>
     </div>
     <div class="card-body">
       <div class="grid3" style="margin-bottom:10px">
@@ -1128,22 +1130,43 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
           <tr style="border-top:1px solid #EBE8E2"><td style="padding:5px 10px;color:#555">肯亞 基安喬谷</td><td style="text-align:center;color:#888">15.7</td><td style="text-align:center;font-weight:700;color:#2A7A5A">#4.1</td><td style="text-align:center;font-weight:700;color:#1A5CB0">#3.4</td></tr>
           <tr style="border-top:1px solid #EBE8E2;background:#FAFAF8"><td style="padding:5px 10px;color:#555">哥倫比亞 花鏡</td><td style="text-align:center;color:#888">15.3</td><td style="text-align:center;font-weight:700;color:#2A7A5A">#4.2</td><td style="text-align:center;font-weight:700;color:#1A5CB0">#3.5</td></tr>
         </table>
-        <div style="font-size:10px;color:#AAA;padding:6px 12px 8px;line-height:1.7">＜18g：熱 = 3.9 + (17.4−重量)×0.143，冰 = 2.9 + (17.4−重量)×0.294<br>≥18g：熱 = 3.0 + (19.1−重量)×0.143，冰 = 2.0 + (19.1−重量)×0.294<br>校正基準：19.1g → 熱 #3.0 ／ 超出範圍時自動修正至邊界值，數字顯示為橘色</div>
+        <div style="font-size:10px;color:#AAA;padding:6px 12px 8px;line-height:1.7">＜18g：熱 = 3.9 + (17.4−重量)×0.143，冰 = 2.9 + (17.4−重量)×0.294<br>≥18g：熱 = 3.0 + (19.1−重量)×0.143，冰 = 2.0 + (19.1−重量)×0.294<br>校正基準：19.1g → 熱 #3.0 ／ 超出範圍時自動修正至邊界值，數字顯示為橘色<br><b style="color:#C4862A">⚠️ 這七支參考豆全部是在大Z LABSWEET 刀上拉出來的，此公式僅適用本刀盤。</b></div>
       </div>
     </div>
   </div>
 
-  <!-- 研磨刻度換算 — EG-1（一隅） -->
-  <div class="card">
+  <!-- 研磨刻度換算 — Molar 120mm 熱手沖（新竹城隍）-->
+  <div class="card" id="pour-molar120-card" style="display:none">
     <div class="card-head">
-      <div class="card-title">⚙️ 研磨刻度換算 — EG-1（一隅）</div>
-      <div class="card-sub">一隅專用 · 數據收集中，尚未開放計算</div>
+      <div class="card-title">⚙️ 研磨刻度換算 — Molar 120mm　🟢 熱手沖</div>
+      <div class="card-sub">手沖刀 · 專供熱手沖 · 資料累積中</div>
     </div>
     <div class="card-body">
-      <div style="background:#EEF5FF;border-radius:10px;padding:16px;text-align:center;color:#4A7A9A;font-size:13px;line-height:2">
-        <div style="font-size:18px;margin-bottom:6px">📋</div>
-        <b>EG-1 換算數據尚未收集完成</b><br>
-        <span style="font-size:11px;color:#7AA">待實際數據收集後再行建立換算公式</span>
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>玻璃盅重量 (g)</label><input id="p120-glass" type="number" step="0.1" placeholder="17.2"></div>
+        <div class="field"><label>實際使用刻度</label><input id="p120-grind" type="number" step="0.01" placeholder="自己調出來的"></div>
+      </div>
+      <div style="background:#F0F7FF;border:1px solid #C5DDF5;border-radius:10px;padding:12px;font-size:12px;color:#1A6B9A;line-height:1.8">
+        <b>尚無公式</b><br>
+        120mm 手沖刀與林口的大Z LABSWEET 是不同刀盤，顆粒分佈不同，<b>不能套用大Z 的公式</b>。先照自己調出來的刻度記錄，累積後再回歸。
+      </div>
+    </div>
+  </div>
+
+  <!-- 研磨刻度換算 — Molar 80mm 冰手沖（新竹城隍）-->
+  <div class="card" id="pour-molar80-card" style="display:none">
+    <div class="card-head">
+      <div class="card-title">⚙️ 研磨刻度換算 — Molar 80mm　❄️ 冰手沖</div>
+      <div class="card-sub">Lab Sweet 刀 · 專供冰手沖 · 資料累積中</div>
+    </div>
+    <div class="card-body">
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>玻璃盅重量 (g)</label><input id="p80-glass" type="number" step="0.1" placeholder="17.2"></div>
+        <div class="field"><label>實際使用刻度</label><input id="p80-grind" type="number" step="0.01" placeholder="自己調出來的"></div>
+      </div>
+      <div style="background:#EEF4FF;border:1px solid #C5D5F5;border-radius:10px;padding:12px;font-size:12px;color:#1A5CB0;line-height:1.8">
+        <b>尚無公式</b><br>
+        80mm Lab Sweet 是<b>另一台機器</b>，不是 120mm 的冰版設定。冰手沖走這台，刻度與 120mm 無關。
       </div>
     </div>
   </div>
@@ -1413,10 +1436,10 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
 
   var headers, values;
   if (p.type === 'soe_grind') {
-    headers = ['時間','夥伴','豆名','批次','磨豆機',
+    headers = ['時間','門市','夥伴','豆名','批次','磨豆機',
                '玻璃盅重量g','Agtron豆表','Agtron豆心','養豆天數',
                '粉量g','公式建議刻度','實際秒數','實際液重g','最後定案刻度','刻度誤差','效果','備注','轉速'];
-    values = [p.ts,p.staff,p.beanName,p.batchNo,p.grinder,
+    values = [p.ts,p.storeName,p.staff,p.beanName,p.batchNo,p.grinder,
               p.glass,p.agtronBean,p.agtronCore,p.restDays,
               p.dose,p.suggested,p.actualTime,p.actualYield,p.finalGrind,p.deltaGrind,p.result,p.note,p.speed];
   } else if (p.type === 'pour') {
@@ -1489,6 +1512,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
     ];
 
     if (p.type === 'soe_grind') {
+      connectInfo.push({ title: '門市', description: p.storeName || '—' });
       connectInfo.push({ title: '磨豆機', description: (p.grinder||'—') + (p.speed ? '　轉速 ' + p.speed : '') });
       connectInfo.push({ title: '玻璃盅重量', description: (p.glass||'—') + ' g' });
       connectInfo.push({ title: '刻度', description: '公式建議 #' + (p.suggested||'—') + (p.finalGrind ? '　→　定案 #' + p.finalGrind + '（誤差 ' + (p.deltaGrind||'—') + '）' : '') });
@@ -2963,14 +2987,105 @@ function init() {
   // init CVA display
   Object.keys(cvaScores).forEach(k => cvaUpd(k, 5));
   cvaUpdOverall(5);
-  switchPage('sop');
+  applyStore();
+  switchPage(storeHasTask(currentStore,'sop') ? 'sop' : STORES[currentStore].tasks[0]);
 }
 Promise.resolve().then(function () {
   try { init(); } catch (e) { console.error('init() failed:', e); }
 });
 
+// ── 門市 ──────────────────────────────────────────────────────
+// 店不是一頁，是一個狀態。每間店宣告自己有哪些作業，導覽照著渲染。
+// 加第四間店 = 這個表多一個 key，導覽和 Sheets 都不用動。
+var STORES = {
+  linkou:  { name: '林口白光', short: '林口', color: '#C4862A', tasks: ['sop','light','medium','filter','soe'] },
+  hsinchu: { name: '新竹城隍', short: '新竹', color: '#7A3E9D', tasks: ['sop','light','medium','filter','soe'] },
+  yiyu:    { name: '一隅',     short: '一隅', color: '#1A6B9A', tasks: ['sop','yiyu'] }
+};
+// 濾泡磨豆機。一台一組公式，刀盤不同就是不同機器，fit 不可互抄。
+// fit: null = 尚無資料，只記錄不推估（同 SOE_GRINDERS 的規矩）。
+var POUR_GRINDERS = {
+  linkou: [{
+    id: 'molar-z', name: 'Molar Z', burr: '大Z LABSWEET 刀', rpm: '400 RPM',
+    use: 'both',                       // 同一台做熱＋冰，靠刻度差分開
+    fit: 'molarZ'                      // → calcMolarGrind() 內的既有公式
+  }],
+  hsinchu: [
+    { id: 'molar-120', name: 'Molar 120mm', burr: '手沖刀',       use: 'hot', fit: null },
+    { id: 'molar-80',  name: 'Molar 80mm',  burr: 'Lab Sweet 刀', use: 'ice', fit: null }
+  ],
+  yiyu: []                             // 一隅的手沖刻度在 SOE 頁，不在這裡
+};
+
+var ALWAYS_TASKS = ['log','config'];   // 每間店都有
+var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
+
+var currentStore = localStorage.getItem('wl_store') || 'linkou';
+if (!STORES[currentStore]) currentStore = 'linkou';
+
+function storeHasTask(storeKey, task) {
+  var st = STORES[storeKey];
+  if (!st) return false;
+  return st.tasks.indexOf(task) >= 0 || ALWAYS_TASKS.indexOf(task) >= 0;
+}
+
+function setStore(key) {
+  if (!STORES[key]) return;
+  currentStore = key;
+  localStorage.setItem('wl_store', key);
+  applyStore();
+  // 目前這頁如果新門市沒有，跳到它的第一個作業
+  if (!storeHasTask(key, currentPage)) switchPage(STORES[key].tasks[0]);
+}
+
+function applyStore() {
+  var st = STORES[currentStore];
+  if (!st) return;
+
+  // 選擇器
+  var pick = document.getElementById('store-pick');
+  if (pick) {
+    if (!pick.options.length) {
+      Object.keys(STORES).forEach(function (k) {
+        var o = document.createElement('option');
+        o.value = k; o.textContent = STORES[k].name;
+        pick.appendChild(o);
+      });
+    }
+    pick.value = currentStore;
+    pick.style.background = st.color;
+    pick.style.borderColor = st.color;
+  }
+
+  // topbar 色帶 —— 門市永遠看得見，撥錯店不會沒感覺
+  var tb = document.getElementById('topbar');
+  if (tb) tb.style.borderBottom = '4px solid ' + st.color;
+
+  // 導覽按門市過濾
+  ALL_TASKS.forEach(function (t) {
+    var el = document.getElementById('nav-' + t);
+    if (el) el.style.display = storeHasTask(currentStore, t) ? '' : 'none';
+  });
+
+  // 濾泡頁的磨豆機卡依門市顯示 —— 別台的公式不該看得到
+  var gs = (POUR_GRINDERS[currentStore] || []).map(function (g) { return g.id; });
+  var CARD = { 'molar-z': 'pour-molarz-card', 'molar-120': 'pour-molar120-card', 'molar-80': 'pour-molar80-card' };
+  Object.keys(CARD).forEach(function (id) {
+    var el = document.getElementById(CARD[id]);
+    if (el) el.style.display = gs.indexOf(id) >= 0 ? '' : 'none';
+  });
+
+  // SOE 磨豆機下拉隨門市重建
+  if (typeof refreshSoeGrinders === 'function') refreshSoeGrinders();
+  if (typeof calcSoeGrind === 'function') calcSoeGrind();
+}
+
 // ── Navigation ────────────────────────────────────────────────────
+var currentPage = 'sop';
 function switchPage(name) {
+  // 這間店沒有的作業就不給進，避免資料寫錯門市
+  if (!storeHasTask(currentStore, name)) return;
+  currentPage = name;
   var pages = ['light','medium','yiyu','soe','filter','log','config','sop'];
   for (var i = 0; i < pages.length; i++) {
     var p = pages[i];
@@ -2991,7 +3106,7 @@ function switchPage(name) {
     }
   }
   var subEl = document.getElementById('topbar-sub');
-  var titles = {light:'淺焙 SOE 校正', medium:'中焙 SOE 校正', yiyu:'一隅 SOE 校正', soe:'SOE 校正 — Mazzer Kony 研磨刻度', filter:'濾泡咖啡', log:'今日記錄', config:'設定', sop:'水質／咖啡豆體檢'};
+  var titles = {light:'淺焙 SOE 校正', medium:'中焙 SOE 校正', yiyu:'一隅 SOE 校正', soe:'淺焙 SOE 校正 — Molar X2 研磨刻度', filter:'濾泡咖啡', log:'今日記錄', config:'設定', sop:'水質／咖啡豆體檢'};
   if (subEl) subEl.textContent = titles[name] || '';
   window.scrollTo(0, 0);
   if (name === 'log') renderLog();
@@ -3738,34 +3853,61 @@ async function submitRecord(t) {
 // ── SOE 校正：研磨刻度推估 ──────────────────────────────────
 // 每台磨豆機一組係數。刻度盤單位彼此無關，公式絕對不可互相套用。
 // fit 為 null = 尚無資料，只記錄、不推估。
-var SOE_GRINDERS = {
-  'Mazzer Kony': {
-    // 回歸自 2026-07 五支豆（其中 2 支為修正推估值）r = 0.99
-    fit: { slope: 0.4653, intercept: -5.306 },
-    min: 2.2, max: 3.2, round: 20,      // round:20 → 至 0.05
-    validLo: 16.3, validHi: 18.2,
-    secPerStep: 40,                      // 0.1 刻度 ≈ 4 秒
-    formulaText: '刻度 = 0.465 × 盅重 − 5.31（四捨五入至 0.05）',
-    step: '0.05'
-  },
-  'Molar X2': {
-    fit: null,                           // 資料累積中
-    step: '0.01',
-    speeds: true,                        // L/M/H 可調；擬合時必須分開處理
-    defaultSpeed: 'M'
-  }
+// 每間店有哪些義式磨豆機。同型號在不同店 = 不同機器，fit 各自獨立。
+// ⚠️ 設定待 Taylor 確認：林口的 Kony 是否還在用、E80GBW 是否只在新竹。
+// 淺焙 SOE 磨豆機。兩店都用 Molar X2；同型號但各自一組資料。
+// Kony 已退出 SOE（改做中焙），其五支種子資料一併捨棄。
+var SOE_STORE_GRINDERS = {
+  linkou:  ['Molar X2'],
+  hsinchu: ['Molar X2']
+};
+
+// 磨豆機硬體規格（與店無關：刀盤、是否可調轉速）
+var SOE_GRINDER_SPECS = {
+  'Molar X2': { label: 'Molar X2（慢磨錐刀）', step: '0.01', speeds: true, defaultSpeed: 'M' }
+};
+
+// fit 用 "店:機器" 當 key —— 林口的 X2 和新竹的 X2 各自一組，永不互相污染。
+// 目前全部 null = 資料累積中（Kony 公式已捨棄）。
+var SOE_FITS = {
+  // 'linkou:Molar X2', 'hsinchu:Molar X2' → 尚無公式，各自累積
 };
 
 function soeCfg() {
   var el = document.getElementById('sg-grinder');
-  var name = el ? el.value : 'Mazzer Kony';
-  var cfg = SOE_GRINDERS[name] || { fit: null, step: '0.01' };
+  var name = el ? el.value : (SOE_STORE_GRINDERS[currentStore] || ['—'])[0];
+  var spec = SOE_GRINDER_SPECS[name] || { step: '0.01' };
+  var fit  = SOE_FITS[currentStore + ':' + name] || { fit: null };
+  var cfg = {
+    fit: fit.fit || null,
+    step: spec.step, speeds: spec.speeds, defaultSpeed: spec.defaultSpeed,
+    min: fit.min, max: fit.max, round: fit.round,
+    validLo: fit.validLo, validHi: fit.validHi,
+    secPerStep: fit.secPerStep, formulaText: fit.formulaText
+  };
   var speed = '';
   if (cfg.speeds) {
     var sp = document.getElementById('sg-speed');
     speed = sp ? sp.value : (cfg.defaultSpeed || '');
   }
   return { name: name, cfg: cfg, speed: speed };
+}
+
+// 依目前門市重建 SOE 磨豆機下拉
+function refreshSoeGrinders() {
+  var sel = document.getElementById('sg-grinder');
+  if (!sel) return;
+  var list = SOE_STORE_GRINDERS[currentStore] || [];
+  var prev = sel.value;
+  sel.innerHTML = '';
+  list.forEach(function (name) {
+    var o = document.createElement('option');
+    o.value = name;
+    o.textContent = (SOE_GRINDER_SPECS[name] || {}).label || name;
+    sel.appendChild(o);
+  });
+  if (list.indexOf(prev) >= 0) sel.value = prev;
+  else if (list.length) sel.value = list[0];
 }
 
 // 回傳 null 代表該台尚無公式
@@ -3907,6 +4049,7 @@ async function submitSoeGrind() {
   document.getElementById('sg-glass').style.borderColor = '';
 
   var G  = soeCfg();
+  var st = STORES[currentStore] || { name: currentStore };
   var suggested = soeGrindFromGlass(glass, G.cfg);   // null = 該台尚無公式
   var finalG    = parseFloat(gv('sg-final'));
   var result    = gv('sg-result');
@@ -3918,6 +4061,8 @@ async function submitSoeGrind() {
     note: gv('sgs-note'),
     beanName: gv('sg-bean'),
     batchNo: gv('sg-batch'),
+    storeKey: currentStore,
+    storeName: st.name,
     grinder: G.name,
     speed: G.speed,
     glass: glass,
@@ -3932,7 +4077,7 @@ async function submitSoeGrind() {
     deltaGrind: (suggested == null || isNaN(finalG)) ? '' : (Math.round((finalG - suggested) * 100) / 100).toFixed(2),
     result: result,
     status: result === 'good' ? 'good' : result === 'ok' ? 'good' : result ? 'warn' : 'good',
-    title: (gv('sg-bean') || '未命名豆') + '（' + G.name + (G.speed ? ' / ' + G.speed : '') + '）— 盅重 ' + glass + 'g → #' +
+    title: '［' + st.name + '］' + (gv('sg-bean') || '未命名豆') + '（' + G.name + (G.speed ? ' / ' + G.speed : '') + '）— 盅重 ' + glass + 'g → #' +
            (!isNaN(finalG) ? finalG : (suggested == null ? '?' : suggested.toFixed(2)))
   };
 
@@ -4242,7 +4387,7 @@ function renderLog() {
   list.innerHTML = filtered.map(e => {
     const status = e.status||'good';
     const detailParts = e.type==='soe_grind'
-      ? [e.grinder?`${e.grinder}${e.speed?' / '+e.speed:''}`:'', e.glass?`盅重 ${e.glass}g`:'', e.suggested?`建議 #${e.suggested}`:'', e.finalGrind?`定案 #${e.finalGrind}`:'', e.actualTime?`${e.actualTime}s`:'', e.actualYield?`液重 ${e.actualYield}g`:'', e.restDays?`養豆 ${e.restDays}天`:'', e.deltaGrind?`誤差 ${e.deltaGrind}`:''].filter(Boolean)
+      ? [e.storeName?`${e.storeName}`:'', e.grinder?`${e.grinder}${e.speed?' / '+e.speed:''}`:'', e.glass?`盅重 ${e.glass}g`:'', e.suggested?`建議 #${e.suggested}`:'', e.finalGrind?`定案 #${e.finalGrind}`:'', e.actualTime?`${e.actualTime}s`:'', e.actualYield?`液重 ${e.actualYield}g`:'', e.restDays?`養豆 ${e.restDays}天`:'', e.deltaGrind?`誤差 ${e.deltaGrind}`:''].filter(Boolean)
       : e.type==='pour'
       ? [`CVA ${e.cvaTotal||'?'}/60`, e.grind?`刻度 ${e.grind}`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:''].filter(Boolean)
       : [e.acid?`酸 ${e.acid}%`:'', e.sweet?`甜 ${e.sweet}%`:'', e.dark?`深 ${e.dark}%`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:'', e.dose?`粉 ${e.dose}g`:'', e.brewTime?`${e.brewTime}s`:'', e.yield?`液重 ${e.yield}g`:'', e.ratio?`比例 ${e.ratio}`:'', e.basket?`[${e.basket}]`:'', e.speed?`${e.speed}`:''].filter(Boolean);
