@@ -1922,6 +1922,13 @@ function testJandi() {
               <input id="mg-replace-staff" type="text" placeholder="你的名字"
                 style="border:1px solid #F0C0C0;border-radius:8px;padding:8px 10px;font-size:13px">
             </div>
+            <div class="field" style="margin-bottom:10px">
+              <label style="font-size:12px;color:#A32020">新濾芯目前流量計讀數（L）
+                <span style="font-size:10px;color:#C09090;font-weight:400;margin-left:4px">從 1000 倒數・留空＝1000</span>
+              </label>
+              <input id="mg-replace-reading" type="number" inputmode="numeric" placeholder="967" min="0" max="1000"
+                style="border:1px solid #F0C0C0;border-radius:8px;padding:8px 10px;font-size:13px">
+            </div>
             <button onclick="mgFilterReplace()"
               style="width:100%;padding:11px;border-radius:10px;border:none;background:#A32020;color:#fff;font-size:13px;font-weight:700;cursor:pointer">
               🔄 確認更換新濾芯，重新計算
@@ -2815,16 +2822,26 @@ function testJandi() {
       return;
     }
     if (staffEl) staffEl.style.borderColor = '';
-    if (!confirm('確定「' + staff + '」已安裝新濾芯？\n按確認後累積循環數歸零，重新開始計算。')) return;
+
+    // 新濾芯目前流量計讀數（留空＝1000）→ 一步到位設定，與送出順序無關
+    var newRaw = el('mg-replace-reading') ? el('mg-replace-reading').value.trim() : '';
+    var newReading = newRaw === '' ? 1000 : parseFloat(newRaw);
+    if (isNaN(newReading)) newReading = 1000;
+    newReading = Math.min(1000, Math.max(0, newReading));
+    var newUsed = 1000 - newReading;
+
+    if (!confirm('確定「' + staff + '」已安裝新濾芯？\n' +
+                 '新濾芯目前讀數 ' + newReading + 'L → 累積循環歸零、累積用量重算為 ' + newUsed + 'L。')) return;
 
     var today     = new Date().toISOString().slice(0, 10);
     var state     = getMgState();
     var oldCycles = state.cycles;
     var oldUsed   = (sopData.mgFilterUsed !== undefined) ? sopData.mgFilterUsed : (oldCycles * 1000);
 
-    // Save locally + reset UI
+    // Save locally + reset UI（循環歸零；讀數設為新濾芯目前值 → renderMgFilter 會自動算 用量＝1000−讀數）
     saveMgState(0, today);
-    if (el('mg-reading')) el('mg-reading').value = '1000';
+    if (el('mg-reading')) el('mg-reading').value = String(newReading);
+    if (el('mg-replace-reading')) el('mg-replace-reading').value = '';
     var panel = el('mg-replace-panel'), arrow = el('mg-replace-arrow');
     if (panel) panel.style.display = 'none';
     if (arrow) arrow.textContent = '›';
@@ -3054,7 +3071,7 @@ var POUR_GRINDERS = {
 var ALWAYS_TASKS = ['log','config'];   // 每間店都有
 var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
 
-var BUILD_ID = '2026-07-26a · 鎂濾芯級距改 4000L checkpoint';
+var BUILD_ID = '2026-07-26b · 換芯一步到位（輸入新讀數自動歸零/算用量）';
 var currentStore = localStorage.getItem('wl_store') || 'linkou';
 if (!STORES[currentStore]) currentStore = 'linkou';
 
