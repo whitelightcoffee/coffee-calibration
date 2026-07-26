@@ -1844,7 +1844,7 @@ function testJandi() {
     <div class="card" style="margin:10px 12px 0">
       <div class="card-head">
         <div class="card-title">🔵 鎂離子濾芯流量紀錄</div>
-        <div class="card-sub" id="mg-filter-sub">累積用量追蹤，預估壽命 2500–3000L</div>
+        <div class="card-sub" id="mg-filter-sub">累積用量追蹤，實測可達約 4000L（4000L 為換芯 checkpoint）</div>
       </div>
       <div class="card-body">
 
@@ -1871,7 +1871,7 @@ function testJandi() {
             <div id="mg-bar-red"    style="position:absolute;top:0;height:100%;background:#C0392B;border-radius:0 7px 7px 0;transition:width .4s left .4s"></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:9px;color:#AAA;margin-top:3px">
-            <span>0</span><span>1000</span><span style="color:#D4A017;font-weight:600">2000 ⚠️</span><span style="color:#C0392B;font-weight:600">2500 🔴</span><span>3000 L</span>
+            <span>0</span><span>2000</span><span style="color:#D4A017;font-weight:600">3000 ⚠️</span><span style="color:#C0392B;font-weight:600">4000 🔴</span><span>4500 L</span>
           </div>
         </div>
 
@@ -2692,6 +2692,9 @@ function testJandi() {
   }
 
   // ── 鎂離子濾芯流量追蹤 ────────────────────────────────────────────
+  // ⚠️ 未來待辦：分流林口／新竹。目前 wl_mg_cycles / wl_mg_install_date 是「單一全域值」，
+  //   兩店共用同一顆計數。要分店時，把 localStorage key 改成帶 storeKey
+  //   （例：'wl_mg_cycles_' + currentStore），濾芯更換紀錄也依 storeKey 各記一份即可。
   var MG_DEFAULT_DATE = '2026-05-05';
 
   function getMgState() {
@@ -2739,8 +2742,9 @@ function testJandi() {
     if (el('mg-total-disp')) el('mg-total-disp').textContent = (reading !== null ? used + ' L' : cycles * 1000 + '+ L');
     if (el('mg-cycles-disp')) el('mg-cycles-disp').textContent = cycles + ' 次';
 
-    // Progress bar (range 0–3000L)
-    var TOTAL = 3000, W1 = 2000, W2 = 2500;
+    // Progress bar (range 0–4500L) — 實測這顆比原廠 2500–3000L 預估耐用，
+    // 4000L 定為主要換芯 checkpoint，4500 留一段觀察尾巴。
+    var TOTAL = 4500, W1 = 3000, W2 = 4000;
     var pct = function(v) { return Math.min(100, (v / TOTAL) * 100).toFixed(2) + '%'; };
     if (el('mg-bar-green'))  el('mg-bar-green').style.width  = pct(Math.min(used, W1));
     if (el('mg-bar-yellow')) {
@@ -2758,15 +2762,15 @@ function testJandi() {
       if (reading !== null && reading === 0) {
         alertEl.style.cssText = 'display:block;border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.7;margin-bottom:10px;background:#FFF3E0;border:1.5px solid #F0C880;color:#7A4000';
         alertEl.innerHTML = '<b>⚠️ 流量計顯示 0！</b><br>請展開下方「嗶嗶叫？」面板，按「記錄 ＋1 循環」，然後在上方輸入 <b>1000</b>。';
-      } else if (used >= 3000) {
+      } else if (used >= 4000) {
         alertEl.style.cssText = 'display:block;border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.7;margin-bottom:10px;background:#FDECEA;border:1.5px solid #F0C0C0;color:#A32020';
-        alertEl.innerHTML = '<b>🚨 累積 ' + used + 'L — 強烈建議立即換芯！</b><br>已超出建議壽命（2500–3000L），請盡速安排更換。';
-      } else if (used >= 2500) {
+        alertEl.innerHTML = '<b>🔴 累積 ' + used + 'L — 已達 4000L 換芯 checkpoint</b><br>請<b>緊密觀察</b>出水量與口感（酸值／厚度），評估是否更換濾芯。這顆已比原廠預估耐用，別硬撐到水質掉了才換。';
+      } else if (used >= 3500) {
         alertEl.style.cssText = 'display:block;border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.7;margin-bottom:10px;background:#FFF0E0;border:1.5px solid #F0A880;color:#8B3A00';
-        alertEl.innerHTML = '<b>🔴 累積 ' + used + 'L — 高度警戒，準備換芯</b><br>已進入 2500–3000L 換芯區，請安排補貨與更換。';
-      } else if (used >= 2000) {
+        alertEl.innerHTML = '<b>🟠 累積 ' + used + 'L — 進入觀察期</b><br>接近 4000L checkpoint，先<b>備妥新濾芯</b>，開始每次開吧留意水質變化。';
+      } else if (used >= 3000) {
         alertEl.style.cssText = 'display:block;border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.7;margin-bottom:10px;background:#FFF8E0;border:1px solid #F0E090;color:#7A5500';
-        alertEl.innerHTML = '<b>⚠️ 累積 ' + used + 'L — 開始監控</b><br>每次開吧確認讀數，接近 2500L 時準備換芯。';
+        alertEl.innerHTML = '<b>⚠️ 累積 ' + used + 'L — 開始留意</b><br>濾芯進入後半段，接近 3500L 時準備備品，4000L 為換芯 checkpoint。';
       } else {
         alertEl.style.display = 'none';
       }
@@ -2779,8 +2783,9 @@ function testJandi() {
 
     // Card subtitle
     if (el('mg-filter-sub')) {
-      if      (used >= 2500) el('mg-filter-sub').textContent = '🔴 ' + used + 'L — 高度警戒，準備換芯';
-      else if (used >= 2000) el('mg-filter-sub').textContent = '⚠️ ' + used + 'L — 開始監控';
+      if      (used >= 4000) el('mg-filter-sub').textContent = '🔴 ' + used + 'L — 換芯 checkpoint，緊密觀察';
+      else if (used >= 3500) el('mg-filter-sub').textContent = '🟠 ' + used + 'L — 進入觀察期';
+      else if (used >= 3000) el('mg-filter-sub').textContent = '⚠️ ' + used + 'L — 開始留意';
       else                   el('mg-filter-sub').textContent = '累積 ' + (reading !== null ? used : cycles * 1000 + '+') + 'L　安裝：' + state.installDate;
     }
 
@@ -3049,7 +3054,7 @@ var POUR_GRINDERS = {
 var ALWAYS_TASKS = ['log','config'];   // 每間店都有
 var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
 
-var BUILD_ID = '2026-07-18c · 水質也分門市';
+var BUILD_ID = '2026-07-26a · 鎂濾芯級距改 4000L checkpoint';
 var currentStore = localStorage.getItem('wl_store') || 'linkou';
 if (!STORES[currentStore]) currentStore = 'linkou';
 
