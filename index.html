@@ -343,7 +343,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
         <div class="field"><label>咖啡液重 (g)</label><input id="ll-yield" type="number" inputmode="decimal" step="any" placeholder="30" oninput="calcRatio('l')"></div>
         <div class="field"><label>Espresso 比例</label><input id="ll-ratio" type="text" readonly placeholder="自動"></div>
       </div>
-      <div class="grid3" style="margin-top:10px;gap:10px">
+      <div class="grid3" id="ll-basket-row" style="margin-top:10px;gap:10px">
         <div class="field">
           <label>Basket <span style="font-size:10px;color:#AAA;font-weight:400">流速快→慢</span></label>
           <select id="ll-basket" onchange="upd('l');syncMediumFromLight()">
@@ -352,14 +352,14 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
             <option value="artefatto">神器 Artefatto（最慢，磨粗）</option>
           </select>
         </div>
-        <div class="field">
+        <div class="field" id="ll-speed-field">
           <label>Molar X² 轉速 <span style="font-size:10px;color:#AAA;font-weight:400">H快／M中</span></label>
           <select id="ll-speed" onchange="upd('l')">
             <option value="H" selected>H（轉速快，細粉多，萃取↑）</option>
             <option value="M">M（轉速中，細粉少，萃取↓）</option>
           </select>
         </div>
-        <div class="field">
+        <div class="field" id="ll-rdt-field">
           <label>RDT 噴水</label>
           <select id="ll-rdt">
             <option value="有" selected>有</option>
@@ -448,7 +448,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       <div class="sec-label" style="margin-bottom:12px">調整方向</div>
       <div class="step-row"><div class="step-num">1</div><div><div class="step-title">研磨方向</div><div class="step-desc" id="s1-l">維持目前刻度</div></div></div>
       <div class="step-row"><div class="step-num">2</div><div><div class="step-title">水溫方向</div><div class="step-desc" id="s2-l">維持今日水溫</div></div></div>
-      <div class="step-row"><div class="step-num">3</div><div><div class="step-title">Molar X² 轉速</div><div class="step-desc" id="s3-l">維持目前轉速</div></div></div>
+      <div class="step-row" id="s3-l-row"><div class="step-num">3</div><div><div class="step-title">Molar X² 轉速</div><div class="step-desc" id="s3-l">維持目前轉速</div></div></div>
       <div class="step-row"><div class="step-num">4</div><div><div class="step-title">Basket</div><div class="step-desc" id="s4-l">維持目前 Basket</div></div></div>
       <div class="step-row"><div class="step-num">5</div><div><div class="step-title">咖啡液重</div><div class="step-desc" id="s5-l">維持 30g</div></div></div>
     </div>
@@ -846,9 +846,12 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
         <div class="field"><label>咖啡液重 (g)</label><input id="yl-yield" type="number" inputmode="decimal" step="any" placeholder="30" oninput="calcRatio('y')"></div>
         <div class="field"><label>Espresso 比例</label><input id="yl-ratio" type="text" readonly placeholder="自動"></div>
       </div>
-      <input type="hidden" id="yl-basket" value="WAFO B/O">
-      <div style="margin-top:10px;padding:8px 12px;background:#EEF5FF;border-radius:10px;font-size:12px;color:#1A4A6B">
-        🧺 Basket：<b>WAFO B/O</b>
+      <div class="field" style="margin-top:10px">
+        <label>Basket</label>
+        <select id="yl-basket" onchange="upd('y')">
+          <option value="wafo" selected>WAFO B/O</option>
+          <option value="eblab24">E&B Lab 24</option>
+        </select>
       </div>
       <div class="grid2" style="margin-top:10px;gap:10px">
         <div class="field">
@@ -993,11 +996,11 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
         <label>轉速</label>
         <select id="sg-speed">
           <option value="L">L — 低速</option>
-          <option value="M" selected>M — 中速（預設）</option>
+          <option value="M">M — 中速</option>
           <option value="H">H — 高速</option>
         </select>
         <div style="font-size:11px;color:#C4862A;margin-top:6px;line-height:1.7">
-          ⚠️ 轉速會改變細粉比例，等於換一台磨豆機。<b>累積配對資料期間請固定 M</b>，不要中途改。
+          ⚠️ 轉速會改變細粉比例，等於換一台磨豆機。<b>累積配對資料期間請固定同一轉速</b>，不要中途改。
         </div>
       </div>
 
@@ -1012,7 +1015,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       </div>
 
       <div style="background:#F6F2FA;border:1px solid #D8C9E8;border-radius:12px;padding:14px;margin-bottom:12px">
-        <div style="font-size:11px;font-weight:700;color:#6E4B9E;letter-spacing:.5px;margin-bottom:8px">⚙️ MAZZER KONY　建議起手刻度</div>
+        <div id="sg-grind-label" style="font-size:11px;font-weight:700;color:#6E4B9E;letter-spacing:.5px;margin-bottom:8px">⚙️ 建議起手刻度</div>
         <div id="sg-grind" style="font-size:34px;font-weight:700;color:#6E4B9E;line-height:1.1">—</div>
         <div id="sg-formula" style="font-size:11px;color:#AAA;margin-top:6px">刻度 = 0.465 × 盅重 − 5.31（四捨五入至 0.05）</div>
         <div id="sg-warn" style="display:none;margin-top:8px;font-size:11px;color:#C4862A;font-weight:600">⚠️ 超出已驗證範圍 16.3–18.2g，數值僅供方向參考，請務必試杯</div>
@@ -1163,24 +1166,6 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       <div style="background:#F0F7FF;border:1px solid #C5DDF5;border-radius:10px;padding:12px;font-size:12px;color:#1A6B9A;line-height:1.8">
         <b>尚無公式</b><br>
         120mm 手沖刀與林口的大Z LABSWEET 是不同刀盤，顆粒分佈不同，<b>不能套用大Z 的公式</b>。先照自己調出來的刻度記錄，累積後再回歸。
-      </div>
-    </div>
-  </div>
-
-  <!-- 研磨刻度換算 — Molar 80mm 冰手沖（新竹城隍）-->
-  <div class="card" id="pour-molar80-card" style="display:none">
-    <div class="card-head">
-      <div class="card-title">⚙️ 研磨刻度換算 — Molar 80mm　❄️ 冰手沖</div>
-      <div class="card-sub">Lab Sweet 刀 · 專供冰手沖 · 資料累積中</div>
-    </div>
-    <div class="card-body">
-      <div class="grid2" style="margin-bottom:10px">
-        <div class="field"><label>玻璃盅重量 (g)</label><input id="p80-glass" type="number" step="0.1" placeholder="17.2"></div>
-        <div class="field"><label>實際使用刻度</label><input id="p80-grind" type="number" step="0.01" placeholder="自己調出來的"></div>
-      </div>
-      <div style="background:#EEF4FF;border:1px solid #C5D5F5;border-radius:10px;padding:12px;font-size:12px;color:#1A5CB0;line-height:1.8">
-        <b>尚無公式</b><br>
-        80mm Lab Sweet 是<b>另一台機器</b>，不是 120mm 的冰版設定。冰手沖走這台，刻度與 120mm 無關。
       </div>
     </div>
   </div>
@@ -1643,22 +1628,11 @@ function testJandi() {
   <!-- STEP 0 水質 -->
   <div class="sop-step spcur" id="st0">
 
-    <!-- 黃金密碼 banner -->
-    <div style="margin:10px 12px 0;background:#3D1F7A;border-radius:14px;padding:14px 16px;color:#fff;text-align:center">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;opacity:.7;margin-bottom:4px">白光咖啡 黃金水質密碼</div>
-      <div style="display:flex;justify-content:center;align-items:center;gap:16px">
-        <div><div style="font-size:28px;font-weight:700">4</div><div style="font-size:11px;opacity:.75">GH 滴數</div></div>
-        <div style="font-size:22px;opacity:.4">/</div>
-        <div><div style="font-size:28px;font-weight:700">3</div><div style="font-size:11px;opacity:.75">KH 滴數</div></div>
-      </div>
-      <div style="font-size:10px;opacity:.6;margin-top:6px">唯有水質達標，才能動磨豆機刻度與水溫</div>
-    </div>
-
     <!-- 放流確認 -->
     <div class="card" style="margin:10px 12px 0">
-      <div class="card-head"><div class="card-title">① 大放流</div><div class="card-sub">開始滴定前先完成放流</div></div>
+      <div class="card-head"><div class="card-title" id="st0-flush-title">① 大放流</div><div class="card-sub">開始滴定前先完成放流</div></div>
       <div class="card-body">
-        <div style="font-size:13px;color:#444;line-height:2;margin-bottom:12px">
+        <div id="st0-flush-desc-linkou" style="font-size:13px;color:#444;line-height:2;margin-bottom:12px">
           <div style="display:flex;align-items:baseline;gap:6px">
             <span style="font-size:16px">💧</span>
             <span>飲用水放流 <b>5 分鐘</b></span>
@@ -1674,6 +1648,15 @@ function testJandi() {
             <span style="font-size:16px">🌀</span>
             <span style="color:#666">排空 NF 膜停滯蠕變水與隔夜高濃度水</span>
           </div>
+        </div>
+        <div id="st0-flush-desc-hsinchu" style="display:none;font-size:13px;color:#444;line-height:1.9;margin-bottom:12px">
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔒</span><span>檢查<b>壓力桶（關）</b>、<b>壓力桶排水線（關）</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔌</span><span>打開 <b>RO 系統電源、水源</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🚰</span><span>左鵝頸放流約 <b>1 分鐘</b>，至 TDS 降到<b>70 初頭</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">☕</span><span>義式機水線放流，確認 TDS <b>60 出頭</b></span></div>
+          <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">TDS 不對 → 調整 <b>TDS 閥混水比例</b>，重新放流確認</div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🧪</span><span>滴定 <b>GH，目標 3 滴</b></span></div>
+          <div style="margin-left:26px;font-size:12px;color:#A35000">滴定不對 → 調整 <b>鎂離子閥</b>，重新放流複測</div>
         </div>
         <div id="st0-flush-btn-wrap">
           <button class="btn-submit" style="background:#555;font-size:13px" id="st0-flush-done">✅ 大放流 ＋ 咖啡機開始熱機，開始滴定</button>
@@ -1714,7 +1697,7 @@ function testJandi() {
             </div>
           </div>
           <div class="field" style="margin-bottom:0">
-            <label>今日 GH 滴數<span style="font-size:10px;color:#AAA;font-weight:400;margin-left:6px">目標 4 滴</span></label>
+            <label>今日 GH 滴數<span style="font-size:10px;color:#AAA;font-weight:400;margin-left:6px">目標 <span id="st0-gh-target-hint">4</span> 滴</span></label>
             <div style="display:flex;align-items:center;gap:10px">
               <input id="st0-gh" type="number" inputmode="numeric" placeholder="4" style="flex:1">
               <div id="st0-gh-badge" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;display:none"></div>
@@ -1747,7 +1730,7 @@ function testJandi() {
             </div>
           </div>
           <div class="field" style="margin-bottom:0">
-            <label>今日 KH 滴數<span style="font-size:10px;color:#AAA;font-weight:400;margin-left:6px">目標 3 滴</span></label>
+            <label>今日 KH 滴數<span style="font-size:10px;color:#AAA;font-weight:400;margin-left:6px">目標 <span id="st0-kh-target-hint">2</span> 滴</span></label>
             <div style="display:flex;align-items:center;gap:10px">
               <input id="st0-kh" type="number" inputmode="numeric" placeholder="2" style="flex:1">
               <div id="st0-kh-badge" style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;display:none"></div>
@@ -1782,7 +1765,7 @@ function testJandi() {
       <div id="st0-valve-b" style="display:none;background:#EEE8FF;border:1px solid #C8B0FF;border-radius:10px;padding:11px 13px;font-size:12px;color:#5A1FA0;line-height:1.8"></div>
       <!-- 放流複測提醒 -->
       <div id="st0-retest-hint" style="display:none;margin-top:6px;background:#FDECEA;border:1px solid #F0C0C0;border-radius:10px;padding:10px 13px;font-size:12px;color:#A32020;line-height:1.7">
-        <b>⚠️ 鐵則：</b>調整閥門後，必須<b>強制放流水 1 分鐘</b>洗管，再重新取水複測，直到回到 GH 4 / KH 3！
+        <b>⚠️ 鐵則：</b>調整閥門後，必須<b>強制放流水 1 分鐘</b>洗管，再重新取水複測，直到回到 <span id="st0-retest-target">GH 4 / KH 2</span>！
       </div>
     </div>
 
@@ -1791,7 +1774,7 @@ function testJandi() {
       <div class="card-body">
         <div class="grid2">
           <div class="field">
-            <label>NF 混水針閥 <span style="font-size:10px;color:#AAA">控 KH</span></label>
+            <label><span id="st0-nf-label">NF 混水針閥</span> <span style="font-size:10px;color:#AAA">控 KH</span></label>
             <select id="st0-nf">
               <option value="不動">不動</option>
               <option value="調小">調小（KH 過高）</option>
@@ -1799,7 +1782,7 @@ function testJandi() {
             </select>
           </div>
           <div class="field">
-            <label>T300 旁通閥 <span style="font-size:10px;color:#AAA">控 GH</span></label>
+            <label><span id="st0-mg-label">T300 旁通閥</span> <span style="font-size:10px;color:#AAA">控 GH</span></label>
             <select id="st0-mg">
               <option value="不動">不動</option>
               <option value="逆時針轉大">逆時針轉大（GH 不足）</option>
@@ -1810,38 +1793,8 @@ function testJandi() {
       </div>
     </div>
 
-    <!-- 黃金基準線卡片（可展開設定） -->
-    <div class="card" style="margin:10px 12px 0">
-      <div class="card-head" style="display:flex;justify-content:space-between;align-items:center">
-        <div><div class="card-title">黃金基準線</div><div class="card-sub" id="st0-target-sub">目標 GH 4 / KH 3</div></div>
-        <button id="st0-set-btn" style="font-size:11px;color:#7A4FB5;border:1px solid #C8B0FF;border-radius:8px;padding:5px 10px;background:#F8F5FF;cursor:pointer">更新</button>
-      </div>
-      <div class="card-body">
-        <div id="st0-target-display">
-          <div style="background:#F8F5FF;border-radius:10px;padding:10px 12px;display:flex;gap:16px;align-items:center">
-            <div style="text-align:center;flex:1"><div style="font-size:11px;color:#AAA;font-weight:700">目標 GH</div><div id="st0-tgh" style="font-size:24px;font-weight:700;color:#7A4FB5">4</div><div style="font-size:10px;color:#AAA">滴</div></div>
-            <div style="width:1px;background:#EEE;align-self:stretch"></div>
-            <div style="text-align:center;flex:1"><div style="font-size:11px;color:#AAA;font-weight:700">目標 KH</div><div id="st0-tkh" style="font-size:24px;font-weight:700;color:#7A4FB5">3</div><div style="font-size:10px;color:#AAA">滴</div></div>
-            <div style="width:1px;background:#EEE;align-self:stretch"></div>
-            <div style="text-align:center;flex:1"><div style="font-size:11px;color:#AAA;font-weight:700">建立日期</div><div id="st0-tdate" style="font-size:12px;font-weight:600;color:#555">—</div></div>
-          </div>
-          <div id="st0-tnote" style="display:none;font-size:11px;color:#888;margin-top:6px;padding:6px 8px;background:#F8F6F3;border-radius:8px"></div>
-          <span id="st0-sync-status" style="display:none;font-size:10px;margin-top:6px;display:block"></span>
-        </div>
-        <div id="st0-target-form" style="display:none;margin-top:10px">
-          <div style="font-size:12px;color:#7A4FB5;font-weight:600;margin-bottom:8px">感官確認好喝後，填入當下滴定數字：</div>
-          <div class="grid2" style="margin-bottom:8px">
-            <div class="field"><label>目標 GH（滴）</label><input id="st0-newgh" type="number" inputmode="numeric" placeholder="4"></div>
-            <div class="field"><label>目標 KH（滴）</label><input id="st0-newkh" type="number" inputmode="numeric" placeholder="3"></div>
-          </div>
-          <div class="field" style="margin-bottom:8px"><label>備注（可選）</label><input id="st0-newnote" type="text" placeholder="例：濾芯換新後首次建立"></div>
-          <button id="st0-save-target" class="btn-submit" style="background:#7A4FB5;font-size:13px;padding:10px">儲存黃金基準線</button>
-        </div>
-      </div>
-    </div>
-
     <!-- 鎂離子濾芯流量追蹤 -->
-    <div class="card" style="margin:10px 12px 0">
+    <div class="card" id="mg-filter-card" style="margin:10px 12px 0">
       <div class="card-head">
         <div class="card-title">🔵 鎂離子濾芯流量紀錄</div>
         <div class="card-sub" id="mg-filter-sub">累積用量追蹤，實測可達約 4000L（4000L 為換芯 checkpoint）</div>
@@ -1956,8 +1909,8 @@ function testJandi() {
   <!-- STEP 1 豆況 -->
   <div class="sop-step" id="st1">
 
-    <!-- 放水量提醒 -->
-    <div style="margin:12px 12px 0;background:#FFF3E0;border:1.5px solid #F0C880;border-radius:13px;padding:13px 16px;text-align:center">
+    <!-- 放水量提醒（林口／一隅） -->
+    <div id="st1-water-linkou" style="margin:12px 12px 0;background:#FFF3E0;border:1.5px solid #F0C880;border-radius:13px;padding:13px 16px;text-align:center">
       <div style="font-size:12px;font-weight:700;color:#7A4000;letter-spacing:.04em;margin-bottom:6px">💧 放水給咖啡機</div>
       <div style="display:flex;justify-content:center;gap:20px">
         <div style="flex:1;background:#fff;border-radius:10px;padding:9px 8px;border:1px solid #F0C880">
@@ -1968,6 +1921,20 @@ function testJandi() {
           <div style="font-size:11px;color:#AAA;margin-bottom:2px">假日早班</div>
           <div style="font-size:20px;font-weight:700;color:#C47000">一桶</div>
         </div>
+      </div>
+    </div>
+
+    <!-- 開店啟動流程（新竹城隍） -->
+    <div id="st1-water-hsinchu" style="display:none;margin:12px 12px 0;background:#FFF3E0;border:1.5px solid #F0C880;border-radius:13px;padding:13px 16px">
+      <div style="font-size:12px;font-weight:700;color:#7A4000;letter-spacing:.04em;margin-bottom:8px">☕ 開店啟動流程</div>
+      <div style="font-size:13px;color:#5A3A00;line-height:2">
+        <div>1. 打開壓力桶儲水</div>
+        <div>2. 儲水完畢</div>
+        <div>3. 開封豆子倒進豆槽</div>
+        <div>4. 開啟咖啡機電源</div>
+        <div>5. 聽到補水聲</div>
+        <div>6. 沖煮頭排水，各一大鋼杯</div>
+        <div>7. 開啟咖啡機加熱器</div>
       </div>
     </div>
 
@@ -2243,32 +2210,24 @@ function testJandi() {
 
   // ── Step 0: 水質 ───────────────────────────────────────────────
   // ── GH/KH Target helpers ───────────────────────────────────────
+  // 每間店各自一組黃金密碼（localStorage 依店分 key，避免同一台裝置切店時互相覆蓋）
   function getTarget() {
+    var key = 'wl_ghkh_target_' + currentStore;
+    var def = DEFAULT_TARGETS[currentStore] || DEFAULT_TARGETS.linkou;
     try {
-      var t = JSON.parse(localStorage.getItem('wl_ghkh_target') || 'null');
+      var t = JSON.parse(localStorage.getItem(key) || 'null');
       if (t) return t;
-      // Pre-seed default: GH 4, KH 3
-      var def = { gh: 4, kh: 3, note: '黃金標準預設值', date: '2026-05-05' };
-      localStorage.setItem('wl_ghkh_target', JSON.stringify(def));
+      localStorage.setItem(key, JSON.stringify(def));
       return def;
-    } catch(e) { return { gh: 4, kh: 3, note: '', date: '' }; }
+    } catch(e) { return def; }
   }
   function saveTarget(gh, kh, note, dateOverride) {
     var d = { gh: gh, kh: kh, note: note || '', date: dateOverride || new Date().toISOString().slice(0,10) };
-    localStorage.setItem('wl_ghkh_target', JSON.stringify(d));
+    localStorage.setItem('wl_ghkh_target_' + currentStore, JSON.stringify(d));
     return d;
   }
 
-  // Push GH/KH target to Google Sheets so all devices share same baseline
-  function pushTargetToSheets(target) {
-    var sUrl = localStorage.getItem('wl_script_url');
-    if (!sUrl) return;
-    var params = 'type=ghkh_target&gh=' + target.gh + '&kh=' + target.kh +
-      '&note=' + encodeURIComponent(target.note || '') + '&ts=' + encodeURIComponent(target.date);
-    fetch(sUrl + '?' + params).catch(function(){});
-  }
-
-  // On page load: pull latest GH/KH target from Sheets → overwrites local if newer
+  // On page load: pull latest GH/KH target from Sheets（依目前店別）→ overwrites local if newer
   function syncTargetFromSheets() {
     var sUrl = localStorage.getItem('wl_script_url');
     var syncEl = el('st0-sync-status');
@@ -2277,9 +2236,11 @@ function testJandi() {
       return;
     }
     if (syncEl) { syncEl.style.display='block'; syncEl.style.color='#AAA'; syncEl.textContent='同步中…'; }
-    fetch(sUrl + '?action=read_ghkh')
+    var syncStore = currentStore;
+    fetch(sUrl + '?action=read_ghkh&store=' + encodeURIComponent(syncStore))
       .then(function(r){ return r.json(); })
       .then(function(data) {
+        if (syncStore !== currentStore) return; // 使用者已切店，這批結果過期，不覆蓋
         if (data && data.gh && data.kh) {
           var local = getTarget();
           // Use Sheets data if no local, or if Sheets is newer
@@ -2289,7 +2250,7 @@ function testJandi() {
           }
           if (syncEl) { syncEl.style.display='block'; syncEl.style.color='#3B8B50'; syncEl.textContent='✅ 已從 Sheets 同步'; }
         } else {
-          if (syncEl) { syncEl.style.display='block'; syncEl.style.color='#AAA'; syncEl.textContent='（Sheets 尚無基準線記錄）'; }
+          if (syncEl) { syncEl.style.display='block'; syncEl.style.color='#AAA'; syncEl.textContent='（Sheets 尚無此店基準線記錄）'; }
         }
       })
       .catch(function() {
@@ -2298,16 +2259,19 @@ function testJandi() {
   }
   function renderTarget() {
     var t = getTarget();
+    // 黃金基準線卡片已刪除（2026-08-19），若之後重新加回可再補上顯示
     var tgh = el('st0-tgh'), tkh = el('st0-tkh'), tdate = el('st0-tdate'), tnote = el('st0-tnote'), sub = el('st0-target-sub');
-    if (t) {
-      tgh.textContent = t.gh; tkh.textContent = t.kh; tdate.textContent = t.date;
-      if (t.note) { tnote.style.display='block'; tnote.textContent = '📝 ' + t.note; }
-      else { tnote.style.display='none'; }
+    if (tgh && tkh) {
+      tgh.textContent = t.gh; tkh.textContent = t.kh;
+      if (tdate) tdate.textContent = t.date;
+      if (tnote) { if (t.note) { tnote.style.display='block'; tnote.textContent = '📝 ' + t.note; } else { tnote.style.display='none'; } }
       if (sub) sub.textContent = '感官最佳狀態下滴定的目標數值';
-    } else {
-      tgh.textContent = '—'; tkh.textContent = '—'; tdate.textContent = '尚未建立';
-      if (sub) sub.textContent = '⚠️ 尚未建立基準線，請在感官確認好喝後點右上角「設定」';
     }
+    // 輸入提示、重測目標一併同步（黃金基準線卡片與 banner 已刪除，此處僅剩這兩處引用目標值）
+    var ghHint = el('st0-gh-target-hint'), khHint = el('st0-kh-target-hint');
+    if (ghHint) ghHint.textContent = t.gh; if (khHint) khHint.textContent = t.kh;
+    var retestTarget = el('st0-retest-target');
+    if (retestTarget) retestTarget.textContent = 'GH ' + t.gh + ' / KH ' + t.kh;
   }
 
   function step0Check() {
@@ -2323,6 +2287,7 @@ function testJandi() {
     var t = getTarget();
     var tGH = t ? parseInt(t.gh) : 4;
     var tKH = t ? parseInt(t.kh) : 2;
+    var vn = valveNames_();
 
     // badges
     function setBadge(id, val, target) {
@@ -2354,13 +2319,13 @@ function testJandi() {
     if (kh > tKH) {
       lines.push('⚠️ <b>KH 飆高（' + kh + ' 滴，目標 ' + tKH + '）</b>：前端進水異常，原水雜質變多。高音酸質被吃掉，咖啡會變悶平死板。');
       vaA.style.display = 'block';
-      vaA.innerHTML = '<b>📍 NF 混水針閥（控 KH）— 照順序執行：</b><br>1. 找到前置 NF 膜混水針閥，微調關小<br>2. <b>放流水 1 分鐘</b>洗管後複測 KH，直到降回 ' + tKH + ' 滴<br>3. ⚠️ 關小混水可能讓 GH 稍降，複測完 KH 後<b>務必再複測 GH</b>';
+      vaA.innerHTML = '<b>📍 ' + vn.kh + '（控 KH）— 照順序執行：</b><br>1. 找到' + vn.khLoc + '，微調關小<br>2. <b>放流水 1 分鐘</b>洗管後複測 KH，直到降回 ' + tKH + ' 滴<br>3. ⚠️ 關小混水可能讓 GH 稍降，複測完 KH 後<b>務必再複測 GH</b>';
       el('st0-nf').value = '調小';
       valveNeeded = true;
     } else if (kh < tKH) {
       lines.push('⚠️ <b>KH 偏低（' + kh + ' 滴，目標 ' + tKH + '）</b>：緩衝不足，酸值可能失控偏尖銳刺激。');
       vaA.style.display = 'block';
-      vaA.innerHTML = '<b>📍 NF 混水針閥（控 KH）— 照順序執行：</b><br>1. 找到前置 NF 膜混水針閥，微調開大<br>2. <b>放流水 1 分鐘</b>洗管後複測 KH，直到升回 ' + tKH + ' 滴';
+      vaA.innerHTML = '<b>📍 ' + vn.kh + '（控 KH）— 照順序執行：</b><br>1. 找到' + vn.khLoc + '，微調開大<br>2. <b>放流水 1 分鐘</b>洗管後複測 KH，直到升回 ' + tKH + ' 滴';
       el('st0-nf').value = '調大';
       valveNeeded = true;
     } else {
@@ -2371,13 +2336,13 @@ function testJandi() {
     if (gh < tGH) {
       lines.push('⚠️ <b>GH 掉落（' + gh + ' 滴，目標 ' + tGH + '）</b>：鎂濾芯衰退，純鎂補給不足。咖啡會變得單薄、甜感流失、缺乏立體感。');
       vaB.style.display = 'block';
-      vaB.innerHTML = '<b>📍 吧台下 T300 旁通閥（控 GH）— 照順序執行：</b><br>1. 找到吧台下 T300 旁通閥，<b>逆時針轉大約 15–30 度</b><br>2. <b>放流水 1 分鐘</b>洗管後複測 GH，直到升回 ' + tGH + ' 滴';
+      vaB.innerHTML = '<b>📍 ' + vn.ghLoc + '（控 GH）— 照順序執行：</b><br>1. 找到' + vn.ghLoc + '，<b>逆時針轉大約 15–30 度</b><br>2. <b>放流水 1 分鐘</b>洗管後複測 GH，直到升回 ' + tGH + ' 滴';
       el('st0-mg').value = '逆時針轉大';
       valveNeeded = true;
     } else if (gh > tGH) {
       lines.push('⚠️ <b>GH 飆高（' + gh + ' 滴，目標 ' + tGH + '）</b>：鎂釋放過度，補了太多鎂。濃縮可能變得過於沉重刺激，甚至帶有木質澀味。');
       vaB.style.display = 'block';
-      vaB.innerHTML = '<b>📍 吧台下 T300 旁通閥（控 GH）— 照順序執行：</b><br>1. 找到吧台下 T300 旁通閥，<b>順時針轉小約 15–30 度</b><br>2. <b>放流水 1 分鐘</b>洗管後複測 GH，直到降回 ' + tGH + ' 滴';
+      vaB.innerHTML = '<b>📍 ' + vn.ghLoc + '（控 GH）— 照順序執行：</b><br>1. 找到' + vn.ghLoc + '，<b>順時針轉小約 15–30 度</b><br>2. <b>放流水 1 分鐘</b>洗管後複測 GH，直到降回 ' + tGH + ' 滴';
       el('st0-mg').value = '順時針轉小';
       valveNeeded = true;
     } else {
@@ -2623,7 +2588,7 @@ function testJandi() {
   function sopReset() {
     if (!confirm('確定要重新開始本次開吧校正嗎？')) return;
     sopData = {};
-    ['st0-gh','st0-kh','st0-tap','st0-drink','st0-newgh','st0-newkh','st0-newnote','st1-staff','st1-note','st2-dose','st2-yield','st2-temp','st2-time','st2-bean-name','st2-bean-batch','st2-agtron-bean','st2-agtron-grind','st4-staff','st4-note'].forEach(function(id){ var e=el(id); if(e) e.value=''; });
+    ['st0-gh','st0-kh','st0-tap','st0-drink','st1-staff','st1-note','st2-dose','st2-yield','st2-temp','st2-time','st2-bean-name','st2-bean-batch','st2-agtron-bean','st2-agtron-grind','st4-staff','st4-note'].forEach(function(id){ var e=el(id); if(e) e.value=''; });
     ['st0-mg','st0-nf','st2-grind'].forEach(function(id){ var e=el(id); if(e) e.selectedIndex=0; });
     ['st0-fb','st1-fb','st1-water-toast','st2-fb','st3-fb','st4-toast'].forEach(function(id){ var e=el(id); if(e) e.style.display='none'; });
     ['st0-nxt','st1-nxt','st2-nxt','st3-nxt'].forEach(function(id){ var e=el(id); if(e) e.classList.remove('sop-nxt-on'); });
@@ -2886,26 +2851,9 @@ function testJandi() {
 
   // ── Wire up all events ─────────────────────────────────────────
   function wire() {
-    // GH/KH target form
+    // GH/KH target
     renderTarget();
     renderMgFilter(); // init mg filter display
-    el('st0-set-btn').addEventListener('click', function() {
-      var form = el('st0-target-form');
-      form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    });
-    el('st0-save-target').addEventListener('click', function() {
-      var gh = parseInt(el('st0-newgh').value);
-      var kh = parseInt(el('st0-newkh').value);
-      if (isNaN(gh) || isNaN(kh)) { alert('請填入 GH 和 KH 數字'); return; }
-      var note = el('st0-newnote').value.trim();
-      var target = saveTarget(gh, kh, note);
-      pushTargetToSheets(target);   // sync to Sheets immediately
-      renderTarget();
-      el('st0-target-form').style.display = 'none';
-      el('st0-newgh').value = ''; el('st0-newkh').value = ''; el('st0-newnote').value = '';
-      var syncEl = el('st0-sync-status');
-      if (syncEl) { syncEl.style.display='block'; syncEl.style.color='#7A4FB5'; syncEl.textContent='☁️ 已儲存並同步至 Sheets，所有裝置可讀取'; }
-    });
 
     el('st0-flush-done').addEventListener('click', function() {
       el('st0-titrate-section').style.display = 'block';
@@ -3049,10 +2997,25 @@ Promise.resolve().then(function () {
 // 店不是一頁，是一個狀態。每間店宣告自己有哪些作業，導覽照著渲染。
 // 加第四間店 = 這個表多一個 key，導覽和 Sheets 都不用動。
 var STORES = {
-  linkou:  { name: '林口白光', short: '林口', color: '#C4862A', tasks: ['sop','light','medium','filter','soe'] },
-  hsinchu: { name: '新竹城隍', short: '新竹', color: '#7A3E9D', tasks: ['sop','light','medium','filter','soe'] },
+  linkou:  { name: '林口白光', short: '林口', color: '#C4862A', tasks: ['sop','light','medium','filter','soe'], defaultBasket: 'eblab' },
+  hsinchu: { name: '新竹城隍', short: '新竹', color: '#7A3E9D', tasks: ['sop','light','medium','filter','soe'], defaultBasket: 'artefatto' },
   yiyu:    { name: '一隅',     short: '一隅', color: '#1A6B9A', tasks: ['sop','yiyu'] }
 };
+
+// 各店黃金水質密碼預設值（尚未在 Sheets 建立店專屬基準線時使用）
+var DEFAULT_TARGETS = {
+  linkou:  { gh: 4, kh: 2, note: '黃金標準預設值', date: '2026-08-18' },
+  yiyu:    { gh: 4, kh: 2, note: '黃金標準預設值', date: '2026-08-18' },
+  hsinchu: { gh: 3, kh: 1, note: '黃金標準預設值', date: '2026-08-18' }
+};
+
+// 各店水質閥門名稱（林口 NF 膜系統 vs 新竹 RO 系統，閥門實體不同）
+var VALVE_LABELS = {
+  hsinchu: { kh: 'TDS 混水閥', khLoc: 'RO 系統 TDS 混水閥', gh: '鎂離子閥', ghLoc: '鎂離子閥' }
+};
+function valveNames_() {
+  return VALVE_LABELS[currentStore] || { kh: 'NF 混水針閥', khLoc: '前置 NF 膜混水針閥', gh: 'T300 旁通閥', ghLoc: '吧台下 T300 旁通閥' };
+}
 // 濾泡磨豆機。一台一組公式，刀盤不同就是不同機器，fit 不可互抄。
 // fit: null = 尚無資料，只記錄不推估（同 SOE_GRINDERS 的規矩）。
 var POUR_GRINDERS = {
@@ -3062,8 +3025,7 @@ var POUR_GRINDERS = {
     fit: 'molarZ'                      // → calcMolarGrind() 內的既有公式
   }],
   hsinchu: [
-    { id: 'molar-120', name: 'Molar 120mm', burr: '手沖刀',       use: 'hot', fit: null },
-    { id: 'molar-80',  name: 'Molar 80mm',  burr: 'Lab Sweet 刀', use: 'ice', fit: null }
+    { id: 'molar-120', name: 'Molar 120mm', burr: '手沖刀',       use: 'hot', fit: null }
   ],
   yiyu: []                             // 一隅的手沖刻度在 SOE 頁，不在這裡
 };
@@ -3121,7 +3083,7 @@ function applyStore() {
 
   // 濾泡頁的磨豆機卡依門市顯示 —— 別台的公式不該看得到
   var gs = (POUR_GRINDERS[currentStore] || []).map(function (g) { return g.id; });
-  var CARD = { 'molar-z': 'pour-molarz-card', 'molar-120': 'pour-molar120-card', 'molar-80': 'pour-molar80-card' };
+  var CARD = { 'molar-z': 'pour-molarz-card', 'molar-120': 'pour-molar120-card' };
   Object.keys(CARD).forEach(function (id) {
     var el = document.getElementById(CARD[id]);
     if (el) el.style.display = gs.indexOf(id) >= 0 ? '' : 'none';
@@ -3130,6 +3092,36 @@ function applyStore() {
   // SOE 磨豆機下拉隨門市重建
   if (typeof refreshSoeGrinders === 'function') refreshSoeGrinders();
   if (typeof calcSoeGrind === 'function') calcSoeGrind();
+
+  // 淺焙/中焙 Basket 預設值隨門市帶入（店與店的常用 basket 不同）
+  var basketEl = document.getElementById('ll-basket');
+  if (basketEl && st.defaultBasket) basketEl.value = st.defaultBasket;
+
+  // 2026-08-18：新竹城隍磨豆機更正回 Molar X2（Mazzer 刀），轉速／RDT 兩欄兩店都適用，不再依店隱藏
+
+  // 水質體檢頁：新竹城隍是 RO 系統（壓力桶／鵝頸／TDS 閥），林口／一隅 是 NF 膜系統 — 內容分流
+  var isHsinchu = (currentStore === 'hsinchu');
+  var flushL = document.getElementById('st0-flush-desc-linkou');
+  var flushH = document.getElementById('st0-flush-desc-hsinchu');
+  if (flushL) flushL.style.display = isHsinchu ? 'none' : '';
+  if (flushH) flushH.style.display = isHsinchu ? '' : 'none';
+  var flushTitle = document.getElementById('st0-flush-title');
+  if (flushTitle) flushTitle.textContent = isHsinchu ? '① RO 系統開機放流' : '① 大放流';
+  var waterL = document.getElementById('st1-water-linkou');
+  var waterH = document.getElementById('st1-water-hsinchu');
+  if (waterL) waterL.style.display = isHsinchu ? 'none' : '';
+  if (waterH) waterH.style.display = isHsinchu ? '' : 'none';
+  // 鎂離子濾芯流量計：新竹目前尚未安裝，先隱藏
+  var mgCard = document.getElementById('mg-filter-card');
+  if (mgCard) mgCard.style.display = isHsinchu ? 'none' : '';
+  // 閥門名稱隨店別替換（NF 混水針閥／T300 旁通閥 vs TDS 混水閥／鎂離子閥）
+  var vn = valveNames_();
+  var nfLbl = document.getElementById('st0-nf-label');
+  var mgLbl = document.getElementById('st0-mg-label');
+  if (nfLbl) nfLbl.textContent = vn.kh;
+  if (mgLbl) mgLbl.textContent = vn.gh;
+  // 水質目標（黃金密碼）隨店別重繪
+  if (typeof renderTarget === 'function') renderTarget();
 }
 
 // ── Navigation ────────────────────────────────────────────────────
@@ -3443,6 +3435,9 @@ function updY() {
   const speedEl = document.getElementById('yl-speed');
   const speed = speedEl ? speedEl.value : 'L';
   const speedLabel = {L:'L（低轉速）', M:'M（中轉速）', H:'H（高轉速）'}[speed] || speed + ' 轉速';
+  const basketEl = document.getElementById('yl-basket');
+  const basket = basketEl ? basketEl.value : 'wafo';
+  const basketLabel = {wafo:'WAFO B/O', eblab24:'E&B Lab 24'}[basket] || 'WAFO B/O';
   const humidEl = document.getElementById('yl-humid');
   const humid = humidEl ? parseFloat(humidEl.value) || 0 : 0;
   const isHighHumid = humid >= 70;
@@ -3505,9 +3500,9 @@ function updY() {
   } else if (hasAstringent) {
     status='bad'; title='收斂感 — 粉餅結構或萃取不均';
     rb.className='result-box bad'; rt.textContent=title;
-    rbd.textContent='收斂感通常是粉餅結構問題（布粉不均 / 通道效應）或流速過快。確認 WAFO B/O 布粉均勻度。';
+    rbd.textContent='收斂感通常是粉餅結構問題（布粉不均 / 通道效應）或流速過快。確認 ' + basketLabel + ' 布粉均勻度。';
     const sp = speed!=='H' ? 'Swan 換 H，增加細粉壓實粉餅' : 'Swan 已是 H，確認布粉均勻度';
-    setY('研磨往細的方向調整', '確認布粉均勻度，確認 WAFO B/O 高度', sp, '咖啡液往增加方向微調', 'act','act','act-w','');
+    setY('研磨往細的方向調整', '確認布粉均勻度，確認 ' + basketLabel + ' 高度', sp, '咖啡液往增加方向微調', 'act','act','act-w','');
   } else if (hasSharp) {
     status='bad'; title='酸質不對 — 尖酸';
     rb.className='result-box bad'; rt.textContent=title;
@@ -3545,7 +3540,7 @@ function updY() {
     rbd.textContent=`酸值明亮（15–25%）、甜感主導（60–70%）、巧克力調收斂（<5%）。${humidNote}`;
     setY('維持目前刻度', '維持今日水溫', '維持目前 Swan 轉速（'+speedLabel+'）', '維持目前液重', '','','','');
   }
-  curStates['y'] = {acid, sweet, dark, status, title, speed: speedLabel};
+  curStates['y'] = {acid, sweet, dark, status, title, speed: speedLabel, basket: basketLabel};
 }
 
 // ── CVA ───────────────────────────────────────────────────────────
@@ -3869,7 +3864,7 @@ async function submitRecord(t) {
       brewTime: document.getElementById(pre+'-time').value,
       yield: document.getElementById(pre+'-yield').value,
       ratio: document.getElementById(pre+'-ratio').value,
-      basket: t==='y' ? 'WAFO B/O' : ({bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto'})[document.getElementById(pre+'-basket').value] || '',
+      basket: ({bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto', wafo:'WAFO B/O', eblab24:'E&B Lab 24'})[document.getElementById(pre+'-basket').value] || '',
       speed: document.getElementById(pre+'-speed') ? document.getElementById(pre+'-speed').value : '',
       rdt: t==='l' ? (document.getElementById('ll-rdt')?.value || '') : '',
       acid:  curStates[t].acid,
@@ -3909,23 +3904,24 @@ async function submitRecord(t) {
 // 每台磨豆機一組係數。刻度盤單位彼此無關，公式絕對不可互相套用。
 // fit 為 null = 尚無資料，只記錄、不推估。
 // 每間店有哪些義式磨豆機。同型號在不同店 = 不同機器，fit 各自獨立。
-// ⚠️ 設定待 Taylor 確認：林口的 Kony 是否還在用、E80GBW 是否只在新竹。
-// 淺焙 SOE 磨豆機。兩店都用 Molar X2；同型號但各自一組資料。
+// 2026-08-18 Taylor 更正：新竹城隍淺焙磨豆機是 Molar X2（Mazzer 刀），機身同林口但刀盤不同 → 磨出來的粒徑分佈不同，維持獨立公式。
+// 林口白光淺焙為 Molar X2（原廠刀）。中焙磨豆機為 mahlkonig Peak Lab Sweet（不在此 SOE 刻度工具範圍內，SOE 僅涵蓋淺焙）。
 // Kony 已退出 SOE（改做中焙），其五支種子資料一併捨棄。
 var SOE_STORE_GRINDERS = {
   linkou:  ['Molar X2'],
-  hsinchu: ['Molar X2']
+  hsinchu: ['Molar X2 Mazzer刀']
 };
 
 // 磨豆機硬體規格（與店無關：刀盤、是否可調轉速）
 var SOE_GRINDER_SPECS = {
-  'Molar X2': { label: 'Molar X2（慢磨錐刀）', step: '0.01', speeds: true, defaultSpeed: 'M' }
+  'Molar X2':          { label: 'Molar X2（神山錐刀）', step: '0.01', speeds: true, defaultSpeed: 'M' },
+  'Molar X2 Mazzer刀': { label: 'Molar X2（Mazzer 刀）', step: '0.01', speeds: true, defaultSpeed: 'H' }
 };
 
-// fit 用 "店:機器" 當 key —— 林口的 X2 和新竹的 X2 各自一組，永不互相污染。
-// 目前全部 null = 資料累積中（Kony 公式已捨棄）。
+// fit 用 "店:機器" 當 key —— 林口的 X2 和新竹的 X2（Mazzer 刀）各自一組，永不互相污染。
+// 目前全部 null = 資料累積中（Kony 公式已捨棄；新竹先前掛在 E80GBW 下的資料也一併作廢，改回 Molar X2 Mazzer刀 重新累積）。
 var SOE_FITS = {
-  // 'linkou:Molar X2', 'hsinchu:Molar X2' → 尚無公式，各自累積
+  // 'linkou:Molar X2', 'hsinchu:Molar X2 Mazzer刀' → 尚無公式，各自累積
 };
 
 function soeCfg() {
@@ -3995,9 +3991,24 @@ function calcSoeGrind() {
   var anchEl  = document.getElementById('sg-anchors');
   var finalEl = document.getElementById('sg-final');
 
+  // 磨豆機切換時（含換店），轉速回到該台的預設值 —— 只在真的換機台時重設，
+  // 不要因為使用者在打玻璃盅重量等其他欄位而被覆蓋掉手動選擇的轉速
+  var grinderEl = document.getElementById('sg-grinder');
+  var curGrinderName = grinderEl ? grinderEl.value : null;
+  if (curGrinderName && curGrinderName !== window._lastSoeGrinder) {
+    window._lastSoeGrinder = curGrinderName;
+    var defSpeed = (SOE_GRINDER_SPECS[curGrinderName] || {}).defaultSpeed;
+    var spSel = document.getElementById('sg-speed');
+    if (spSel && defSpeed) spSel.value = defSpeed;
+  }
+
   var G = soeCfg();
   var cfg = G.cfg;
   var hasFit = !!cfg.fit;
+
+  // 建議刻度卡片標題隨目前選的磨豆機顯示，不再寫死 MAZZER KONY
+  var labelEl = document.getElementById('sg-grind-label');
+  if (labelEl) labelEl.textContent = '⚙️ ' + (G.name || '') + '　建議起手刻度';
 
   // 只有有公式的機器才顯示錨點；沒公式的顯示配對提示
   if (anchEl) anchEl.style.display = hasFit ? 'block' : 'none';
