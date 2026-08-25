@@ -328,7 +328,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
 
   <!-- Brew Params -->
   <div class="card">
-    <div class="card-head"><div class="card-title">調煮參數</div></div>
+    <div class="card-head"><div class="card-title">調煮參數</div><div class="card-sub">磨豆機　<span id="ll-grinder-name">Molar X²</span></div></div>
     <div class="card-body">
       <div class="grid2" style="margin-bottom:10px">
         <div class="field"><label>氣溫 (℃)</label><input id="ll-temp" type="number" inputmode="decimal" step="any" placeholder="24"></div>
@@ -353,7 +353,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
           </select>
         </div>
         <div class="field" id="ll-speed-field">
-          <label>Molar X² 轉速 <span style="font-size:10px;color:#AAA;font-weight:400">H快／M中</span></label>
+          <label>轉速 <span style="font-size:10px;color:#AAA;font-weight:400">H快／M中</span></label>
           <select id="ll-speed" onchange="upd('l')">
             <option value="H" selected>H（轉速快，細粉多，萃取↑）</option>
             <option value="M">M（轉速中，細粉少，萃取↓）</option>
@@ -984,7 +984,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   <div class="card">
     <div class="card-head">
       <div class="card-title">☕ 淺焙 SOE 研磨刻度推估</div>
-      <div class="card-sub">固定 18g in / 40g out / 30 秒　秤完盅重直接給起手刻度</div>
+      <div class="card-sub" id="sg-target-sub">固定 18g in / 40g out / 30 秒　秤完盅重直接給起手刻度</div>
     </div>
     <div class="card-body">
       <div class="field" style="margin-bottom:10px">
@@ -1039,6 +1039,18 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
         <div class="field"><label>養豆天數</label><input id="sg-rest" type="number" inputmode="numeric" step="1" placeholder="14"></div>
         <div class="field"><label>實際秒數</label><input id="sg-time" type="number" inputmode="decimal" step="0.5" placeholder="30" oninput="calcSoeGrind()"></div>
         <div class="field"><label>實際液重 (g)</label><input id="sg-yield" type="number" inputmode="decimal" step="0.5" placeholder="40"></div>
+      </div>
+
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>粉量 (g)</label><input id="sg-dose" type="number" inputmode="decimal" step="0.1" placeholder="18" oninput="calcSoeGrind()"></div>
+        <div class="field">
+          <label>Basket</label>
+          <select id="sg-basket">
+            <option value="eblab" selected>E&B LAB24</option>
+            <option value="bigbang">Big Bang</option>
+            <option value="artefatto">神器 Artefatto</option>
+          </select>
+        </div>
       </div>
 
       <div id="sg-hint" style="display:none;background:#FFF8F0;border:1px solid #EDD9B8;border-radius:10px;padding:10px 12px;font-size:12px;color:#8B5A2B;line-height:1.7;margin-bottom:10px"></div>
@@ -1230,15 +1242,33 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       <button class="save-cfg-btn" onclick="saveConfig()">儲存設定</button>
 
       <div class="sec-label" style="margin-bottom:12px">Apps Script 程式碼（貼入後部署）</div>
-      <div class="gas-code">function doGet(e) {
+      <div class="gas-code">// ==========================================================
+// 咖啡校正系統 ── 後端 GAS
+// ★ JANDI 已停用（2026-08-18）：JANDI_URL 移除，全面改發 Slack。
+//   若之後要恢復 JANDI，把 JANDI_URL 常數與 notifySlack_ 內的呼叫加回來即可。
+// ==========================================================
+
+// 校正專用的 Slack Incoming Webhook。
+// ★ 不寫死在程式碼裡（否則推上公開 repo 會被 GitHub 密鑰掃描擋下）。
+//   改存到「專案設定 → 指令碼屬性」，屬性名稱：SLACK_URL。
+//   設定方式二選一：
+//   (a) Apps Script 左側齒輪「專案設定」→ 指令碼屬性 → 新增 SLACK_URL = 你的 webhook。
+//   (b) 把 webhook 填進下面的 setSlackUrl() 執行一次，再把網址刪掉。
+var SLACK_URL = PropertiesService.getScriptProperties().getProperty('SLACK_URL') || '';
+
+// 一次性設定用：填入 webhook → 執行一次 → 把網址清成空字串存回。
+function setSlackUrl() {
+  PropertiesService.getScriptProperties().setProperty('SLACK_URL', '在這裡貼上 Slack Webhook，執行後記得刪掉');
+  Logger.log('已寫入 SLACK_URL 到指令碼屬性。');
+}
+
+function doGet(e) {
   var p = e.parameter;
   if (!e || !p) return ContentService.createTextOutput('OK');
-
-  var JANDI_URL = 'https://wh.jandi.com/connect-api/webhook/33176758/98685ef6ba4e24b0dfa666e19cb2587c';
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
 
   // ── READ ──────────────────────────────────────────────
   if (p.action === 'read') {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
     var allRecords = [];
     var sheetMap = {light:'淺焙SOE', medium:'中焙SOE', yiyu:'一隅SOE', soe_grind:'SOE刻度', pour:'手沖', sop:'校正SOP', water_record:'水質紀錄', filter_replace:'濾芯更換紀錄'};
     Object.entries(sheetMap).forEach(function([type, name]) {
@@ -1280,32 +1310,27 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
     return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
   }
 
-  // ── READ GH/KH TARGET ─────────────────────────────────
+  // ── READ GH/KH TARGET（依店別） ─────────────────────────
   if (p.action === 'read_ghkh') {
-    var tSheet = ss.getSheetByName('水質基準');
-    if (!tSheet || tSheet.getLastColumn() < 2) {
-      return ContentService.createTextOutput('{}').setMimeType(ContentService.MimeType.JSON);
-    }
-    var lastCol = tSheet.getLastColumn();
-    var rows = tSheet.getRange(1,1,5,1).getValues().map(function(r){return String(r[0]);});
-    var vals = tSheet.getRange(1,lastCol,5,1).getValues().map(function(r){return String(r[0]);});
-    var obj = {};
-    rows.forEach(function(k,i){ obj[k] = vals[i]; });
-    var result = { gh: obj['GH目標']||'', kh: obj['KH目標']||'', note: obj['備注']||'', date: obj['建立日期']||'' };
+    var result = getGhKhTarget_(ss, p.store) || {};
     return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
   }
 
   // ── WRITE ─────────────────────────────────────────────
   if (!p.type) return ContentService.createTextOutput('OK');
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  // GH/KH 黃金基準線 — 寫入「水質基準」sheet
+  // GH/KH 黃金基準線 — 寫入「水質基準」sheet（依店別存一欄，用「店別代碼」列標記）
   if (p.type === 'ghkh_target') {
     var tSheet = ss.getSheetByName('水質基準') || ss.insertSheet('水質基準');
-    var tHeaders = ['時間','GH目標','KH目標','備注','建立日期'];
-    var tValues  = [new Date().toISOString(), p.gh, p.kh, p.note||'', p.ts||''];
+    var tHeaders = ['時間','GH目標','KH目標','備注','建立日期','店別代碼'];
+    var tValues  = [new Date().toISOString(), p.gh, p.kh, p.note||'', p.ts||'', p.storeKey||'linkou'];
     if (tSheet.getLastColumn() === 0) {
       tSheet.getRange(1,1,tHeaders.length,1).setValues(tHeaders.map(function(h){return[h];}));
+    } else if (tSheet.getLastRow() &lt; tHeaders.length) {
+      // 舊表沒有「店別代碼」列 → 只在尾端補上，不動既有列（transposed 表規則：只能在尾端新增）
+      var have = tSheet.getLastRow();
+      tSheet.getRange(have+1, 1, tHeaders.length-have, 1)
+            .setValues(tHeaders.slice(have).map(function(h){return[h];}));
     }
     var tCol = tSheet.getLastColumn() + 1;
     tSheet.getRange(1,tCol,tValues.length,1).setValues(tValues.map(function(v){return[v];}));
@@ -1352,19 +1377,10 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
     sSheet.getRange(1,2,sSheet.getMaxRows(),1).setBackground("#ffffff").setFontColor("#000000");
     sSheet.getRange(1,2,sValues.length,1).setValues(sValues.map(function(v){return[v!==undefined?v:''];}));
 
-  // ── 通知 JANDI (SOP) ────────────────────────────────────────────
+  // ── 通知 Slack (SOP) ────────────────────────────────────
   try {
     var ghVal = p.gh || '—', khVal = p.kh || '—';
-    var tgt = null;
-    var tgtSheet = ss.getSheetByName('水質基準');
-    if (tgtSheet && tgtSheet.getLastColumn() &gt;= 2) {
-      var lastTgtCol = tgtSheet.getLastColumn();
-      var tgtRows = tgtSheet.getRange(1,1,5,1).getValues().map(function(r){return String(r[0]);});
-      var tgtVals = tgtSheet.getRange(1,lastTgtCol,5,1).getValues().map(function(r){return String(r[0]);});
-      var tgtObj = {};
-      tgtRows.forEach(function(k,i){ tgtObj[k] = tgtVals[i]; });
-      tgt = { gh: tgtObj['GH目標']||'', kh: tgtObj['KH目標']||'' };
-    }
+    var tgt = getGhKhTarget_(ss, p.storeKey);
 
     // Determine overall status
     var hasWarn = false;
@@ -1381,7 +1397,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
 
     // Water quality row
     var waterDesc = 'GH ' + ghVal + ' 滴 / KH ' + khVal + ' 滴';
-    if (tgt) {
+    if (tgt &amp;&amp; tgt.gh) {
       waterDesc += (ghOk &amp;&amp; khOk) ? '　✅ 符合基準' : '　⚠️ GH 目標 ' + tgt.gh + ' / KH 目標 ' + tgt.kh;
     }
 
@@ -1415,21 +1431,9 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
     if (p.note) sopConnectInfo.push({ title: '備注', description: p.note });
     sopConnectInfo.push({ title: '開吧結果', description: statusLine });
 
-    UrlFetchApp.fetch(JANDI_URL, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/vnd.tosslab.jandi-v2+json',
-        'Content-Type': 'application/json'
-      },
-      payload: JSON.stringify({
-        body: '🌅 校正記錄已送出　' + (p.ts||''),
-        connectColor: sopColor,
-        connectInfo: sopConnectInfo
-      }),
-      muteHttpExceptions: true
-    });
+    notifySlack_('🌅 校正記錄已送出　' + (p.ts||''), sopColor, sopConnectInfo);
   } catch(err) {
-    Logger.log('SOP JANDI notify failed: ' + err.message);
+    Logger.log('SOP notify failed: ' + err.message);
   }
 
     return ContentService.createTextOutput('OK');
@@ -1442,10 +1446,10 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   if (p.type === 'soe_grind') {
     headers = ['時間','門市','夥伴','豆名','批次','磨豆機',
                '玻璃盅重量g','Agtron豆表','Agtron豆心','養豆天數',
-               '粉量g','公式建議刻度','實際秒數','實際液重g','最後定案刻度','刻度誤差','效果','備注','轉速','RDT'];
+               '粉量g','公式建議刻度','實際秒數','實際液重g','最後定案刻度','刻度誤差','效果','備注','轉速','RDT','Basket'];
     values = [p.ts,p.storeName,p.staff,p.beanName,p.batchNo,p.grinder,
               p.glass,p.agtronBean,p.agtronCore,p.restDays,
-              p.dose,p.suggested,p.actualTime,p.actualYield,p.finalGrind,p.deltaGrind,p.result,p.note,p.speed,p.rdt];
+              p.dose,p.suggested,p.actualTime,p.actualYield,p.finalGrind,p.deltaGrind,p.result,p.note,p.speed,p.rdt,p.basket];
   } else if (p.type === 'pour') {
     headers = ['時間','夥伴',
                '氣溫℃','濕度%','水溫℃','研磨刻度','Tonik下','LyLac下',
@@ -1504,7 +1508,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   sheet.getRange(1, col, values.length, 1)
        .setValues(values.map(function(v){ return [v !== undefined ? v : '']; }));
 
-  // ── 通知 JANDI ────────────────────────────────────────
+  // ── 通知 Slack ────────────────────────────────────────
   try {
     var typeLabel = p.type==='light' ? '☕ 淺焙 SOE' : p.type==='medium' ? '🟤 中焙 SOE' : p.type==='yiyu' ? '🔷 一隅 SOE' : p.type==='soe_grind' ? '⚙️ SOE 刻度' : '🫖 手沖';
     var statusText = p.status==='good' ? '✅ 均衡' : p.status==='warn' ? '⚠️ 需調整' : p.status==='bad' ? '⚠️ 需調整' : '🚨 嚴重需調整';
@@ -1520,7 +1524,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       connectInfo.push({ title: '磨豆機', description: (p.grinder||'—') + (p.speed ? '　轉速 ' + p.speed : '') });
       connectInfo.push({ title: '玻璃盅重量', description: (p.glass||'—') + ' g' });
       connectInfo.push({ title: '刻度', description: '公式建議 #' + (p.suggested||'—') + (p.finalGrind ? '　→　定案 #' + p.finalGrind + '（誤差 ' + (p.deltaGrind||'—') + '）' : '') });
-      connectInfo.push({ title: '實測', description: '18g in　' + (p.actualYield||'—') + 'g out　' + (p.actualTime||'—') + 's' + (p.restDays ? '　養豆 ' + p.restDays + ' 天' : '') + (p.rdt ? '　RDT ' + p.rdt : '') });
+      connectInfo.push({ title: '實測', description: (p.dose||'18') + 'g in　' + (p.actualYield||'—') + 'g out　' + (p.actualTime||'—') + 's' + (p.restDays ? '　養豆 ' + p.restDays + ' 天' : '') + (p.basket ? '　Basket ' + p.basket : '') + (p.rdt ? '　RDT ' + p.rdt : '') });
       if (p.result) connectInfo.push({ title: '效果', description: p.result });
       if (p.note) connectInfo.push({ title: '備注', description: p.note });
     } else if (p.type === 'pour') {
@@ -1542,7 +1546,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       connectInfo.push({ title: '門市', description: p.storeName || '—' });
       connectInfo.push({ title: '參數', description: '水溫 ' + (p.wtemp||'—') + '℃　粉量 ' + (p.dose||'—') + 'g' + (p.prebrew ? '　預浸 ' + p.prebrew + 's' : '') + '　' + (p.brewTime||'—') + 's　液重 ' + (p.yield||'—') + 'g　1:' + (p.ratio||'—') });
       connectInfo.push({ title: '環境', description: '氣溫 ' + (p.temp||'—') + '℃　濕度 ' + (p.humid||'—') + '%' });
-      connectInfo.push({ title: '器材', description: 'WAFO B/O　Swan ' + (p.speed||'—') });
+      connectInfo.push({ title: '器材', description: (p.basket||'WAFO B/O') + '　Swan ' + (p.speed||'—') });
       connectInfo.push({ title: '酸甜比例', description: '酸 ' + (p.acid||'—') + '%　甜 ' + (p.sweet||'—') + '%　深 ' + (p.dark||'—') + '%' });
       if (p.tags &amp;&amp; p.tags !== '—') connectInfo.push({ title: '風味感受', description: p.tags });
       if (p.milkCheck) connectInfo.push({ title: '加奶確認', description: p.milkCheck });
@@ -1558,23 +1562,9 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       if (p.note) connectInfo.push({ title: '備注', description: p.note });
     }
 
-    var jandi_body = {
-      body: typeLabel + ' 校正記錄已送出　' + (p.ts||''),
-      connectColor: color,
-      connectInfo: connectInfo
-    };
-
-    UrlFetchApp.fetch(JANDI_URL, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/vnd.tosslab.jandi-v2+json',
-        'Content-Type': 'application/json'
-      },
-      payload: JSON.stringify(jandi_body),
-      muteHttpExceptions: true
-    });
+    notifySlack_(typeLabel + ' 校正記錄已送出　' + (p.ts||''), color, connectInfo);
   } catch(err) {
-    Logger.log('JANDI notify failed: ' + err.message);
+    Logger.log('notify failed: ' + err.message);
   }
 
   return ContentService.createTextOutput('OK');
@@ -1582,23 +1572,66 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
 
 function doPost(e) { return doGet(e); }
 
-function testJandi() {
-  var JANDI_URL = 'https://wh.jandi.com/connect-api/webhook/33176758/98685ef6ba4e24b0dfa666e19cb2587c';
-  var result = UrlFetchApp.fetch(JANDI_URL, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/vnd.tosslab.jandi-v2+json',
-      'Content-Type': 'application/json'
-    },
-    payload: JSON.stringify({
-      body: '🧪 測試訊息',
-      connectColor: '#F5C542',
-      connectInfo: [{ title: '測試', description: '如果看到這則訊息代表 Webhook 正常' }]
-    }),
-    muteHttpExceptions: true
-  });
-  Logger.log('狀態碼: ' + result.getResponseCode());
-  Logger.log('回應: ' + result.getContentText());
+
+// ==========================================================
+// 依店別讀「水質基準」sheet 最新一欄。
+// 找不到該店專屬設定時，退回最新的「店別代碼」空白／linkou 欄（相容舊資料、一隅預設跟隨林口）。
+// ==========================================================
+function getGhKhTarget_(ss, storeKey) {
+  var tSheet = ss.getSheetByName('水質基準');
+  if (!tSheet || tSheet.getLastColumn() &lt; 2) return null;
+  var lastCol = tSheet.getLastColumn();
+  var lastRow = tSheet.getLastRow();
+  var rows = tSheet.getRange(1,1,lastRow,1).getValues().map(function(r){ return String(r[0]); });
+  var storeRowIdx = rows.indexOf('店別代碼');
+  var wantStore = storeKey || 'linkou';
+  var col = null, fallback = null;
+  for (var c = lastCol; c &gt;= 2; c--) {
+    var sVal = storeRowIdx &gt;= 0 ? String(tSheet.getRange(storeRowIdx+1, c, 1, 1).getValue()) : '';
+    if (sVal === wantStore) { col = c; break; }
+    if (fallback === null &amp;&amp; (sVal === '' || sVal === 'linkou')) fallback = c;
+  }
+  if (!col) col = fallback || lastCol;
+  var vals = tSheet.getRange(1,col,lastRow,1).getValues().map(function(r){ return String(r[0]); });
+  var obj = {};
+  rows.forEach(function(k,i){ obj[k] = vals[i]; });
+  return { gh: obj['GH目標']||'', kh: obj['KH目標']||'', note: obj['備注']||'', date: obj['建立日期']||'' };
+}
+
+// ==========================================================
+// 發 Slack 通知。connectInfo 是欄位列（[{title,description}...]），
+// 攤成 Slack attachment 的多行文字。
+// ==========================================================
+function notifySlack_(body, color, connectInfo) {
+  if (!SLACK_URL) return;
+  try {
+    var lines = (connectInfo || []).map(function (r) {
+      return '*' + r.title + '*　' + r.description;
+    });
+    UrlFetchApp.fetch(SLACK_URL, {
+      method: 'POST',
+      contentType: 'application/json',
+      payload: JSON.stringify({
+        attachments: [{
+          color: color || '#C8862B',
+          title: body,
+          text: lines.join('\n')
+        }]
+      }),
+      muteHttpExceptions: true
+    });
+  } catch (err) { Logger.log('Slack notify failed: ' + err.message); }
+}
+
+
+// 只測 Slack：在 GAS 上方選這個函式，按 ▷ 執行，去校正頻道看有沒有跳出訊息。
+function testSlack() {
+  if (!SLACK_URL) { Logger.log('尚未設定 SLACK_URL'); return; }
+  notifySlack_('🧪 Slack 測試　校正系統連線成功', '#3B8B50', [
+    { title: '測試', description: '看到這則代表校正記錄可以正常發到 Slack' },
+    { title: '狀態', description: '✅ 正常' }
+  ]);
+  Logger.log('已送出測試訊息，請到校正頻道確認。');
 }</div>
 
       <div class="sec-label" style="margin-top:20px;margin-bottom:12px">部署步驟</div>
@@ -3097,7 +3130,32 @@ function applyStore() {
   var basketEl = document.getElementById('ll-basket');
   if (basketEl && st.defaultBasket) basketEl.value = st.defaultBasket;
 
-  // 2026-08-18：新竹城隍磨豆機更正回 Molar X2（Mazzer 刀），轉速／RDT 兩欄兩店都適用，不再依店隱藏
+  // 淺焙 espresso 磨豆機隨門市顯示：
+  //   林口白光 = Molar X²（有 H/M 轉速、噴 RDT）
+  //   新竹城隍 = Mahlkönig E80S EGW（單一轉速、不噴 RDT）→ 隱藏「轉速」與「RDT 噴水」兩欄
+  var LIGHT_GRINDERS = { hsinchu: 'Mahlkönig E80S EGW' };   // 未列的門市預設 Molar X²
+  var lgNameEl = document.getElementById('ll-grinder-name');
+  if (lgNameEl) lgNameEl.textContent = LIGHT_GRINDERS[currentStore] || 'Molar X²';
+  var hideSpeedRdt = (currentStore === 'hsinchu');
+  var llSpeedField = document.getElementById('ll-speed-field');
+  var llRdtField   = document.getElementById('ll-rdt-field');
+  if (llSpeedField) llSpeedField.style.display = hideSpeedRdt ? 'none' : '';
+  if (llRdtField)   llRdtField.style.display   = hideSpeedRdt ? 'none' : '';
+  // 只剩 Basket 一欄時改單欄排版，避免留白
+  var llBasketRow = document.getElementById('ll-basket-row');
+  if (llBasketRow) llBasketRow.style.gridTemplateColumns = hideSpeedRdt ? '1fr' : '';
+
+  // SOE 研磨刻度推估卡：目標參數與粉量預設隨門市（各店 espresso 配方不同）
+  //   新竹城隍 = 19g in / 28–30g out（SOE 頁磨豆機仍為 Molar X2 Mazzer 刀，轉速預設 H 由 SOE_GRINDER_SPECS 帶入）
+  //   林口白光 = 18g in / 40g out / 30 秒（維持原設定）
+  var SOE_TARGETS = {
+    hsinchu: { sub: '固定 19g in / 28–30g out　秤完盅重直接給起手刻度', dose: '19' }
+  };
+  var soeT = SOE_TARGETS[currentStore] || { sub: '固定 18g in / 40g out / 30 秒　秤完盅重直接給起手刻度', dose: '18' };
+  var sgSubEl  = document.getElementById('sg-target-sub');
+  if (sgSubEl) sgSubEl.textContent = soeT.sub;
+  var sgDoseEl = document.getElementById('sg-dose');
+  if (sgDoseEl) sgDoseEl.placeholder = soeT.dose;
 
   // 水質體檢頁：新竹城隍是 RO 系統（壓力桶／鵝頸／TDS 閥），林口／一隅 是 NF 膜系統 — 內容分流
   var isHsinchu = (currentStore === 'hsinchu');
@@ -3865,8 +3923,8 @@ async function submitRecord(t) {
       yield: document.getElementById(pre+'-yield').value,
       ratio: document.getElementById(pre+'-ratio').value,
       basket: ({bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto', wafo:'WAFO B/O', eblab24:'E&B Lab 24'})[document.getElementById(pre+'-basket').value] || '',
-      speed: document.getElementById(pre+'-speed') ? document.getElementById(pre+'-speed').value : '',
-      rdt: t==='l' ? (document.getElementById('ll-rdt')?.value || '') : '',
+      speed: (function(){ var wrap=document.getElementById(pre+'-speed-field'); if(wrap && wrap.style.display==='none') return ''; var f=document.getElementById(pre+'-speed'); return f ? f.value : ''; })(),
+      rdt: t==='l' ? ((document.getElementById('ll-rdt-field')?.style.display==='none') ? '' : (document.getElementById('ll-rdt')?.value || '')) : '',
       acid:  curStates[t].acid,
       sweet: curStates[t].sweet,
       dark:  curStates[t].dark,
@@ -4136,7 +4194,8 @@ async function submitSoeGrind() {
     agtronBean: gv('sg-ab'),
     agtronCore: gv('sg-ac'),
     restDays: gv('sg-rest'),
-    dose: 18,
+    dose: gv('sg-dose') || (currentStore === 'hsinchu' ? 19 : 18),
+    basket: ({bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto'})[gv('sg-basket')] || '',
     suggested: suggested == null ? '' : suggested.toFixed(2),
     actualTime: gv('sg-time'),
     actualYield: gv('sg-yield'),
@@ -4454,7 +4513,7 @@ function renderLog() {
   list.innerHTML = filtered.map(e => {
     const status = e.status||'good';
     const detailParts = e.type==='soe_grind'
-      ? [e.storeName?`${e.storeName}`:'', e.grinder?`${e.grinder}${e.speed?' / '+e.speed:''}`:'', e.glass?`盅重 ${e.glass}g`:'', e.suggested?`建議 #${e.suggested}`:'', e.finalGrind?`定案 #${e.finalGrind}`:'', e.actualTime?`${e.actualTime}s`:'', e.actualYield?`液重 ${e.actualYield}g`:'', e.restDays?`養豆 ${e.restDays}天`:'', e.rdt==='有'?'RDT':'', e.deltaGrind?`誤差 ${e.deltaGrind}`:''].filter(Boolean)
+      ? [e.storeName?`${e.storeName}`:'', e.grinder?`${e.grinder}${e.speed?' / '+e.speed:''}`:'', e.glass?`盅重 ${e.glass}g`:'', e.dose?`粉 ${e.dose}g`:'', e.basket?`[${e.basket}]`:'', e.suggested?`建議 #${e.suggested}`:'', e.finalGrind?`定案 #${e.finalGrind}`:'', e.actualTime?`${e.actualTime}s`:'', e.actualYield?`液重 ${e.actualYield}g`:'', e.restDays?`養豆 ${e.restDays}天`:'', e.rdt==='有'?'RDT':'', e.deltaGrind?`誤差 ${e.deltaGrind}`:''].filter(Boolean)
       : e.type==='pour'
       ? [e.storeName?`${e.storeName}`:'', `CVA ${e.cvaTotal||'?'}/60`, e.grind?`刻度 ${e.grind}`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:''].filter(Boolean)
       : [e.storeName?`${e.storeName}`:'', e.acid?`酸 ${e.acid}%`:'', e.sweet?`甜 ${e.sweet}%`:'', e.dark?`深 ${e.dark}%`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:'', e.dose?`粉 ${e.dose}g`:'', e.brewTime?`${e.brewTime}s`:'', e.yield?`液重 ${e.yield}g`:'', e.ratio?`比例 ${e.ratio}`:'', e.basket?`[${e.basket}]`:'', e.speed?`${e.speed}`:'', e.rdt==='有'?'RDT':''].filter(Boolean);
