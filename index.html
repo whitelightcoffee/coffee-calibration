@@ -386,7 +386,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
           </select>
         </div>
       </div>
-      <div class="field" style="margin-top:10px">
+      <div class="field" id="ll-dfr-field" style="margin-top:10px">
         <label>DFR 策略 <span style="font-size:10px;color:#C4862A;font-weight:600">可下拉或直接編輯</span></label>
         <input id="ll-dfr" type="text" list="dfr-options" value="高-壓實粉 > 低-預浸 > 中-溫和萃取" placeholder="選擇或輸入沖煮策略">
       </div>
@@ -605,7 +605,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       <div class="field">
         <label>Espresso 比例</label><input id="ml-ratio" type="text" readonly placeholder="自動">
       </div>
-      <div class="field" style="margin-top:10px">
+      <div class="field" id="ml-dfr-field" style="margin-top:10px">
         <label>DFR 策略 <span style="font-size:10px;color:#6B4C2A;font-weight:600">可下拉或直接編輯</span></label>
         <input id="ml-dfr" type="text" list="dfr-options" value="高 > 中 > 低" placeholder="選擇或輸入沖煮策略">
       </div>
@@ -1090,7 +1090,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
         </div>
       </div>
 
-      <div class="field" style="margin-bottom:10px">
+      <div class="field" id="sg-dfr-field" style="margin-bottom:10px">
         <label>DFR 策略 <span style="font-size:10px;color:#8B5A2B;font-weight:600">可下拉或直接編輯</span></label>
         <input id="sg-dfr" type="text" list="dfr-options" value="高-壓實粉 > 低-預浸 > 中-溫和萃取" placeholder="選擇或輸入沖煮策略">
       </div>
@@ -1737,50 +1737,28 @@ function testSlack() {
       <div class="card-head"><div class="card-title" id="st0-flush-title">① 大放流</div><div class="card-sub">開始滴定前先完成放流</div></div>
       <div class="card-body">
 
-        <!-- 自來水源確認（RO 系統：林口／新竹）— 今日必填 -->
-        <div id="st0-src-confirm" style="display:none;background:#F4F1EC;border-radius:12px;padding:12px 13px;margin-bottom:12px">
-          <div style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px">🚰 確認自來水源（今日必填）</div>
-          <div class="grid2" style="margin-bottom:8px">
-            <div class="field" style="margin-bottom:0">
-              <label>自來水源 TDS</label>
-              <input id="st0-src-tds" type="number" inputmode="numeric" placeholder="130">
-            </div>
-            <div class="field" style="margin-bottom:0">
-              <label>自來水源 KH</label>
-              <select id="st0-tapkh" onchange="onSrcKhChange()">
-                <option value="">請選擇</option>
-                <option value="1">KH 1</option>
-                <option value="2">KH 2</option>
-              </select>
-            </div>
-          </div>
-          <div id="st0-daily-target" style="font-size:12.5px;color:#5A3A00;background:#FFF3E0;border:1px solid #F0C880;border-radius:9px;padding:8px 11px;line-height:1.6">
-            依自來水源 KH 決定今日沖煮水目標：<br>
-            <b>KH1 → 目標 KH1 / GH3</b>　·　<b>KH2 → 目標 KH2 / GH4</b>
-          </div>
-        </div>
-
         <!-- 林口白光 RO 放流步驟 -->
         <div id="st0-flush-desc-linkou" style="display:none;font-size:13px;color:#444;line-height:1.9;margin-bottom:12px">
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔒</span><span>檢查<b>壓力桶（關）</b>、<b>壓力桶排水線（關）</b></span></div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🚰</span><span>左鵝頸放流約 <b>1 分鐘</b>，至 TDS 降到 <b>45 左右</b>（45–50）</span></div>
-          <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">TDS 不對 → 調整 <b>TDS 閥混水比例</b>，重新放流確認</div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔒</span><span>檢查<b>壓力桶（關）</b>、<b>壓力桶排水線（關）</b>，開啟<b>造水系統</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🚰</span><span>左鵝頸放流約 <b>1 分鐘</b>，至 TDS 降到 <b>45 左右</b>（45–50），<b>KH 滴定 2 滴</b></span></div>
+          <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">TDS / KH 不對 → 調整 <b>TDS 閥混水比例</b>，重新放流確認</div>
           <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">☕</span><span>義式機水線放流 <b>1 分鐘</b>，排空隔夜高濃度鎂離子</span></div>
           <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🛢️</span><span>開啟壓力桶蓄水，<b>四分鐘內</b>蓄滿水</span></div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🧪</span><span>義式機水線測試 <b>GH 3 滴</b>，正常即可<b>開啟義式機電源熱機</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🧪</span><span>義式機水線測試 <b>GH 4 滴</b>，若 GH 不對則調整<b>義式機鎂離子閥</b></span></div>
+          <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">滴定正常即可開啟<b>義式機電源熱機</b></div>
           <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">💧</span><span>放流並測試<b>右鵝頸鎂離子濃度</b>（GH 3–4 滴）</span></div>
           <div style="margin-left:26px;margin-top:-2px;font-size:12px;color:#A35000">不符合 → 調整 <b>鎂離子閥</b>，重新放流複測</div>
         </div>
 
         <!-- 新竹城隍 RO 放流步驟 -->
         <div id="st0-flush-desc-hsinchu" style="display:none;font-size:13px;color:#444;line-height:1.9;margin-bottom:12px">
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔒</span><span>檢查<b>壓力桶（關）</b>、<b>壓力桶排水線（關）</b></span></div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🚰</span><span>左鵝頸放流約 <b>1 分鐘</b>，至 TDS 降到 <b>75 左右</b></span></div>
-          <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">TDS 不對 → 調整 <b>TDS 閥混水比例</b>，重新放流確認</div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">☕</span><span>義式機水線放流 <b>1 分鐘</b>，排空隔夜高濃度鎂離子，<b>TDS 65 左右</b></span></div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🛢️</span><span>開啟壓力桶蓄水，<b>八分鐘內</b>蓄滿水</span></div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🧪</span><span>義式機水線測試 <b>GH 3 滴</b>，正常即可<b>開啟義式機電源</b></span></div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔥</span><span>義式機<b>鍋爐排水各 1 大鋼杯</b>，排完開啟<b>加熱鍵熱機</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔒</span><span>檢查<b>壓力桶（關）</b>、<b>壓力桶排水線（關）</b>，開啟<b>造水系統</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🚰</span><span>左鵝頸放流約 <b>1 分鐘</b>，至 TDS 降到 <b>45 左右</b>（45–50），<b>KH 滴定 2 滴</b></span></div>
+          <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">TDS / KH 不對 → 調整 <b>TDS 閥混水比例</b>，重新放流確認</div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">☕</span><span>義式機水線放流 <b>1 分鐘</b>，排空隔夜高濃度鎂離子</span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🛢️</span><span>開啟壓力桶蓄水，<b>四分鐘內</b>蓄滿水</span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🧪</span><span>義式機水線測試 <b>GH 4 滴</b>，若 GH 不對則調整<b>義式機鎂離子閥</b></span></div>
+          <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">滴定正常即可開啟<b>義式機電源熱機</b></div>
           <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">💧</span><span>放流並測試<b>右鵝頸鎂離子濃度</b>（GH 3–4 滴）</span></div>
           <div style="margin-left:26px;margin-top:-2px;font-size:12px;color:#A35000">不符合 → 調整 <b>鎂離子閥</b>，重新放流複測</div>
         </div>
@@ -2403,41 +2381,24 @@ function testSlack() {
         if (syncEl) { syncEl.style.display='block'; syncEl.style.color='#AAA'; syncEl.textContent='（Sheets 同步失敗，使用本機基準線）'; }
       });
   }
-  // ── 今日水源目標（RO 店：依自來水源 KH 決定沖煮水目標）─────────────
-  //   KH1 → 目標 KH1 / GH3　；　KH2 → 目標 KH2 / GH4
-  //   沒選（或一隅 NF 店）時退回該店黃金基準線 getTarget()
+  // ── 今日沖煮水目標 ────────────────────────────────────────────────
+  //   2026-08-26：改為固定目標（不再依自來水源 KH 換算），一律退回該店基準線 getTarget()
+  //   林口／新竹 RO 系統目標＝GH4 / KH2；一隅 NF 依 getTarget()
   function activeTarget() {
     if (sopData && sopData.dailyTarget) return sopData.dailyTarget;
     return getTarget();
   }
   function onSrcKhChange() {
-    var sel  = el('st0-tapkh');
-    var disp = el('st0-daily-target');
-    var v = sel ? sel.value : '';
-    if (v === '1')      { sopData.dailyTarget = { gh:3, kh:1, note:'今日水源 KH1', date:new Date().toISOString().slice(0,10) }; sopData.tapKh = '1'; }
-    else if (v === '2') { sopData.dailyTarget = { gh:4, kh:2, note:'今日水源 KH2', date:new Date().toISOString().slice(0,10) }; sopData.tapKh = '2'; }
-    else                { sopData.dailyTarget = null; sopData.tapKh = ''; }
-    if (disp) {
-      if (sopData.dailyTarget) {
-        disp.innerHTML = '✅ 今日自來水源 KH' + v + ' → <b>沖煮水目標 KH' + sopData.dailyTarget.kh + ' / GH' + sopData.dailyTarget.gh + '</b>';
-        disp.style.background = '#EAF5E0'; disp.style.borderColor = '#C8E8C0'; disp.style.color = '#2E6B10';
-      } else {
-        disp.innerHTML = '依自來水源 KH 決定今日沖煮水目標：<br><b>KH1 → 目標 KH1 / GH3</b>　·　<b>KH2 → 目標 KH2 / GH4</b>';
-        disp.style.background = '#FFF3E0'; disp.style.borderColor = '#F0C880'; disp.style.color = '#5A3A00';
-      }
-    }
-    renderTarget();
+    // 沖煮水目標已固定，這裡只記錄自來水源 KH（寫進水質紀錄備注），不再改動今日目標
+    var sel = el('st0-tapkh');
+    sopData.tapKh = sel ? sel.value : '';
   }
   function sopResetDailyTarget() {
+    // 目標已固定；保留此函式以相容切店／重置呼叫，清空自來水源欄位即可
     sopData.dailyTarget = null;
     sopData.tapKh = '';
     var s = el('st0-tapkh');   if (s) s.value = '';
     var st = el('st0-src-tds'); if (st) st.value = '';
-    var disp = el('st0-daily-target');
-    if (disp) {
-      disp.innerHTML = '依自來水源 KH 決定今日沖煮水目標：<br><b>KH1 → 目標 KH1 / GH3</b>　·　<b>KH2 → 目標 KH2 / GH4</b>';
-      disp.style.background = '#FFF3E0'; disp.style.borderColor = '#F0C880'; disp.style.color = '#5A3A00';
-    }
     renderTarget();
   }
 
@@ -3204,8 +3165,17 @@ var STORES = {
 var DEFAULT_TARGETS = {
   linkou:  { gh: 4, kh: 2, note: '黃金標準預設值', date: '2026-08-18' },
   yiyu:    { gh: 4, kh: 2, note: '黃金標準預設值', date: '2026-08-18' },
-  hsinchu: { gh: 3, kh: 1, note: '黃金標準預設值', date: '2026-08-18' }
+  hsinchu: { gh: 4, kh: 2, note: '沖煮水標準與林口一致（2026-08-26）', date: '2026-08-26' }
 };
+
+// 2026-08-26：新竹沖煮水目標由 GH3/KH1 改為 GH4/KH2（與林口一致）。
+//   舊版本可能已把 GH3/KH1 快取進本機，清一次讓它以新預設／遠端基準線重新載入。
+try {
+  if (localStorage.getItem('wl_ghkh_hsinchu_reset_v2') !== '1') {
+    localStorage.removeItem('wl_ghkh_target_hsinchu');
+    localStorage.setItem('wl_ghkh_hsinchu_reset_v2', '1');
+  }
+} catch (e) {}
 
 // 各店水質閥門名稱（林口 NF 膜系統 vs 新竹 RO 系統，閥門實體不同）
 var VALVE_LABELS = {
@@ -3234,7 +3204,7 @@ var POUR_GRINDERS = {
 var ALWAYS_TASKS = ['log','config'];   // 每間店都有
 var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
 
-var BUILD_ID = '2026-08-26b · 水質／沖煮紀錄分店分頁（後端 GAS）＋淺焙／中焙／SOE 回填加 DFR 策略欄';
+var BUILD_ID = '2026-08-26e · 放流卡刪除「確認自來水源」欄（林口／新竹）';
 var currentStore = localStorage.getItem('wl_store') || 'linkou';
 if (!STORES[currentStore]) currentStore = 'linkou';
 
@@ -3313,6 +3283,13 @@ function applyStore() {
   var llBasketRow = document.getElementById('ll-basket-row');
   if (llBasketRow) llBasketRow.style.gridTemplateColumns = hideSpeedRdt ? '1fr' : '';
 
+  // DFR 策略欄：新竹城隍不使用 → 淺焙／中焙／SOE 回填三處都隱藏（且送出時不帶）
+  var hideDfr = (currentStore === 'hsinchu');
+  ['ll-dfr-field','ml-dfr-field','sg-dfr-field'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.style.display = hideDfr ? 'none' : '';
+  });
+
   // SOE 研磨刻度推估卡：目標參數與粉量預設隨門市（各店 espresso 配方不同）
   //   新竹城隍 = 19g in / 28–30g out（SOE 頁磨豆機仍為 Molar X2 Mazzer 刀，轉速預設 H 由 SOE_GRINDER_SPECS 帶入）
   //   林口白光 = 18g in / 40g out / 30 秒（維持原設定）
@@ -3334,13 +3311,10 @@ function applyStore() {
   if (flushL) flushL.style.display = (currentStore === 'linkou')  ? '' : 'none';
   if (flushH) flushH.style.display = (currentStore === 'hsinchu') ? '' : 'none';
   if (flushY) flushY.style.display = isYiyu ? '' : 'none';
-  // 自來水源 TDS／KH 確認欄位：只有 RO 系統（林口／新竹）需要
-  var srcConfirm = document.getElementById('st0-src-confirm');
-  if (srcConfirm) srcConfirm.style.display = isRO ? '' : 'none';
   var flushTitle = document.getElementById('st0-flush-title');
   if (flushTitle) flushTitle.textContent = isRO ? '① RO 系統開機放流' : '① 大放流';
   var flushBtn = document.getElementById('st0-flush-done');
-  if (flushBtn) flushBtn.textContent = isRO ? '✅ 開機放流完成，開始滴定記錄' : '✅ 大放流 ＋ 咖啡機開始熱機，開始滴定';
+  if (flushBtn) flushBtn.textContent = isRO ? '✅ 滴定調整完成，開始記錄' : '✅ 大放流 ＋ 咖啡機開始熱機，開始滴定';
   // 每次切店重置今日水源目標（避免把 A 店選的 KH 帶到 B 店）
   if (typeof window.sopResetDailyTarget === 'function') window.sopResetDailyTarget();
   var waterL = document.getElementById('st1-water-linkou');
@@ -4110,7 +4084,7 @@ async function submitRecord(t) {
       status: curStates[t].status,
       title:  curStates[t].title,
       tags:   [...selTags[t]].join('、')||'—',
-      dfr:    t==='l' ? (document.getElementById('ll-dfr')?.value||'') : t==='m' ? (document.getElementById('ml-dfr')?.value||'') : '',
+      dfr:    (function(){ var fid = t==='l' ? 'll-dfr-field' : t==='m' ? 'ml-dfr-field' : ''; if(!fid) return ''; var w=document.getElementById(fid); if(w && w.style.display==='none') return ''; var el=document.getElementById(t==='l'?'ll-dfr':'ml-dfr'); return el?el.value:''; })(),
     });
   }
 
@@ -4379,7 +4353,7 @@ async function submitSoeGrind() {
     suggested: suggested == null ? '' : suggested.toFixed(2),
     actualTime: gv('sg-time'),
     actualYield: gv('sg-yield'),
-    dfr: gv('sg-dfr'),
+    dfr: (function(){ var w=document.getElementById('sg-dfr-field'); if(w && w.style.display==='none') return ''; return gv('sg-dfr'); })(),
     finalGrind: isNaN(finalG) ? '' : finalG.toFixed(2),
     deltaGrind: (suggested == null || isNaN(finalG)) ? '' : (Math.round((finalG - suggested) * 100) / 100).toFixed(2),
     result: result,
