@@ -386,6 +386,15 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
           </select>
         </div>
       </div>
+      <div class="field" style="margin-top:10px">
+        <label>DFR 策略 <span style="font-size:10px;color:#C4862A;font-weight:600">可下拉或直接編輯</span></label>
+        <input id="ll-dfr" type="text" list="dfr-options" value="高-壓實粉 > 低-預浸 > 中-溫和萃取" placeholder="選擇或輸入沖煮策略">
+      </div>
+      <datalist id="dfr-options">
+        <option value="高-壓實粉 > 低-預浸 > 中-溫和萃取"></option>
+        <option value="高 > 中 > 低"></option>
+        <option value="其他：純手動備註"></option>
+      </datalist>
       <div class="grid2" style="margin-top:8px;gap:10px">
         <div class="field"><label style="color:#AAA;font-size:11px">研磨說明（選填）</label><input id="ll-grind-note" type="text" placeholder="例：往細 0.5 格"></div>
         <div class="field"><label style="color:#AAA;font-size:11px">水溫說明（選填）</label><input id="ll-temp-note" type="text" placeholder="例：90.5 → 91.5"></div>
@@ -595,6 +604,10 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       </div>
       <div class="field">
         <label>Espresso 比例</label><input id="ml-ratio" type="text" readonly placeholder="自動">
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>DFR 策略 <span style="font-size:10px;color:#6B4C2A;font-weight:600">可下拉或直接編輯</span></label>
+        <input id="ml-dfr" type="text" list="dfr-options" value="高 > 中 > 低" placeholder="選擇或輸入沖煮策略">
       </div>
     </div>
   </div>
@@ -1077,6 +1090,11 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
         </div>
       </div>
 
+      <div class="field" style="margin-bottom:10px">
+        <label>DFR 策略 <span style="font-size:10px;color:#8B5A2B;font-weight:600">可下拉或直接編輯</span></label>
+        <input id="sg-dfr" type="text" list="dfr-options" value="高-壓實粉 > 低-預浸 > 中-溫和萃取" placeholder="選擇或輸入沖煮策略">
+      </div>
+
       <div id="sg-delta" style="display:none;font-size:12px;color:#666;background:#F8F6F3;border-radius:10px;padding:10px 12px;line-height:1.7"></div>
     </div>
   </div>
@@ -1247,6 +1265,18 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
 // 咖啡校正系統 ── 後端 GAS
 // ★ JANDI 已停用（2026-08-18）：JANDI_URL 移除，全面改發 Slack。
 //   若之後要恢復 JANDI，把 JANDI_URL 常數與 notifySlack_ 內的呼叫加回來即可。
+//
+// ★ 2026-08-26 分店分頁：水質紀錄 / 沖煮紀錄依門市各自寫入獨立分頁。
+//   實際分頁名 = 店短名 + 基底名，由 storeSheet_() 產生，例如：
+//     林口淺焙SOE / 新竹淺焙SOE　　林口中焙SOE / 新竹中焙SOE
+//     林口SOE刻度 / 新竹SOE刻度　　林口手沖 / 新竹手沖
+//     林口校正SOP / 新竹校正SOP / 一隅校正SOP
+//     林口水質紀錄 / 新竹水質紀錄 / 一隅水質紀錄
+//     一隅SOE（一隅的義式沖煮）　　一隅濾芯更換紀錄
+//   分頁不存在時會自動建立（含表頭）。舊的混合分頁請自行改名封存；
+//   read 仍會相容讀取舊的未分店分頁（淺焙SOE、水質紀錄…）作為轉移期備援。
+//
+// ★ 2026-08-26 新增「沖煮策略DFR」欄：淺焙SOE / 中焙SOE / SOE刻度 三種紀錄。
 // ==========================================================
 
 // 校正專用的 Slack Incoming Webhook。
@@ -1263,6 +1293,21 @@ function setSlackUrl() {
   Logger.log('已寫入 SLACK_URL 到指令碼屬性。');
 }
 
+// ==========================================================
+// 分店分頁：店短名 + 基底名 → 實際分頁名
+// ==========================================================
+var STORE_SHORT = { linkou: '林口', hsinchu: '新竹', yiyu: '一隅' };
+var STORE_KEYS  = ['linkou', 'hsinchu', 'yiyu'];
+// 每種紀錄的「基底分頁名」。yiyu（一隅義式）基底＝'SOE' → 一隅SOE。
+var SHEET_BASE = {
+  light:'淺焙SOE', medium:'中焙SOE', yiyu:'SOE', soe_grind:'SOE刻度',
+  pour:'手沖', sop:'校正SOP', water_record:'水質紀錄', filter_replace:'濾芯更換紀錄'
+};
+function storeShort_(storeKey) { return STORE_SHORT[storeKey] || '林口'; }
+function storeSheet_(baseType, storeKey) {
+  return storeShort_(storeKey) + (SHEET_BASE[baseType] || baseType);
+}
+
 function doGet(e) {
   var p = e.parameter;
   if (!e || !p) return ContentService.createTextOutput('OK');
@@ -1271,10 +1316,14 @@ function doGet(e) {
   // ── READ ──────────────────────────────────────────────
   if (p.action === 'read') {
     var allRecords = [];
-    var sheetMap = {light:'淺焙SOE', medium:'中焙SOE', yiyu:'一隅SOE', soe_grind:'SOE刻度', pour:'手沖', sop:'校正SOP', water_record:'水質紀錄', filter_replace:'濾芯更換紀錄'};
-    Object.entries(sheetMap).forEach(function([type, name]) {
+    var seen = {};
+
+    // 把一個分頁（直欄／transposed 版：表頭在第 1 欄，每筆一欄）解析進 allRecords
+    function readSheetInto(name, type) {
+      if (!name || seen[name]) return;
       var sheet = ss.getSheetByName(name);
       if (!sheet || sheet.getLastColumn() &lt; 2) return;
+      seen[name] = true;
       var lastRow = sheet.getLastRow();
       var lastCol = sheet.getLastColumn();
       var headers = sheet.getRange(1, 1, lastRow, 1).getValues().map(function(r){ return String(r[0]); });
@@ -1290,6 +1339,8 @@ function doGet(e) {
         obj.milkCheck=obj['確認加奶效果']||'';
         obj.tapTds=obj['自來水TDS']||''; obj.tdsAdj=obj['TDS增減']||'';
         obj.drinkTds=obj['飲用水TDS']||''; obj.mgAdj=obj['鎂離子增減']||'';
+        obj.dfr=obj['沖煮策略DFR']||'';
+        obj.storeName=obj['門市']||'';
         if (type === 'pour') {
           obj.grind=obj['研磨刻度']||''; obj.cvaTotal=obj['CVA整體印象']||'';
           obj.title='手沖記錄'; obj.status='good';
@@ -1302,7 +1353,16 @@ function doGet(e) {
         }
         allRecords.push(obj);
       }
+    }
+
+    var readTypes = ['light','medium','yiyu','soe_grind','pour','sop','water_record','filter_replace'];
+    readTypes.forEach(function(type) {
+      // 分店分頁
+      STORE_KEYS.forEach(function(store) { readSheetInto(storeSheet_(type, store), type); });
+      // 轉移期相容：舊的未分店分頁（淺焙SOE、中焙SOE、水質紀錄…）
+      readSheetInto(SHEET_BASE[type], type);
     });
+
     var json = JSON.stringify({records: allRecords});
     if (p.callback) {
       return ContentService.createTextOutput(p.callback+'('+json+')')
@@ -1321,6 +1381,7 @@ function doGet(e) {
   if (!p.type) return ContentService.createTextOutput('OK');
 
   // GH/KH 黃金基準線 — 寫入「水質基準」sheet（依店別存一欄，用「店別代碼」列標記）
+  // ★ 這是設定值不是紀錄，維持單一分頁、用「店別代碼」列區分，不分店分頁。
   if (p.type === 'ghkh_target') {
     var tSheet = ss.getSheetByName('水質基準') || ss.insertSheet('水質基準');
     var tHeaders = ['時間','GH目標','KH目標','備注','建立日期','店別代碼'];
@@ -1338,9 +1399,10 @@ function doGet(e) {
     return ContentService.createTextOutput('OK');
   }
 
-  // 水質紀錄 — 寫入「水質紀錄」sheet
+  // 水質紀錄 — 寫入「{店}水質紀錄」sheet
   if (p.type === 'water_record') {
-    var wrSheet = ss.getSheetByName('水質紀錄') || ss.insertSheet('水質紀錄');
+    var wrName  = storeSheet_('water_record', p.storeKey);
+    var wrSheet = ss.getSheetByName(wrName) || ss.insertSheet(wrName);
     var wrHeaders = ['時間','夥伴','自來水TDS','飲用水TDS','GH滴數','KH滴數','NF針閥操作','鎂濾芯操作','豆況','濾芯流量計讀數','濾芯累積循環','濾芯累積用量L','備注','門市'];
     var wrValues  = [p.ts,p.staff||'',p.tapTds||'',p.drinkTds||'',p.gh||'',p.kh||'',p.nfAdj||'不動',p.mgAdj||'不動',p.beanResult||'',p.mgFilterReading||'',p.mgFilterCycles||'',p.mgFilterUsed||'',p.note||'',p.storeName||''];
     if (wrSheet.getLastColumn() === 0) {
@@ -1352,9 +1414,10 @@ function doGet(e) {
     return ContentService.createTextOutput('OK');
   }
 
-  // 濾芯更換紀錄 — 寫入「濾芯更換紀錄」sheet
+  // 濾芯更換紀錄 — 寫入「{店}濾芯更換紀錄」sheet
   if (p.type === 'filter_replace') {
-    var frSheet = ss.getSheetByName('濾芯更換紀錄') || ss.insertSheet('濾芯更換紀錄');
+    var frName  = storeSheet_('filter_replace', p.storeKey);
+    var frSheet = ss.getSheetByName(frName) || ss.insertSheet(frName);
     var frHeaders = ['更換時間','操作人','安裝日期','換芯前累積循環','換芯前累積用量L','門市'];
     var frValues  = [p.ts, p.staff||'', p.installDate||'', p.prevCycles||'0', p.prevUsedL||'0', p.storeName||''];
     if (frSheet.getLastColumn() === 0) {
@@ -1366,9 +1429,10 @@ function doGet(e) {
     return ContentService.createTextOutput('OK');
   }
 
-  // SOP 開吧記錄 — 寫入「校正SOP」sheet
+  // SOP 開吧記錄 — 寫入「{店}校正SOP」sheet
   if (p.type === 'sop') {
-    var sSheet = ss.getSheetByName('校正SOP') || ss.insertSheet('校正SOP');
+    var sopName = storeSheet_('sop', p.storeKey);
+    var sSheet = ss.getSheetByName(sopName) || ss.insertSheet(sopName);
     var sHeaders = ['時間','夥伴','GH','KH','NF針閥','鎂濾芯','豆況','萃取秒','液重g','研磨調整','感官','Tonik','水溫調整','備注','門市'];
     var sValues  = [p.ts,p.staff,p.gh,p.kh,p.nfAdj||'',p.mgAdj||'',p.beanResult||'',p.brewTime||'',p.yieldG||'',p.grindAdj||'',p.tasteResult||'',p.tonikResult||'',p.tempAdj||'',p.note||'',p.storeName||''];
     if (sSheet.getLastColumn() === 0) {
@@ -1440,17 +1504,18 @@ function doGet(e) {
     return ContentService.createTextOutput('OK');
   }
 
-  var sheetName = p.type==='light'?'淺焙SOE':p.type==='medium'?'中焙SOE':p.type==='yiyu'?'一隅SOE':p.type==='soe_grind'?'SOE刻度':'手沖';
+  // ── 一般沖煮紀錄（淺焙／中焙／一隅／SOE刻度／手沖）→「{店}+基底」sheet ──
+  var sheetName = storeSheet_(p.type, p.storeKey);
   var sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
 
   var headers, values;
   if (p.type === 'soe_grind') {
     headers = ['時間','門市','夥伴','豆名','批次','磨豆機',
                '玻璃盅重量g','Agtron豆表','Agtron豆心','養豆天數',
-               '粉量g','公式建議刻度','實際秒數','實際液重g','最後定案刻度','刻度誤差','效果','備注','轉速','RDT','Basket'];
+               '粉量g','公式建議刻度','實際秒數','實際液重g','最後定案刻度','刻度誤差','效果','備注','轉速','RDT','Basket','沖煮策略DFR'];
     values = [p.ts,p.storeName,p.staff,p.beanName,p.batchNo,p.grinder,
               p.glass,p.agtronBean,p.agtronCore,p.restDays,
-              p.dose,p.suggested,p.actualTime,p.actualYield,p.finalGrind,p.deltaGrind,p.result,p.note,p.speed,p.rdt,p.basket];
+              p.dose,p.suggested,p.actualTime,p.actualYield,p.finalGrind,p.deltaGrind,p.result,p.note,p.speed,p.rdt,p.basket,p.dfr||''];
   } else if (p.type === 'pour') {
     headers = ['時間','夥伴',
                '氣溫℃','濕度%','水溫℃','研磨刻度','Tonik下','LyLac下',
@@ -1471,12 +1536,12 @@ function doGet(e) {
                '自來水TDS','TDS增減','飲用水TDS','鎂離子增減','研磨調整','研磨說明','水溫調整','水溫說明',
                '氣溫℃','濕度%','水溫℃','粉量g','萃取秒','咖啡液重g','Espresso比例',
                '豆名','批次','Agtron豆','Agtron粉','密度',
-               '酸值%','甜感%','深調%','狀態','Basket','轉速','標籤','備注','門市','RDT'];
+               '酸值%','甜感%','深調%','狀態','Basket','轉速','標籤','備注','門市','RDT','沖煮策略DFR'];
     values = [p.ts,p.staff,p.milkCheck,
               p.tapTds,p.tdsAdj,p.drinkTds,p.mgAdj,p.grindAdj,p.grindNote,p.tempAdj,p.tempNote,
               p.temp,p.humid,p.wtemp,p.dose,p.brewTime,p.yield,p.ratio,
               p.beanName,p.batchNo,p.agtronBean,p.agtronGrind,p.density,
-              p.acid,p.sweet,p.dark,p.status,p.basket,p.speed,p.tags,p.note,p.storeName,p.rdt];
+              p.acid,p.sweet,p.dark,p.status,p.basket,p.speed,p.tags,p.note,p.storeName,p.rdt,p.dfr||''];
   } else if (p.type === 'yiyu') {
     headers = ['時間','夥伴','確認加奶效果',
                '研磨調整','研磨刻度','水溫調整','水溫說明',
@@ -1489,14 +1554,15 @@ function doGet(e) {
               p.beanName,p.batchNo,p.agtronBean,p.agtronGrind,p.density,
               p.acid,p.sweet,p.dark,p.status,p.basket,p.speed,p.tags,p.note,p.storeName];
   } else {
+    // 中焙 SOE（及其他未特別列出的類型）
     headers = ['時間','夥伴','確認加奶效果',
                '氣溫℃','濕度%','水溫℃','粉量g','萃取秒','咖啡液重g','Espresso比例',
                '豆名','批次','Agtron豆','Agtron粉','密度',
-               '酸值%','甜感%','深調%','狀態','Basket','標籤','備注','門市'];
+               '酸值%','甜感%','深調%','狀態','Basket','標籤','備注','門市','沖煮策略DFR'];
     values = [p.ts,p.staff,p.milkCheck,
               p.temp,p.humid,p.wtemp,p.dose,p.brewTime,p.yield,p.ratio,
               p.beanName,p.batchNo,p.agtronBean,p.agtronGrind,p.density,
-              p.acid,p.sweet,p.dark,p.status,p.basket,p.tags,p.note,p.storeName];
+              p.acid,p.sweet,p.dark,p.status,p.basket,p.tags,p.note,p.storeName,p.dfr||''];
   }
 
   if (sheet.getLastColumn() === 0) {
@@ -1526,6 +1592,7 @@ function doGet(e) {
       connectInfo.push({ title: '玻璃盅重量', description: (p.glass||'—') + ' g' });
       connectInfo.push({ title: '刻度', description: '公式建議 #' + (p.suggested||'—') + (p.finalGrind ? '　→　定案 #' + p.finalGrind + '（誤差 ' + (p.deltaGrind||'—') + '）' : '') });
       connectInfo.push({ title: '實測', description: (p.dose||'18') + 'g in　' + (p.actualYield||'—') + 'g out　' + (p.actualTime||'—') + 's' + (p.restDays ? '　養豆 ' + p.restDays + ' 天' : '') + (p.basket ? '　Basket ' + p.basket : '') + (p.rdt ? '　RDT ' + p.rdt : '') });
+      if (p.dfr) connectInfo.push({ title: 'DFR 策略', description: p.dfr });
       if (p.result) connectInfo.push({ title: '效果', description: p.result });
       if (p.note) connectInfo.push({ title: '備注', description: p.note });
     } else if (p.type === 'pour') {
@@ -1539,6 +1606,7 @@ function doGet(e) {
       connectInfo.push({ title: '環境', description: '氣溫 ' + (p.temp||'—') + '℃　濕度 ' + (p.humid||'—') + '%　飲用水TDS ' + (p.drinkTds||'—') });
       connectInfo.push({ title: '器材', description: 'Basket ' + (p.basket||'—') + '　Molar ' + (p.speed||'—') + (p.rdt ? '　RDT ' + p.rdt : '') });
       connectInfo.push({ title: '酸甜比例', description: '酸 ' + (p.acid||'—') + '%　甜 ' + (p.sweet||'—') + '%　深 ' + (p.dark||'—') + '%' });
+      if (p.dfr) connectInfo.push({ title: 'DFR 策略', description: p.dfr });
       if (p.tags &amp;&amp; p.tags !== '—') connectInfo.push({ title: '風味感受', description: p.tags });
       if (p.milkCheck) connectInfo.push({ title: '加奶確認', description: p.milkCheck });
       connectInfo.push({ title: '狀態', description: statusText });
@@ -1554,9 +1622,11 @@ function doGet(e) {
       connectInfo.push({ title: '狀態', description: statusText });
       if (p.note) connectInfo.push({ title: '備注', description: p.note });
     } else {
+      // 中焙
       connectInfo.push({ title: '門市', description: p.storeName || '—' });
       connectInfo.push({ title: '參數', description: '水溫 ' + (p.wtemp||'—') + '℃　粉量 ' + (p.dose||'—') + 'g　' + (p.brewTime||'—') + 's　液重 ' + (p.yield||'—') + 'g　1:' + (p.ratio||'—') });
       connectInfo.push({ title: '酸甜比例', description: '酸 ' + (p.acid||'—') + '%　甜 ' + (p.sweet||'—') + '%　深 ' + (p.dark||'—') + '%' });
+      if (p.dfr) connectInfo.push({ title: 'DFR 策略', description: p.dfr });
       if (p.tags &amp;&amp; p.tags !== '—') connectInfo.push({ title: '風味感受', description: p.tags });
       if (p.milkCheck) connectInfo.push({ title: '加奶確認', description: p.milkCheck });
       connectInfo.push({ title: '狀態', description: statusText });
@@ -1666,7 +1736,57 @@ function testSlack() {
     <div class="card" style="margin:10px 12px 0">
       <div class="card-head"><div class="card-title" id="st0-flush-title">① 大放流</div><div class="card-sub">開始滴定前先完成放流</div></div>
       <div class="card-body">
-        <div id="st0-flush-desc-linkou" style="font-size:13px;color:#444;line-height:2;margin-bottom:12px">
+
+        <!-- 自來水源確認（RO 系統：林口／新竹）— 今日必填 -->
+        <div id="st0-src-confirm" style="display:none;background:#F4F1EC;border-radius:12px;padding:12px 13px;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px">🚰 確認自來水源（今日必填）</div>
+          <div class="grid2" style="margin-bottom:8px">
+            <div class="field" style="margin-bottom:0">
+              <label>自來水源 TDS</label>
+              <input id="st0-src-tds" type="number" inputmode="numeric" placeholder="130">
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label>自來水源 KH</label>
+              <select id="st0-tapkh" onchange="onSrcKhChange()">
+                <option value="">請選擇</option>
+                <option value="1">KH 1</option>
+                <option value="2">KH 2</option>
+              </select>
+            </div>
+          </div>
+          <div id="st0-daily-target" style="font-size:12.5px;color:#5A3A00;background:#FFF3E0;border:1px solid #F0C880;border-radius:9px;padding:8px 11px;line-height:1.6">
+            依自來水源 KH 決定今日沖煮水目標：<br>
+            <b>KH1 → 目標 KH1 / GH3</b>　·　<b>KH2 → 目標 KH2 / GH4</b>
+          </div>
+        </div>
+
+        <!-- 林口白光 RO 放流步驟 -->
+        <div id="st0-flush-desc-linkou" style="display:none;font-size:13px;color:#444;line-height:1.9;margin-bottom:12px">
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔒</span><span>檢查<b>壓力桶（關）</b>、<b>壓力桶排水線（關）</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🚰</span><span>左鵝頸放流約 <b>1 分鐘</b>，至 TDS 降到 <b>45 左右</b>（45–50）</span></div>
+          <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">TDS 不對 → 調整 <b>TDS 閥混水比例</b>，重新放流確認</div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">☕</span><span>義式機水線放流 <b>1 分鐘</b>，排空隔夜高濃度鎂離子</span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🛢️</span><span>開啟壓力桶蓄水，<b>四分鐘內</b>蓄滿水</span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🧪</span><span>義式機水線測試 <b>GH 3 滴</b>，正常即可<b>開啟義式機電源熱機</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">💧</span><span>放流並測試<b>右鵝頸鎂離子濃度</b>（GH 3–4 滴）</span></div>
+          <div style="margin-left:26px;margin-top:-2px;font-size:12px;color:#A35000">不符合 → 調整 <b>鎂離子閥</b>，重新放流複測</div>
+        </div>
+
+        <!-- 新竹城隍 RO 放流步驟 -->
+        <div id="st0-flush-desc-hsinchu" style="display:none;font-size:13px;color:#444;line-height:1.9;margin-bottom:12px">
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔒</span><span>檢查<b>壓力桶（關）</b>、<b>壓力桶排水線（關）</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🚰</span><span>左鵝頸放流約 <b>1 分鐘</b>，至 TDS 降到 <b>75 左右</b></span></div>
+          <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">TDS 不對 → 調整 <b>TDS 閥混水比例</b>，重新放流確認</div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">☕</span><span>義式機水線放流 <b>1 分鐘</b>，排空隔夜高濃度鎂離子，<b>TDS 65 左右</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🛢️</span><span>開啟壓力桶蓄水，<b>八分鐘內</b>蓄滿水</span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🧪</span><span>義式機水線測試 <b>GH 3 滴</b>，正常即可<b>開啟義式機電源</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔥</span><span>義式機<b>鍋爐排水各 1 大鋼杯</b>，排完開啟<b>加熱鍵熱機</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">💧</span><span>放流並測試<b>右鵝頸鎂離子濃度</b>（GH 3–4 滴）</span></div>
+          <div style="margin-left:26px;margin-top:-2px;font-size:12px;color:#A35000">不符合 → 調整 <b>鎂離子閥</b>，重新放流複測</div>
+        </div>
+
+        <!-- 一隅 NF 膜大放流步驟（沿用舊內容，未更動）-->
+        <div id="st0-flush-desc-yiyu" style="display:none;font-size:13px;color:#444;line-height:2;margin-bottom:12px">
           <div style="display:flex;align-items:baseline;gap:6px">
             <span style="font-size:16px">💧</span>
             <span>飲用水放流 <b>5 分鐘</b></span>
@@ -1683,15 +1803,7 @@ function testSlack() {
             <span style="color:#666">排空 NF 膜停滯蠕變水與隔夜高濃度水</span>
           </div>
         </div>
-        <div id="st0-flush-desc-hsinchu" style="display:none;font-size:13px;color:#444;line-height:1.9;margin-bottom:12px">
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔒</span><span>檢查<b>壓力桶（關）</b>、<b>壓力桶排水線（關）</b></span></div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔌</span><span>打開 <b>RO 系統電源、水源</b></span></div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🚰</span><span>左鵝頸放流約 <b>1 分鐘</b>，至 TDS 降到<b>70 初頭</b></span></div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">☕</span><span>義式機水線放流，確認 TDS <b>60 出頭</b></span></div>
-          <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">TDS 不對 → 調整 <b>TDS 閥混水比例</b>，重新放流確認</div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🧪</span><span>滴定 <b>GH，目標 3 滴</b></span></div>
-          <div style="margin-left:26px;font-size:12px;color:#A35000">滴定不對 → 調整 <b>鎂離子閥</b>，重新放流複測</div>
-        </div>
+
         <div id="st0-flush-btn-wrap">
           <button class="btn-submit" style="background:#555;font-size:13px" id="st0-flush-done">✅ 大放流 ＋ 咖啡機開始熱機，開始滴定</button>
         </div>
@@ -2291,8 +2403,46 @@ function testSlack() {
         if (syncEl) { syncEl.style.display='block'; syncEl.style.color='#AAA'; syncEl.textContent='（Sheets 同步失敗，使用本機基準線）'; }
       });
   }
+  // ── 今日水源目標（RO 店：依自來水源 KH 決定沖煮水目標）─────────────
+  //   KH1 → 目標 KH1 / GH3　；　KH2 → 目標 KH2 / GH4
+  //   沒選（或一隅 NF 店）時退回該店黃金基準線 getTarget()
+  function activeTarget() {
+    if (sopData && sopData.dailyTarget) return sopData.dailyTarget;
+    return getTarget();
+  }
+  function onSrcKhChange() {
+    var sel  = el('st0-tapkh');
+    var disp = el('st0-daily-target');
+    var v = sel ? sel.value : '';
+    if (v === '1')      { sopData.dailyTarget = { gh:3, kh:1, note:'今日水源 KH1', date:new Date().toISOString().slice(0,10) }; sopData.tapKh = '1'; }
+    else if (v === '2') { sopData.dailyTarget = { gh:4, kh:2, note:'今日水源 KH2', date:new Date().toISOString().slice(0,10) }; sopData.tapKh = '2'; }
+    else                { sopData.dailyTarget = null; sopData.tapKh = ''; }
+    if (disp) {
+      if (sopData.dailyTarget) {
+        disp.innerHTML = '✅ 今日自來水源 KH' + v + ' → <b>沖煮水目標 KH' + sopData.dailyTarget.kh + ' / GH' + sopData.dailyTarget.gh + '</b>';
+        disp.style.background = '#EAF5E0'; disp.style.borderColor = '#C8E8C0'; disp.style.color = '#2E6B10';
+      } else {
+        disp.innerHTML = '依自來水源 KH 決定今日沖煮水目標：<br><b>KH1 → 目標 KH1 / GH3</b>　·　<b>KH2 → 目標 KH2 / GH4</b>';
+        disp.style.background = '#FFF3E0'; disp.style.borderColor = '#F0C880'; disp.style.color = '#5A3A00';
+      }
+    }
+    renderTarget();
+  }
+  function sopResetDailyTarget() {
+    sopData.dailyTarget = null;
+    sopData.tapKh = '';
+    var s = el('st0-tapkh');   if (s) s.value = '';
+    var st = el('st0-src-tds'); if (st) st.value = '';
+    var disp = el('st0-daily-target');
+    if (disp) {
+      disp.innerHTML = '依自來水源 KH 決定今日沖煮水目標：<br><b>KH1 → 目標 KH1 / GH3</b>　·　<b>KH2 → 目標 KH2 / GH4</b>';
+      disp.style.background = '#FFF3E0'; disp.style.borderColor = '#F0C880'; disp.style.color = '#5A3A00';
+    }
+    renderTarget();
+  }
+
   function renderTarget() {
-    var t = getTarget();
+    var t = activeTarget();
     // 黃金基準線卡片已刪除（2026-08-19），若之後重新加回可再補上顯示
     var tgh = el('st0-tgh'), tkh = el('st0-tkh'), tdate = el('st0-tdate'), tnote = el('st0-tnote'), sub = el('st0-target-sub');
     if (tgh && tkh) {
@@ -2316,9 +2466,13 @@ function testSlack() {
       return;
     }
     sopData.gh = gh; sopData.kh = kh;
-    sopData.tapTds   = parseFloat(el('st0-tap').value) || null;
-    sopData.drinkTds = parseFloat(el('st0-drink').value) || null;
-    var t = getTarget();
+    // 自來水源 TDS：優先取放流卡的「自來水源 TDS」，沒填才退回滴定區的「自來水 TDS」
+    var srcTdsEl = el('st0-src-tds'), tapEl = el('st0-tap');
+    sopData.tapTds   = parseFloat((srcTdsEl && srcTdsEl.value) || (tapEl && tapEl.value)) || null;
+    sopData.drinkTds = parseFloat(el('st0-drink') ? el('st0-drink').value : '') || null;
+    var tapKhEl = el('st0-tapkh');
+    if (tapKhEl && tapKhEl.value) sopData.tapKh = tapKhEl.value;
+    var t = activeTarget();
     var tGH = t ? parseInt(t.gh) : 4;
     var tKH = t ? parseInt(t.kh) : 2;
     var vn = valveNames_();
@@ -2622,8 +2776,9 @@ function testSlack() {
   function sopReset() {
     if (!confirm('確定要重新開始本次開吧校正嗎？')) return;
     sopData = {};
-    ['st0-gh','st0-kh','st0-tap','st0-drink','st1-staff','st1-note','st2-dose','st2-yield','st2-temp','st2-time','st2-bean-name','st2-bean-batch','st2-agtron-bean','st2-agtron-grind','st4-staff','st4-note'].forEach(function(id){ var e=el(id); if(e) e.value=''; });
-    ['st0-mg','st0-nf','st2-grind'].forEach(function(id){ var e=el(id); if(e) e.selectedIndex=0; });
+    ['st0-gh','st0-kh','st0-tap','st0-src-tds','st0-drink','st1-staff','st1-note','st2-dose','st2-yield','st2-temp','st2-time','st2-bean-name','st2-bean-batch','st2-agtron-bean','st2-agtron-grind','st4-staff','st4-note'].forEach(function(id){ var e=el(id); if(e) e.value=''; });
+    ['st0-mg','st0-nf','st0-tapkh','st2-grind'].forEach(function(id){ var e=el(id); if(e) e.selectedIndex=0; });
+    sopResetDailyTarget();
     ['st0-fb','st1-fb','st1-water-toast','st2-fb','st3-fb','st4-toast'].forEach(function(id){ var e=el(id); if(e) e.style.display='none'; });
     ['st0-nxt','st1-nxt','st2-nxt','st3-nxt'].forEach(function(id){ var e=el(id); if(e) e.classList.remove('sop-nxt-on'); });
     ['st1-ok','st1-ng','st3-ok','st3-ng','st3-better','st3-same','st3-temp-ok','st3-temp-up','st3-temp-down'].forEach(function(id){ var e=el(id); if(e) e.className='sop-choice'; });
@@ -2644,12 +2799,18 @@ function testSlack() {
     var note  = (el('st1-note')  && el('st1-note').value.trim())  || '';
     var toast = el('st1-water-toast');
 
+    // 自來水源 KH 沒有專屬欄位，先併入「備注」保存（不必改後端 GAS／重新部署）
+    var tapKh = sopData.tapKh || '';
+    var noteFull = note;
+    if (tapKh) noteFull = '自來水KH' + tapKh + (note ? '｜' + note : '');
+
     var record = {
       type: 'water_record',
       storeName: (STORES[currentStore]||{name:currentStore}).name, storeKey: currentStore,
       ts:       new Date().toISOString(),
       staff:    staff,
       tapTds:   sopData.tapTds   || '',
+      tapKh:    tapKh,
       drinkTds: sopData.drinkTds || '',
       gh:       sopData.gh       || '',
       kh:       sopData.kh       || '',
@@ -2659,7 +2820,7 @@ function testSlack() {
       mgFilterReading: sopData.mgFilterReading !== undefined ? sopData.mgFilterReading : '',
       mgFilterCycles:  sopData.mgFilterCycles  !== undefined ? sopData.mgFilterCycles  : '',
       mgFilterUsed:    sopData.mgFilterUsed    !== undefined ? sopData.mgFilterUsed    : '',
-      note:     note
+      note:     noteFull
     };
 
     // 存本機
@@ -2944,6 +3105,9 @@ function testSlack() {
   window.mgFilterReplace     = mgFilterReplace;
   window.toggleMgCyclePanel  = toggleMgCyclePanel;
   window.toggleMgReplacePanel= toggleMgReplacePanel;
+  window.renderTarget        = renderTarget;         // 讓 applyStore 切店時能重繪目標提示
+  window.onSrcKhChange       = onSrcKhChange;         // 自來水源 KH 下拉 onchange
+  window.sopResetDailyTarget = sopResetDailyTarget;   // 切店／重置時清掉今日水源目標
 
 })(); // end IIFE
 </script>
@@ -3045,9 +3209,12 @@ var DEFAULT_TARGETS = {
 
 // 各店水質閥門名稱（林口 NF 膜系統 vs 新竹 RO 系統，閥門實體不同）
 var VALVE_LABELS = {
+  // 林口／新竹皆為 RO 系統：控 KH＝TDS 混水閥，控 GH＝鎂離子閥（右鵝頸前）
+  linkou:  { kh: 'TDS 混水閥', khLoc: 'RO 系統 TDS 混水閥', gh: '鎂離子閥', ghLoc: '右鵝頸前 鎂離子閥' },
   hsinchu: { kh: 'TDS 混水閥', khLoc: 'RO 系統 TDS 混水閥', gh: '鎂離子閥', ghLoc: '鎂離子閥' }
 };
 function valveNames_() {
+  // 一隅仍為 NF 膜系統，退回 NF 針閥／T300 旁通閥
   return VALVE_LABELS[currentStore] || { kh: 'NF 混水針閥', khLoc: '前置 NF 膜混水針閥', gh: 'T300 旁通閥', ghLoc: '吧台下 T300 旁通閥' };
 }
 // 濾泡磨豆機。一台一組公式，刀盤不同就是不同機器，fit 不可互抄。
@@ -3067,7 +3234,7 @@ var POUR_GRINDERS = {
 var ALWAYS_TASKS = ['log','config'];   // 每間店都有
 var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
 
-var BUILD_ID = '2026-07-26b · 換芯一步到位（輸入新讀數自動歸零/算用量）';
+var BUILD_ID = '2026-08-26b · 水質／沖煮紀錄分店分頁（後端 GAS）＋淺焙／中焙／SOE 回填加 DFR 策略欄';
 var currentStore = localStorage.getItem('wl_store') || 'linkou';
 if (!STORES[currentStore]) currentStore = 'linkou';
 
@@ -3158,21 +3325,32 @@ function applyStore() {
   var sgDoseEl = document.getElementById('sg-dose');
   if (sgDoseEl) sgDoseEl.placeholder = soeT.dose;
 
-  // 水質體檢頁：新竹城隍是 RO 系統（壓力桶／鵝頸／TDS 閥），林口／一隅 是 NF 膜系統 — 內容分流
-  var isHsinchu = (currentStore === 'hsinchu');
+  // 水質體檢頁：林口／新竹＝RO 系統（壓力桶／鵝頸／TDS 閥＋鎂離子閥），一隅＝NF 膜系統 — 內容分店分流
+  var isYiyu = (currentStore === 'yiyu');
+  var isRO   = !isYiyu;                       // 林口 + 新竹 皆為 RO 系統
   var flushL = document.getElementById('st0-flush-desc-linkou');
   var flushH = document.getElementById('st0-flush-desc-hsinchu');
-  if (flushL) flushL.style.display = isHsinchu ? 'none' : '';
-  if (flushH) flushH.style.display = isHsinchu ? '' : 'none';
+  var flushY = document.getElementById('st0-flush-desc-yiyu');
+  if (flushL) flushL.style.display = (currentStore === 'linkou')  ? '' : 'none';
+  if (flushH) flushH.style.display = (currentStore === 'hsinchu') ? '' : 'none';
+  if (flushY) flushY.style.display = isYiyu ? '' : 'none';
+  // 自來水源 TDS／KH 確認欄位：只有 RO 系統（林口／新竹）需要
+  var srcConfirm = document.getElementById('st0-src-confirm');
+  if (srcConfirm) srcConfirm.style.display = isRO ? '' : 'none';
   var flushTitle = document.getElementById('st0-flush-title');
-  if (flushTitle) flushTitle.textContent = isHsinchu ? '① RO 系統開機放流' : '① 大放流';
+  if (flushTitle) flushTitle.textContent = isRO ? '① RO 系統開機放流' : '① 大放流';
+  var flushBtn = document.getElementById('st0-flush-done');
+  if (flushBtn) flushBtn.textContent = isRO ? '✅ 開機放流完成，開始滴定記錄' : '✅ 大放流 ＋ 咖啡機開始熱機，開始滴定';
+  // 每次切店重置今日水源目標（避免把 A 店選的 KH 帶到 B 店）
+  if (typeof window.sopResetDailyTarget === 'function') window.sopResetDailyTarget();
   var waterL = document.getElementById('st1-water-linkou');
   var waterH = document.getElementById('st1-water-hsinchu');
-  if (waterL) waterL.style.display = isHsinchu ? 'none' : '';
-  if (waterH) waterH.style.display = isHsinchu ? '' : 'none';
-  // 鎂離子濾芯流量計：新竹目前尚未安裝，先隱藏
+  // 一隅（NF）維持「半桶／一桶放水」卡；新竹保留「開店啟動流程」卡；林口已改 RO，啟動步驟已併入放流卡，st1 不再顯示
+  if (waterL) waterL.style.display = isYiyu ? '' : 'none';
+  if (waterH) waterH.style.display = (currentStore === 'hsinchu') ? '' : 'none';
+  // 鎂離子濾芯流量計：僅一隅（NF 濾心）保留；林口／新竹 RO 系統已改鎂離子閥，不再追蹤濾心
   var mgCard = document.getElementById('mg-filter-card');
-  if (mgCard) mgCard.style.display = isHsinchu ? 'none' : '';
+  if (mgCard) mgCard.style.display = isYiyu ? '' : 'none';
   // 閥門名稱隨店別替換（NF 混水針閥／T300 旁通閥 vs TDS 混水閥／鎂離子閥）
   var vn = valveNames_();
   var nfLbl = document.getElementById('st0-nf-label');
@@ -3932,6 +4110,7 @@ async function submitRecord(t) {
       status: curStates[t].status,
       title:  curStates[t].title,
       tags:   [...selTags[t]].join('、')||'—',
+      dfr:    t==='l' ? (document.getElementById('ll-dfr')?.value||'') : t==='m' ? (document.getElementById('ml-dfr')?.value||'') : '',
     });
   }
 
@@ -4200,6 +4379,7 @@ async function submitSoeGrind() {
     suggested: suggested == null ? '' : suggested.toFixed(2),
     actualTime: gv('sg-time'),
     actualYield: gv('sg-yield'),
+    dfr: gv('sg-dfr'),
     finalGrind: isNaN(finalG) ? '' : finalG.toFixed(2),
     deltaGrind: (suggested == null || isNaN(finalG)) ? '' : (Math.round((finalG - suggested) * 100) / 100).toFixed(2),
     result: result,
