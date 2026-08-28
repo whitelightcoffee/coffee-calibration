@@ -1758,12 +1758,12 @@ function testSlack() {
         <!-- 新竹城隍 RO 放流步驟 -->
         <div id="st0-flush-desc-hsinchu" style="display:none;font-size:13px;color:#444;line-height:1.9;margin-bottom:12px">
           <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔒</span><span>檢查<b>壓力桶（關）</b>、<b>壓力桶排水線（關）</b>，開啟<b>造水系統</b></span></div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🚰</span><span>左鵝頸放流約 <b>1 分鐘</b>，至 TDS 降到 <b>45 左右</b>（45–50），<b>KH 滴定 2 滴</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🚰</span><span>左鵝頸放流約 <b>1 分鐘</b>，至 TDS 降到 <b>45 左右</b>，<b>KH 滴定 2 滴</b></span></div>
           <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">TDS / KH 不對 → 調整 <b>TDS 閥混水比例</b>，重新放流確認</div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">☕</span><span>義式機水線放流 <b>1 分鐘</b>，排空隔夜高濃度鎂離子</span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">☕</span><span>義式機水線放流 <b>1 分鐘</b>，排空隔夜高濃度鎂離子，<b>TDS 顯示 35–40</b></span></div>
           <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🛢️</span><span>開啟壓力桶蓄水，<b>四分鐘內</b>蓄滿水</span></div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🧪</span><span>義式機水線測試 <b>GH 4 滴</b>，若 GH 不對則調整<b>義式機鎂離子閥</b></span></div>
-          <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">滴定正常即可開啟<b>義式機電源熱機</b></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🧪</span><span>義式機水線測試 <b>GH 3–4 滴</b>，若 GH 不對則調整<b>義式機鎂離子閥</b></span></div>
+          <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">滴定正常即可開啟<b>義式機電源</b>，兩沖煮頭各放一大鋼杯水後啟動<b>加熱鍵</b></div>
           <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">💧</span><span>放流並測試<b>右鵝頸鎂離子濃度</b>（GH 3–4 滴）</span></div>
           <div style="margin-left:26px;margin-top:-2px;font-size:12px;color:#A35000">不符合 → 調整 <b>鎂離子閥</b>，重新放流複測</div>
         </div>
@@ -3226,7 +3226,7 @@ var POUR_GRINDERS = {
 var ALWAYS_TASKS = ['log','config'];   // 每間店都有
 var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
 
-var BUILD_ID = '2026-08-26g · 水質頁 st0 加夥伴欄，按鈕改「水質紀錄送出，開啟熱機」直接送出並跳淺焙';
+var BUILD_ID = '2026-08-28c · 新竹水質放流步驟微調：左鵝頸去(45–50)、義式機水線放流加 TDS 35–40、GH 測試改 3–4 滴';
 var currentStore = localStorage.getItem('wl_store') || 'linkou';
 if (!STORES[currentStore]) currentStore = 'linkou';
 
@@ -3291,12 +3291,14 @@ function applyStore() {
   if (basketEl && st.defaultBasket) basketEl.value = st.defaultBasket;
 
   // 淺焙 espresso 磨豆機隨門市顯示：
-  //   林口白光 = Molar X²（有 H/M 轉速、噴 RDT）
-  //   新竹城隍 = Mahlkönig E80S EGW（單一轉速、不噴 RDT）→ 隱藏「轉速」與「RDT 噴水」兩欄
-  var LIGHT_GRINDERS = { hsinchu: 'Mahlkönig E80S EGW' };   // 未列的門市預設 Molar X²
+  //   林口白光 = Molar X²（原廠神山錐刀）
+  //   新竹城隍 = Molar X2 Mazzer187c刀（機身同林口、僅刀盤不同）
+  //   兩店同為 Molar X2 系列 → 皆有 H/M 轉速、噴 RDT，淺焙頁欄位完全一致（僅磨豆機名稱不同）
+  var LIGHT_GRINDERS = { hsinchu: 'Molar X2 Mazzer187c刀' };   // 未列的門市預設 Molar X²
   var lgNameEl = document.getElementById('ll-grinder-name');
   if (lgNameEl) lgNameEl.textContent = LIGHT_GRINDERS[currentStore] || 'Molar X²';
-  var hideSpeedRdt = (currentStore === 'hsinchu');
+  // 兩店的 Molar X2 都有轉速與 RDT → 不再隱藏這兩欄（新竹改用 Molar X2 後與林口同版面）
+  var hideSpeedRdt = false;
   var llSpeedField = document.getElementById('ll-speed-field');
   var llRdtField   = document.getElementById('ll-rdt-field');
   if (llSpeedField) llSpeedField.style.display = hideSpeedRdt ? 'none' : '';
@@ -3313,7 +3315,7 @@ function applyStore() {
   });
 
   // SOE 研磨刻度推估卡：目標參數與粉量預設隨門市（各店 espresso 配方不同）
-  //   新竹城隍 = 19g in / 28–30g out（SOE 頁磨豆機仍為 Molar X2 Mazzer 刀，轉速預設 H 由 SOE_GRINDER_SPECS 帶入）
+  //   新竹城隍 = 19g in / 28–30g out（SOE 頁磨豆機為 Molar X2 Mazzer 187c 刀，轉速預設 H 由 SOE_GRINDER_SPECS 帶入）
   //   林口白光 = 18g in / 40g out / 30 秒（維持原設定）
   var SOE_TARGETS = {
     hsinchu: { sub: '固定 19g in / 28–30g out　秤完盅重直接給起手刻度', dose: '19' }
@@ -4141,24 +4143,26 @@ async function submitRecord(t) {
 // 每台磨豆機一組係數。刻度盤單位彼此無關，公式絕對不可互相套用。
 // fit 為 null = 尚無資料，只記錄、不推估。
 // 每間店有哪些義式磨豆機。同型號在不同店 = 不同機器，fit 各自獨立。
-// 2026-08-18 Taylor 更正：新竹城隍淺焙磨豆機是 Molar X2（Mazzer 刀），機身同林口但刀盤不同 → 磨出來的粒徑分佈不同，維持獨立公式。
+// 2026-08-18 Taylor 更正：新竹城隍淺焙磨豆機是 Molar X2（Mazzer 187c 刀），機身同林口但刀盤不同 → 磨出來的粒徑分佈不同，維持獨立公式。
+//   2026-08-28 更名：id 由 'Molar X2 Mazzer刀' → 'Molar X2 Mazzer187c刀'，與淺焙頁磨豆機名稱統一。
+//   註：2026-08-28 之前的 SOE刻度 分頁舊列，「磨豆機」欄仍記為舊名 'Molar X2 Mazzer刀'；日後要合併建公式時記得一起納入。
 // 林口白光淺焙為 Molar X2（原廠刀）。中焙磨豆機為 mahlkonig Peak Lab Sweet（不在此 SOE 刻度工具範圍內，SOE 僅涵蓋淺焙）。
 // Kony 已退出 SOE（改做中焙），其五支種子資料一併捨棄。
 var SOE_STORE_GRINDERS = {
   linkou:  ['Molar X2'],
-  hsinchu: ['Molar X2 Mazzer刀']
+  hsinchu: ['Molar X2 Mazzer187c刀']
 };
 
 // 磨豆機硬體規格（與店無關：刀盤、是否可調轉速）
 var SOE_GRINDER_SPECS = {
-  'Molar X2':          { label: 'Molar X2（神山錐刀）', step: '0.01', speeds: true, defaultSpeed: 'M' },
-  'Molar X2 Mazzer刀': { label: 'Molar X2（Mazzer 刀）', step: '0.01', speeds: true, defaultSpeed: 'H' }
+  'Molar X2':              { label: 'Molar X2（神山錐刀）', step: '0.01', speeds: true, defaultSpeed: 'M' },
+  'Molar X2 Mazzer187c刀': { label: 'Molar X2（Mazzer 187c 刀）', step: '0.01', speeds: true, defaultSpeed: 'H' }
 };
 
 // fit 用 "店:機器" 當 key —— 林口的 X2 和新竹的 X2（Mazzer 刀）各自一組，永不互相污染。
-// 目前全部 null = 資料累積中（Kony 公式已捨棄；新竹先前掛在 E80GBW 下的資料也一併作廢，改回 Molar X2 Mazzer刀 重新累積）。
+// 目前全部 null = 資料累積中（Kony 公式已捨棄；新竹先前掛在 E80GBW 下的資料也一併作廢，改回 Molar X2 Mazzer187c刀 重新累積）。
 var SOE_FITS = {
-  // 'linkou:Molar X2', 'hsinchu:Molar X2 Mazzer刀' → 尚無公式，各自累積
+  // 'linkou:Molar X2', 'hsinchu:Molar X2 Mazzer187c刀' → 尚無公式，各自累積
 };
 
 function soeCfg() {
