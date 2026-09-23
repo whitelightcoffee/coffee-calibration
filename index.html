@@ -1758,7 +1758,7 @@ function testSlack() {
         <!-- 新竹城隍 RO 放流步驟 -->
         <div id="st0-flush-desc-hsinchu" style="display:none;font-size:13px;color:#444;line-height:1.9;margin-bottom:12px">
           <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🔒</span><span>檢查<b>壓力桶（關）</b>、<b>壓力桶排水線（關）</b>，開啟<b>造水系統</b></span></div>
-          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🚰</span><span>左鵝頸放流約 <b>1 分鐘</b>，至 TDS 降到 <b>45 左右</b>，<b>KH 滴定 2 滴</b></span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🚰</span><span>左鵝頸放流約 <b>1 分鐘</b>，至 TDS 降到 <b>45 左右</b>，<b>KH 滴定 3 滴</b></span></div>
           <div style="margin-left:26px;margin-top:-2px;margin-bottom:4px;font-size:12px;color:#A35000">TDS / KH 不對 → 調整 <b>TDS 閥混水比例</b>，重新放流確認</div>
           <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">☕</span><span>義式機水線放流 <b>1 分鐘</b>，排空隔夜高濃度鎂離子，<b>TDS 顯示 35–40</b></span></div>
           <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:16px">🛢️</span><span>開啟壓力桶蓄水，<b>四分鐘內</b>蓄滿水</span></div>
@@ -2400,7 +2400,7 @@ function testSlack() {
   }
   // ── 今日沖煮水目標 ────────────────────────────────────────────────
   //   2026-08-26：改為固定目標（不再依自來水源 KH 換算），一律退回該店基準線 getTarget()
-  //   林口／新竹 RO 系統目標＝GH4 / KH2；一隅 NF 依 getTarget()
+  //   林口 RO 系統目標＝GH4 / KH2；新竹城隍＝GH4 / KH3（2026-09-23）；一隅 NF 依 getTarget()
   function activeTarget() {
     if (sopData && sopData.dailyTarget) return sopData.dailyTarget;
     return getTarget();
@@ -2432,6 +2432,8 @@ function testSlack() {
     // 輸入提示、重測目標一併同步（黃金基準線卡片與 banner 已刪除，此處僅剩這兩處引用目標值）
     var ghHint = el('st0-gh-target-hint'), khHint = el('st0-kh-target-hint');
     if (ghHint) ghHint.textContent = t.gh; if (khHint) khHint.textContent = t.kh;
+    var ghIn = el('st0-gh'), khIn = el('st0-kh');
+    if (ghIn) ghIn.placeholder = t.gh; if (khIn) khIn.placeholder = t.kh;
     var retestTarget = el('st0-retest-target');
     if (retestTarget) retestTarget.textContent = 'GH ' + t.gh + ' / KH ' + t.kh;
   }
@@ -3187,15 +3189,16 @@ var STORES = {
 var DEFAULT_TARGETS = {
   linkou:  { gh: 4, kh: 2, note: '黃金標準預設值', date: '2026-08-18' },
   yiyu:    { gh: 4, kh: 2, note: '黃金標準預設值', date: '2026-08-18' },
-  hsinchu: { gh: 4, kh: 2, note: '沖煮水標準與林口一致（2026-08-26）', date: '2026-08-26' }
+  hsinchu: { gh: 4, kh: 3, note: '新竹城隍水質基準 GH4 / KH3（2026-09-23）', date: '2026-09-23' }
 };
 
 // 2026-08-26：新竹沖煮水目標由 GH3/KH1 改為 GH4/KH2（與林口一致）。
-//   舊版本可能已把 GH3/KH1 快取進本機，清一次讓它以新預設／遠端基準線重新載入。
+// 2026-09-23：新竹城隍水質基準改為 GH4 / KH3。
+//   舊版本可能已把 GH4/KH2 快取進本機，清一次讓它以新預設／遠端基準線重新載入。
 try {
-  if (localStorage.getItem('wl_ghkh_hsinchu_reset_v2') !== '1') {
+  if (localStorage.getItem('wl_ghkh_hsinchu_reset_v3') !== '1') {
     localStorage.removeItem('wl_ghkh_target_hsinchu');
-    localStorage.setItem('wl_ghkh_hsinchu_reset_v2', '1');
+    localStorage.setItem('wl_ghkh_hsinchu_reset_v3', '1');
   }
 } catch (e) {}
 
@@ -3226,7 +3229,7 @@ var POUR_GRINDERS = {
 var ALWAYS_TASKS = ['log','config'];   // 每間店都有
 var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
 
-var BUILD_ID = '2026-08-28c · 新竹水質放流步驟微調：左鵝頸去(45–50)、義式機水線放流加 TDS 35–40、GH 測試改 3–4 滴';
+var BUILD_ID = '2026-09-23a · 新竹城隍水質基準改為 GH4 / KH3（預設值、本機快取重置、放流步驟 KH 3 滴）';
 var currentStore = localStorage.getItem('wl_store') || 'linkou';
 if (!STORES[currentStore]) currentStore = 'linkou';
 
