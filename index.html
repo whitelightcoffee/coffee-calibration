@@ -359,7 +359,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
           </select>
         </div>
         <div class="field" id="ll-speed-field">
-          <label>轉速 <span style="font-size:10px;color:#AAA;font-weight:400">H快／M中</span></label>
+          <label>轉速 <span id="ll-speed-hint" style="font-size:10px;color:#AAA;font-weight:400">H快／M中</span></label>
           <select id="ll-speed" onchange="upd('l')">
             <option value="H" selected>H（轉速快，細粉多，萃取↑）</option>
             <option value="M">M（轉速中，細粉少，萃取↓）</option>
@@ -3229,7 +3229,7 @@ var POUR_GRINDERS = {
 var ALWAYS_TASKS = ['log','config'];   // 每間店都有
 var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
 
-var BUILD_ID = '2026-09-23a · 新竹城隍水質基準改為 GH4 / KH3（預設值、本機快取重置、放流步驟 KH 3 滴）';
+var BUILD_ID = '2026-09-23b · 新竹城隍淺焙 Molar X2 轉速新增 L 低轉速（林口維持 H／M）';
 var currentStore = localStorage.getItem('wl_store') || 'linkou';
 if (!STORES[currentStore]) currentStore = 'linkou';
 
@@ -3305,6 +3305,25 @@ function applyStore() {
   var llSpeedField = document.getElementById('ll-speed-field');
   var llRdtField   = document.getElementById('ll-rdt-field');
   if (llSpeedField) llSpeedField.style.display = hideSpeedRdt ? 'none' : '';
+  // 2026-09-23：新竹城隍 Molar X2（Mazzer 187c 刀）多一段 L 低轉速；林口維持 H／M
+  var LIGHT_LOW_SPEED = { hsinchu: true };
+  var llSpeedSel  = document.getElementById('ll-speed');
+  var llSpeedHint = document.getElementById('ll-speed-hint');
+  if (llSpeedSel) {
+    var lowOpt = llSpeedSel.querySelector('option[value="L"]');
+    if (LIGHT_LOW_SPEED[currentStore]) {
+      if (!lowOpt) {
+        lowOpt = document.createElement('option');
+        lowOpt.value = 'L';
+        lowOpt.textContent = 'L（轉速低，細粉最少，萃取↓↓）';
+        llSpeedSel.appendChild(lowOpt);
+      }
+    } else if (lowOpt) {
+      if (llSpeedSel.value === 'L') llSpeedSel.value = 'H';
+      lowOpt.remove();
+    }
+  }
+  if (llSpeedHint) llSpeedHint.textContent = LIGHT_LOW_SPEED[currentStore] ? 'H快／M中／L低' : 'H快／M中';
   if (llRdtField)   llRdtField.style.display   = hideSpeedRdt ? 'none' : '';
   // 只剩 Basket 一欄時改單欄排版，避免留白
   var llBasketRow = document.getElementById('ll-basket-row');
@@ -3542,7 +3561,9 @@ function upd(t) {
   const speedEl = document.getElementById(isL ? 'll-speed' : 'ml-speed');
   const speed = speedEl ? speedEl.value : 'H';
   const basketLabel = {bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto'}[basket];
-  const speedLabel = speed === 'H' ? 'H 轉速' : 'M 轉速';
+  const speedLabel = {H:'H 轉速', M:'M 轉速', L:'L 轉速'}[speed] || (speed + ' 轉速');
+  // 這台磨豆機是否有 L 低轉速（新竹城隍才有）
+  const hasLowSpeed = !!(speedEl && speedEl.querySelector('option[value="L"]'));
   const humidEl = document.getElementById(isL ? 'll-humid' : 'ml-humid');
   const humid = humidEl ? parseFloat(humidEl.value) || 0 : 0;
   const isHighHumid = humid >= 70;
@@ -3581,20 +3602,25 @@ function upd(t) {
   // ── Basket step helpers ──
   function basketStepOverExtract() {
     // 過萃：降低萃取 → 換更慢的 basket，轉速改 M
-    const speedStep = speed === 'H' ? '轉速換 M，減少細粉降低萃取' : '轉速已是 M，以研磨與 Basket 為主';
+    const speedStep = speed === 'H' ? '轉速換 M，減少細粉降低萃取'
+                    : (speed === 'M' && hasLowSpeed) ? '轉速換 L，再減少細粉降低萃取'
+                    : speed === 'L' ? '轉速已是 L（最低），以研磨與 Basket 為主'
+                    : '轉速已是 M，以研磨與 Basket 為主';
     if (basket === 'bigbang') return ['研磨往粗的方向調整', '現用 Big Bang 流速最快，→ 換 E&B LAB24 降流速', speedStep, '若仍過萃 → 再換神器 Artefatto（最慢）', '咖啡液往減少方向截斷後段苦味', 'act','act','act-w','act-w',''];
     if (basket === 'eblab')   return ['研磨往粗的方向調整', speedStep, '水溫往降的方向輔助', '若研磨已粗到極限 → 換神器 Artefatto 降流速', '咖啡液往減少方向截斷後段苦味', 'act','act-w','act-w','act-w',''];
     /* artefatto */           return ['研磨往粗的方向調整（已是最慢 Basket）', speedStep, '水溫往降的方向輔助', '確認布粉器深度，避免粉餅太扎實出現通道', '咖啡液往減少方向截斷後段苦味', 'act','act-w','act-w','',''];
   }
   function basketStepUnderExtract() {
     // 萃取不足：提升萃取 → 換更快的 basket，轉速改 H
-    const speedStep = speed === 'M' ? '轉速換 H，增加細粉提升萃取' : '轉速已是 H（最高），以研磨與 Basket 為主';
+    const speedStep = speed === 'L' ? '轉速換 M，增加細粉提升萃取'
+                    : speed === 'M' ? '轉速換 H，增加細粉提升萃取'
+                    : '轉速已是 H（最高），以研磨與 Basket 為主';
     if (basket === 'artefatto') return ['研磨往細的方向調整', speedStep, '水溫往升的方向輔助', '換 E&B LAB24（流速↑），重新確認布粉高度', '咖啡液往減少方向提高濃度感', 'act','act-w','act-w','act',''];
     if (basket === 'eblab')     return ['研磨往細的方向調整', speedStep, '水溫往升的方向輔助', '若研磨已細到極限 → 換 Big Bang 增加流速', '咖啡液往減少方向提高濃度感', 'act','act-w','act-w','act-w',''];
     /* bigbang */               return ['研磨往細的方向調整（已是最快 Basket）', speedStep, '水溫往升的方向輔助', '已是 Big Bang，研磨是唯一調整手段', '咖啡液往減少方向提高濃度感', 'act','act-w','act-w','',''];
   }
   function basketStepAstringent() {
-    const speedStep = speed === 'M' ? '轉速換 H，增加細粉讓甜感提升支撐酸值' : '轉速已是 H，確認布粉均勻度';
+    const speedStep = speed !== 'H' ? '轉速換 H，增加細粉讓甜感提升支撐酸值' : '轉速已是 H，確認布粉均勻度';
     if (basket === 'bigbang') return ['研磨往細的方向調整，延長接觸時間', '確認布粉器高度與布粉均勻度', '換 E&B LAB24，流速放慢讓甜感溶出', speedStep, '咖啡液往增加方向微調', 'act','act','act','act-w',''];
     if (basket === 'eblab')   return ['研磨往細的方向調整', '確認布粉器高度（深度往深調）', speedStep, '水溫往升的方向', '確認咖啡液重是否穩定', 'act','act','act-w','act-w',''];
     /* artefatto */           return ['研磨往細的方向調整', '確認布粉器高度，檢查是否有通道效應', speedStep, '確認水溫是否足夠', '咖啡液往增加方向微調', 'act','act','act-w','act-w',''];
@@ -3606,7 +3632,7 @@ function upd(t) {
     status='bad'; title='高濕度通道效應 — 粉餅結構鬆散';
     rb.className='result-box bad'; rt.textContent=title;
     rbd.textContent=`濕度 ${humid}% 過高導致粉餅吸水膨脹，產生通道效應。轉速換 H 增加細粉，壓實粉餅結構。`;
-    const speedStep = speed==='M' ? '轉速換 H（關鍵）— 增加細粉壓實粉餅，減少通道' : '轉速已是 H，確認布粉器深度往深調整';
+    const speedStep = speed!=='H' ? '轉速換 H（關鍵）— 增加細粉壓實粉餅，減少通道' : '轉速已是 H，確認布粉器深度往深調整';
     setSteps(t, speedStep, '研磨往細的方向微調，配合 H 轉速', '確認布粉器深度（往深調），重新設定高度', '水溫維持，濕度高時勿再降溫', '液重重新設定（粉餅結構改變後吃水不同）', 'crit','act','act','','act-w');
     curStates[t] = {acid, sweet, dark, status, title, basket: basketLabel, speed: speedLabel};
     return;
@@ -3619,7 +3645,7 @@ function upd(t) {
   if (hasPeanut||hasGrass) {
     rb.className='result-box crit'; rt.textContent=title;
     rbd.textContent=(hasPeanut?'花生/穀物味 = 生豆感，萃取極度不足。':'')+(hasGrass?'青草味 = 揮發物殘留，萃取嚴重不足。':'')+' 大幅調整後重新萃取再評估。';
-    setSteps(t,'研磨往細的方向大幅調整','確認水溫是否足夠，往升的方向確認',speed==='M'?'轉速換 H，搭配研磨細全面提升萃取':'轉速已是 H，研磨大幅往細為主',basket==='artefatto'?'換 E&B LAB24 增加流速協助萃取':basket==='eblab'?'考慮換 Big Bang 增加流速':'已是 Big Bang，研磨大幅往細','維持目前液重','crit','crit','crit','crit','');
+    setSteps(t,'研磨往細的方向大幅調整','確認水溫是否足夠，往升的方向確認',speed!=='H'?'轉速換 H，搭配研磨細全面提升萃取':'轉速已是 H，研磨大幅往細為主',basket==='artefatto'?'換 E&B LAB24 增加流速協助萃取':basket==='eblab'?'考慮換 Big Bang 增加流速':'已是 Big Bang，研磨大幅往細','維持目前液重','crit','crit','crit','crit','');
   } else if (hasAstringent) {
     status='bad'; title='收斂感 — 粉餅結構或萃取不均';
     rb.className='result-box bad'; rt.textContent=title;
@@ -3655,7 +3681,7 @@ function upd(t) {
     status='warn'; title=isL?'甜感不足 — 低於 60%':'焦糖甜感不足 — 低於 40%';
     rb.className='result-box warn'; rt.textContent=title;
     rbd.textContent='甜感比例偏低，確認今日批次 Agtron 是否偏移。增粉為最後手段（不換批次不輕易動粉量）。';
-    setSteps(t,'研磨往細的方向微調','確認水溫是否一致','確認轉速是否維持 M/H','確認 Basket 是否正確（'+basketLabel+'）','維持目前液重，增粉為最後手段','act','','','','');
+    setSteps(t,'研磨往細的方向微調','確認水溫是否一致','確認轉速是否維持 '+speedLabel,'確認 Basket 是否正確（'+basketLabel+'）','維持目前液重，增粉為最後手段','act','','','','');
   } else {
     status='good'; title='均衡 — 符合目標';
     rb.className='result-box good'; rt.textContent=title;
