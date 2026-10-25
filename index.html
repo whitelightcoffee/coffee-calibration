@@ -180,6 +180,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
 .basket-tag.bigbang{background:#FFF3E0;color:#C4862A}
 .basket-tag.eblab{background:#EAF5E0;color:#2E6B10}
 .basket-tag.artefatto{background:#EEE8FF;color:#5A2EB0}
+.basket-tag.ikape{background:#E3F1F7;color:#1A6B9A}
 .save-cfg-btn{width:100%;padding:13px;border-radius:10px;background:#1a1a1a;color:#fff;font-size:14px;font-weight:600;border:none;cursor:pointer;margin-bottom:20px}
 .gas-code{background:#F5F3F0;border-radius:10px;padding:14px;font-size:11px;color:#444;line-height:2;font-family:monospace;word-break:break-all;margin-top:12px;white-space:pre-wrap}
 .cfg-status{font-size:12px;color:#666;margin-bottom:12px;display:flex;align-items:center;gap:5px}
@@ -353,8 +354,9 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
         <div class="field">
           <label>Basket <span style="font-size:10px;color:#AAA;font-weight:400">流速快→慢</span></label>
           <select id="ll-basket" onchange="upd('l');syncMediumFromLight()">
+            <option value="ikape" selected>IKAPE 變徑濾杯（預設）</option>
             <option value="bigbang">Big Bang（最快，磨最細）</option>
-            <option value="eblab" selected>E&B LAB24（中等）</option>
+            <option value="eblab">E&B LAB24（中等）</option>
             <option value="artefatto">神器 Artefatto（最慢，磨粗）</option>
           </select>
         </div>
@@ -601,7 +603,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       <input type="hidden" id="ml-temp" value="">
       <input type="hidden" id="ml-humid" value="">
       <input type="hidden" id="ml-wtemp" value="">
-      <input type="hidden" id="ml-basket" value="eblab">
+      <input type="hidden" id="ml-basket" value="ikape">
       <div class="grid3" style="margin-bottom:10px">
         <div class="field"><label>粉量 (g)</label><input id="ml-dose" type="number" inputmode="decimal" step="any" placeholder="14.5" oninput="calcRatio('m')"></div>
         <div class="field"><label>萃取秒數 (s)</label><input id="ml-time" type="number" inputmode="decimal" step="any" placeholder="28"></div>
@@ -868,7 +870,8 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
       <div class="field" style="margin-top:10px">
         <label>Basket</label>
         <select id="yl-basket" onchange="upd('y')">
-          <option value="wafo" selected>WAFO B/O</option>
+          <option value="ikape" selected>IKAPE 變徑濾杯</option>
+          <option value="wafo">WAFO B/O</option>
           <option value="eblab24">E&B Lab 24</option>
         </select>
       </div>
@@ -1065,7 +1068,8 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
         <div class="field">
           <label>Basket</label>
           <select id="sg-basket">
-            <option value="eblab" selected>E&B LAB24</option>
+            <option value="ikape" selected>IKAPE 變徑濾杯</option>
+            <option value="eblab">E&B LAB24</option>
             <option value="bigbang">Big Bang</option>
             <option value="artefatto">神器 Artefatto</option>
           </select>
@@ -3180,8 +3184,8 @@ Promise.resolve().then(function () {
 // 店不是一頁，是一個狀態。每間店宣告自己有哪些作業，導覽照著渲染。
 // 加第四間店 = 這個表多一個 key，導覽和 Sheets 都不用動。
 var STORES = {
-  linkou:  { name: '林口白光', short: '林口', color: '#C4862A', tasks: ['sop','light','medium','filter','soe'], defaultBasket: 'eblab' },
-  hsinchu: { name: '新竹城隍', short: '新竹', color: '#7A3E9D', tasks: ['sop','light','medium','filter','soe'], defaultBasket: 'artefatto' },
+  linkou:  { name: '林口白光', short: '林口', color: '#C4862A', tasks: ['sop','light','medium','filter','soe'], defaultBasket: 'ikape' },
+  hsinchu: { name: '新竹城隍', short: '新竹', color: '#7A3E9D', tasks: ['sop','light','medium','filter','soe'], defaultBasket: 'ikape' },
   yiyu:    { name: '一隅',     short: '一隅', color: '#1A6B9A', tasks: ['sop','yiyu'] }
 };
 
@@ -3229,7 +3233,7 @@ var POUR_GRINDERS = {
 var ALWAYS_TASKS = ['log','config'];   // 每間店都有
 var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
 
-var BUILD_ID = '2026-09-23b · 新竹城隍淺焙 Molar X2 轉速新增 L 低轉速（林口維持 H／M）';
+var BUILD_ID = '2026-10-25c · IKAPE 預設、移除換 Basket；萃取不足改為拉長萃取量';
 var currentStore = localStorage.getItem('wl_store') || 'linkou';
 if (!STORES[currentStore]) currentStore = 'linkou';
 
@@ -3557,10 +3561,10 @@ function upd(t) {
   const sweet = +document.getElementById(pfx.ss).value;
   const dark  = +document.getElementById(pfx.sd).value;
   const basketEl = document.getElementById(isL ? 'll-basket' : 'ml-basket');
-  const basket = basketEl ? basketEl.value : 'eblab';
+  const basket = basketEl ? basketEl.value : 'ikape';
   const speedEl = document.getElementById(isL ? 'll-speed' : 'ml-speed');
   const speed = speedEl ? speedEl.value : 'H';
-  const basketLabel = {bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto'}[basket];
+  const basketLabel = {ikape:'IKAPE 變徑濾杯', bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto'}[basket] || basket;
   const speedLabel = {H:'H 轉速', M:'M 轉速', L:'L 轉速'}[speed] || (speed + ' 轉速');
   // 這台磨豆機是否有 L 低轉速（新竹城隍才有）
   const hasLowSpeed = !!(speedEl && speedEl.querySelector('option[value="L"]'));
@@ -3599,31 +3603,26 @@ function upd(t) {
   const rbd=document.getElementById(pfx.rb);
   let status='good', title='';
 
-  // ── Basket step helpers ──
+  // ── Step helpers ──
+  // 2026-10-25：目前暫不換 Basket，建議只走研磨／轉速／水溫／布粉／液重，不再提示換 Basket。
   function basketStepOverExtract() {
-    // 過萃：降低萃取 → 換更慢的 basket，轉速改 M
+    // 過萃：降低萃取 → 研磨往粗、轉速往低
     const speedStep = speed === 'H' ? '轉速換 M，減少細粉降低萃取'
                     : (speed === 'M' && hasLowSpeed) ? '轉速換 L，再減少細粉降低萃取'
-                    : speed === 'L' ? '轉速已是 L（最低），以研磨與 Basket 為主'
-                    : '轉速已是 M，以研磨與 Basket 為主';
-    if (basket === 'bigbang') return ['研磨往粗的方向調整', '現用 Big Bang 流速最快，→ 換 E&B LAB24 降流速', speedStep, '若仍過萃 → 再換神器 Artefatto（最慢）', '咖啡液往減少方向截斷後段苦味', 'act','act','act-w','act-w',''];
-    if (basket === 'eblab')   return ['研磨往粗的方向調整', speedStep, '水溫往降的方向輔助', '若研磨已粗到極限 → 換神器 Artefatto 降流速', '咖啡液往減少方向截斷後段苦味', 'act','act-w','act-w','act-w',''];
-    /* artefatto */           return ['研磨往粗的方向調整（已是最慢 Basket）', speedStep, '水溫往降的方向輔助', '確認布粉器深度，避免粉餅太扎實出現通道', '咖啡液往減少方向截斷後段苦味', 'act','act-w','act-w','',''];
+                    : speed === 'L' ? '轉速已是 L（最低），以研磨為主'
+                    : '轉速已是 M，以研磨為主';
+    return ['研磨往粗的方向調整', speedStep, '水溫往降的方向輔助', '確認布粉器深度，避免粉餅太扎實出現通道', '咖啡液往減少方向截斷後段苦味', 'act','act-w','act-w','',''];
   }
   function basketStepUnderExtract() {
-    // 萃取不足：提升萃取 → 換更快的 basket，轉速改 H
+    // 萃取不足：提升萃取 → 研磨往細、轉速往高
     const speedStep = speed === 'L' ? '轉速換 M，增加細粉提升萃取'
                     : speed === 'M' ? '轉速換 H，增加細粉提升萃取'
-                    : '轉速已是 H（最高），以研磨與 Basket 為主';
-    if (basket === 'artefatto') return ['研磨往細的方向調整', speedStep, '水溫往升的方向輔助', '換 E&B LAB24（流速↑），重新確認布粉高度', '咖啡液往減少方向提高濃度感', 'act','act-w','act-w','act',''];
-    if (basket === 'eblab')     return ['研磨往細的方向調整', speedStep, '水溫往升的方向輔助', '若研磨已細到極限 → 換 Big Bang 增加流速', '咖啡液往減少方向提高濃度感', 'act','act-w','act-w','act-w',''];
-    /* bigbang */               return ['研磨往細的方向調整（已是最快 Basket）', speedStep, '水溫往升的方向輔助', '已是 Big Bang，研磨是唯一調整手段', '咖啡液往減少方向提高濃度感', 'act','act-w','act-w','',''];
+                    : '轉速已是 H（最高），以研磨為主';
+    return ['研磨往細的方向調整', speedStep, '水溫往升的方向輔助', '確認布粉器高度與布粉均勻度', '咖啡液往增加方向，拉長萃取量', 'act','act-w','act-w','',''];
   }
   function basketStepAstringent() {
     const speedStep = speed !== 'H' ? '轉速換 H，增加細粉讓甜感提升支撐酸值' : '轉速已是 H，確認布粉均勻度';
-    if (basket === 'bigbang') return ['研磨往細的方向調整，延長接觸時間', '確認布粉器高度與布粉均勻度', '換 E&B LAB24，流速放慢讓甜感溶出', speedStep, '咖啡液往增加方向微調', 'act','act','act','act-w',''];
-    if (basket === 'eblab')   return ['研磨往細的方向調整', '確認布粉器高度（深度往深調）', speedStep, '水溫往升的方向', '確認咖啡液重是否穩定', 'act','act','act-w','act-w',''];
-    /* artefatto */           return ['研磨往細的方向調整', '確認布粉器高度，檢查是否有通道效應', speedStep, '確認水溫是否足夠', '咖啡液往增加方向微調', 'act','act','act-w','act-w',''];
+    return ['研磨往細的方向調整', '確認布粉器高度（深度往深調），檢查是否有通道效應', speedStep, '水溫往升的方向', '確認咖啡液重是否穩定', 'act','act','act-w','act-w',''];
   }
 
   // ── 濕度提示（優先判斷，搭配其他症狀）──────────────────────────
@@ -3645,7 +3644,7 @@ function upd(t) {
   if (hasPeanut||hasGrass) {
     rb.className='result-box crit'; rt.textContent=title;
     rbd.textContent=(hasPeanut?'花生/穀物味 = 生豆感，萃取極度不足。':'')+(hasGrass?'青草味 = 揮發物殘留，萃取嚴重不足。':'')+' 大幅調整後重新萃取再評估。';
-    setSteps(t,'研磨往細的方向大幅調整','確認水溫是否足夠，往升的方向確認',speed!=='H'?'轉速換 H，搭配研磨細全面提升萃取':'轉速已是 H，研磨大幅往細為主',basket==='artefatto'?'換 E&B LAB24 增加流速協助萃取':basket==='eblab'?'考慮換 Big Bang 增加流速':'已是 Big Bang，研磨大幅往細','維持目前液重','crit','crit','crit','crit','');
+    setSteps(t,'研磨往細的方向大幅調整','確認水溫是否足夠，往升的方向確認',speed!=='H'?'轉速換 H，搭配研磨細全面提升萃取':'轉速已是 H，研磨大幅往細為主','確認布粉器高度與布粉均勻度','維持目前液重','crit','crit','crit','crit','');
   } else if (hasAstringent) {
     status='bad'; title='收斂感 — 粉餅結構或萃取不均';
     rb.className='result-box bad'; rt.textContent=title;
@@ -3662,7 +3661,7 @@ function upd(t) {
   } else if (isL ? (dark>=5||hasBitter) : (dark>45||hasBitter)) {
     status='bad'; title=isL?'過萃 — 深調/苦感超標':'過萃 — 巧克力木質過重';
     rb.className='result-box bad'; rt.textContent=title;
-    rbd.textContent=(isL?'巧克力調超過 5%，萃取過度。':'巧克力木質超過 45%，萃取過度。')+'目前 Basket：'+basketLabel+'（'+{bigbang:'流速最快',eblab:'流速中等',artefatto:'流速最慢'}[basket]+'）';
+    rbd.textContent=(isL?'巧克力調超過 5%，萃取過度。':'巧克力木質超過 45%，萃取過度。')+'目前 Basket：'+basketLabel;
     const s = basketStepOverExtract();
     setSteps(t, s[0],s[1],s[2],s[3],s[4], s[5],s[6],s[7],s[8],s[9]);
   } else if (isL ? (acid<20||hasThin) : (hasThin)) {
@@ -3703,8 +3702,8 @@ function updY() {
   const speed = speedEl ? speedEl.value : 'L';
   const speedLabel = {L:'L（低轉速）', M:'M（中轉速）', H:'H（高轉速）'}[speed] || speed + ' 轉速';
   const basketEl = document.getElementById('yl-basket');
-  const basket = basketEl ? basketEl.value : 'wafo';
-  const basketLabel = {wafo:'WAFO B/O', eblab24:'E&B Lab 24'}[basket] || 'WAFO B/O';
+  const basket = basketEl ? basketEl.value : 'ikape';
+  const basketLabel = {ikape:'IKAPE 變徑濾杯', wafo:'WAFO B/O', eblab24:'E&B Lab 24'}[basket] || 'IKAPE 變徑濾杯';
   const humidEl = document.getElementById('yl-humid');
   const humid = humidEl ? parseFloat(humidEl.value) || 0 : 0;
   const isHighHumid = humid >= 70;
@@ -3741,7 +3740,7 @@ function updY() {
   }
   function swanUnder() {
     const sp = speed==='L' ? 'Swan 換 M，增加細粉提升萃取' : speed==='M' ? 'Swan 換 H，增加細粉提升萃取' : 'Swan 已是 H（最高），研磨調細為主';
-    return ['研磨往細的方向調整', sp, '水溫往升的方向輔助', '咖啡液往減少方向提高濃度感', 'act','act-w','act-w',''];
+    return ['研磨往細的方向調整', sp, '水溫往升的方向輔助', '咖啡液往增加方向，拉長萃取量', 'act','act-w','act-w',''];
   }
   function setY(a,b,c,d, ca,cb,cc,cd) {
     [['s1-y',a,ca],['s2-y',b,cb],['s3-y',c,cc],['s4-y',d,cd]].forEach(([id,txt,cls]) => {
@@ -4131,7 +4130,7 @@ async function submitRecord(t) {
       brewTime: document.getElementById(pre+'-time').value,
       yield: document.getElementById(pre+'-yield').value,
       ratio: document.getElementById(pre+'-ratio').value,
-      basket: ({bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto', wafo:'WAFO B/O', eblab24:'E&B Lab 24'})[document.getElementById(pre+'-basket').value] || '',
+      basket: ({ikape:'IKAPE 變徑濾杯', bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto', wafo:'WAFO B/O', eblab24:'E&B Lab 24'})[document.getElementById(pre+'-basket').value] || '',
       speed: (function(){ var wrap=document.getElementById(pre+'-speed-field'); if(wrap && wrap.style.display==='none') return ''; var f=document.getElementById(pre+'-speed'); return f ? f.value : ''; })(),
       rdt: t==='l' ? ((document.getElementById('ll-rdt-field')?.style.display==='none') ? '' : (document.getElementById('ll-rdt')?.value || '')) : '',
       acid:  curStates[t].acid,
@@ -4407,7 +4406,7 @@ async function submitSoeGrind() {
     agtronCore: gv('sg-ac'),
     restDays: gv('sg-rest'),
     dose: gv('sg-dose') || (currentStore === 'hsinchu' ? 19 : 18),
-    basket: ({bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto'})[gv('sg-basket')] || '',
+    basket: ({ikape:'IKAPE 變徑濾杯', bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto'})[gv('sg-basket')] || '',
     suggested: suggested == null ? '' : suggested.toFixed(2),
     actualTime: gv('sg-time'),
     actualYield: gv('sg-yield'),
