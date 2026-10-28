@@ -438,7 +438,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   <div class="card">
     <div class="card-head"><div class="card-title">感受強度</div><div class="card-sub">目標：五項皆落在 中～中高（7–10）</div></div>
     <div class="card-body">
-      <div class="range-hint" style="margin-bottom:12px"><span>強度 1–15</span><span>1–3 低　4–6 中低　7–8 中　9–10 中高　11+ 高</span></div>
+      <div class="range-hint" style="margin-bottom:12px"><span>強度 1–15</span><span>1–4 低　5–6 中低　7–8 中　9–10 中高　11+ 高</span></div>
       <div class="slider-block">
         <div class="slider-head"><span class="slider-name" style="color:#8A6200">酸值強度</span><span class="slider-val"><span id="viacid-l" style="color:#8A6200">8</span><span class="badge ok" id="riacid-l">中</span></span></div>
         <input type="range" min="1" max="15" value="8" step="1" id="iacid-l" oninput="upd('l')">
@@ -644,9 +644,9 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   </div>
 
   <div class="card">
-    <div class="card-head"><div class="card-title">感受強度</div><div class="card-sub">目標：五項皆落在 中～中高（7–10）</div></div>
+    <div class="card-head"><div class="card-title">感受強度</div><div class="card-sub">目標：酸值 4–7，其餘四項 中～中高（7–10）</div></div>
     <div class="card-body">
-      <div class="range-hint" style="margin-bottom:12px"><span>強度 1–15</span><span>1–3 低　4–6 中低　7–8 中　9–10 中高　11+ 高</span></div>
+      <div class="range-hint" style="margin-bottom:12px"><span>強度 1–15</span><span>1–4 低　5–6 中低　7–8 中　9–10 中高　11+ 高</span></div>
       <div class="slider-block">
         <div class="slider-head"><span class="slider-name" style="color:#8A6200">酸值強度</span><span class="slider-val"><span id="viacid-m" style="color:#8A6200">8</span><span class="badge ok" id="riacid-m">中</span></span></div>
         <input type="range" min="1" max="15" value="8" step="1" id="iacid-m" oninput="upd('m')">
@@ -673,7 +673,7 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   <div style="margin:12px 12px 0;border-radius:16px;overflow:hidden;border:1px solid #EBE8E2">
     <div id="rbox-m" class="result-box good">
       <div class="result-title" id="rt-m">均衡 — 符合目標</div>
-      <div class="result-body"  id="rb-m">五項強度皆落在中～中高（7–10），是一杯 OK 的咖啡。</div>
+      <div class="result-body"  id="rb-m">酸值落在 4–7、其餘四項落在中～中高（7–10），是一杯 OK 的咖啡。</div>
     </div>
     <div style="padding:14px 16px;border-top:1px solid #F0EDE8;background:#fff">
       <div class="sec-label" style="margin-bottom:12px">調整方向</div>
@@ -1608,11 +1608,11 @@ function doGet(e) {
     var statusText = p.status==='good' ? '✅ 均衡' : p.status==='warn' ? '⚠️ 需調整' : p.status==='bad' ? '⚠️ 需調整' : '🚨 嚴重需調整';
     var color = p.type==='light' ? '#F5C542' : p.type==='medium' ? '#8B5E3C' : p.type==='yiyu' ? '#1A6B9A' : p.type==='soe_grind' ? '#6E4B9E' : '#4CAF50';
 
-    // 感受強度 1–15 → 加上區間：1–3 低｜4–6 中低｜7–8 中｜9–10 中高｜11+ 高
+    // 感受強度 1–15 → 加上區間：1–4 低｜5–6 中低｜7–8 中｜9–10 中高｜11+ 高
     var lvI = function(v) {
       var n = Number(v);
       if (v === undefined || v === '' || isNaN(n)) return '—';
-      return n + '（' + (n &lt;= 3 ? '低' : n &lt;= 6 ? '中低' : n &lt;= 8 ? '中' : n &lt;= 10 ? '中高' : '高') + '）';
+      return n + '（' + (n &lt;= 4 ? '低' : n &lt;= 6 ? '中低' : n &lt;= 8 ? '中' : n &lt;= 10 ? '中高' : '高') + '）';
     };
 
     var connectInfo = [
@@ -3261,7 +3261,7 @@ var POUR_GRINDERS = {
 var ALWAYS_TASKS = ['log','config'];   // 每間店都有
 var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
 
-var BUILD_ID = '2026-10-28d · Slack 感受強度加上區間（低／中低／中／中高／高）';
+var BUILD_ID = '2026-10-28e · 強度區間改 1–4 低／5–6 中低；中焙酸值可接受 4–7';
 var currentStore = localStorage.getItem('wl_store') || 'linkou';
 if (!STORES[currentStore]) currentStore = 'linkou';
 
@@ -3597,10 +3597,11 @@ function checkWd() {
 }
 
 // ── 淺焙／中焙 感受強度（1–15）────────────────────────────────
-// 1–3 低｜4–6 中低｜7–8 中｜9–10 中高｜11+ 高
+// 1–4 低｜5–6 中低｜7–8 中｜9–10 中高｜11+ 高
+// 可接受範圍：淺焙五項皆 7–10；中焙酸值 4–7，其餘四項 7–10
 const SENSE_KEYS = [['acid','酸值'],['flavor','風味'],['sweet','甜感'],['body','口感'],['finish','餘韻']];
 function senseLevel(v) {
-  if (v <= 3)  return {k:'low',     t:'低',   cls:'ng'};
+  if (v <= 4)  return {k:'low',     t:'低',   cls:'ng'};
   if (v <= 6)  return {k:'midlow',  t:'中低', cls:'wn'};
   if (v <= 8)  return {k:'mid',     t:'中',   cls:'ok'};
   if (v <= 10) return {k:'midhigh', t:'中高', cls:'ok'};
@@ -3615,6 +3616,8 @@ function upd(t) {
   const rbd = document.getElementById('rb-'+t);
 
   // 五項強度
+  const rangeOf = k => (!isL && k === 'acid') ? [4, 7] : [7, 10];   // 中焙酸值可接受 4–7
+  const inRange = k => iv[k] >= rangeOf(k)[0] && iv[k] <= rangeOf(k)[1];
   const iv = {};
   SENSE_KEYS.forEach(([k]) => {
     const v = +document.getElementById('i'+k+'-'+t).value;
@@ -3622,16 +3625,16 @@ function upd(t) {
     const lv = senseLevel(v);
     document.getElementById('vi'+k+'-'+t).textContent = v;
     const bd = document.getElementById('ri'+k+'-'+t);
-    bd.className = 'badge '+lv.cls;
+    bd.className = 'badge '+(inRange(k) ? 'ok' : v <= 4 ? 'ng' : 'wn');
     bd.textContent = lv.t;
   });
   const nameOf  = k => SENSE_KEYS.find(x => x[0]===k)[1];
   const descOf  = k => nameOf(k)+' '+senseLevel(iv[k]).t+'（'+iv[k]+'）';
   const keys    = SENSE_KEYS.map(x => x[0]);
-  const lowKeys  = keys.filter(k => iv[k] <= 6);    // 中低或更低
-  const highKeys = keys.filter(k => iv[k] >= 11);   // 高
-  const isOkLv   = v => v >= 7 && v <= 10;          // 中～中高
-  const allOk    = keys.every(k => isOkLv(iv[k]));
+  const lowKeys  = keys.filter(k => iv[k] < rangeOf(k)[0]);              // 低於可接受範圍（淺焙＝中低或更低）
+  const highKeys = keys.filter(k => k !== 'acid' && iv[k] >= 11);        // 風味／甜感／口感／餘韻 高 → 偏萃取高
+  const acidHigh = iv.acid > rangeOf('acid')[1];                         // 酸值高於範圍 → 甜感壓不住，偏萃取不足
+  const allOk    = keys.every(inRange);
   // 降低萃取型態：酸值、甜感 中低或更低；風味、口感、餘韻 中高以上
   const overPattern  = iv.acid <= 6 && iv.sweet <= 6 && iv.flavor >= 9 && iv.body >= 9 && iv.finish >= 9;
   // 提高萃取型態：五項中有三項以上為中低或更低
@@ -3699,13 +3702,13 @@ function upd(t) {
       stepsOver());
   } else if (underPattern) {
     show('warn', '萃取不足 — 提高萃取率',
-      lowKeys.map(descOf).join('、')+'，共 '+lowKeys.length+' 項落在中低或更低 → 萃取率不足。磨細、升溫或拉長萃取量，'+ONE_VAR,
+      lowKeys.map(descOf).join('、')+'，共 '+lowKeys.length+' 項低於可接受範圍 → 萃取率不足。磨細、升溫或拉長萃取量，'+ONE_VAR,
       stepsUnder());
   } else if (allOk) {
     const tagNote = (hasSharp||hasThin||hasFlatSw||hasBitter) ? '　⚠️ 有勾選風味標籤（'+[...sel].map(k=>document.querySelector(`.tag[data-k="${k}"]`)?.textContent||k).join('、')+'），請再喝一口確認。' : '';
     const humidNote = isVeryHighHumid ? `　⚠️ 濕度 ${humid}% 偏高，留意通道效應，布粉器深度確認。` : isHighHumid ? `　濕度 ${humid}%，研磨可略粗方向微調。` : '';
     show('good', '均衡 — 一杯 OK 的咖啡',
-      '五項強度皆落在中～中高（7–10）。目前 Basket：'+basketLabel+tagNote+humidNote,
+      (isL ? '五項強度皆落在中～中高（7–10）。' : '酸值落在 4–7、其餘四項落在中～中高（7–10）。')+'目前 Basket：'+basketLabel+tagNote+humidNote,
       ['維持目前刻度','維持今日水溫','維持目前轉速（'+speedLabel+'）','維持目前 Basket（'+basketLabel+'）','維持目前液重','','','','','']);
   } else if (hasSharp || hasThin || hasFlatSw) {
     show('warn', '萃取偏低 — 依風味標籤',
@@ -3717,10 +3720,11 @@ function upd(t) {
       stepsOver());
   } else {
     // 不屬於上述三種型態：列出偏離項目，小幅微調
-    const offKeys = keys.filter(k => !isOkLv(iv[k]));
-    const lean = lowKeys.length > highKeys.length ? 'under' : highKeys.length > lowKeys.length ? 'over' : 'none';
+    const offKeys = keys.filter(k => !inRange(k));
+    const underSig = lowKeys.length + (acidHigh ? 1 : 0);
+    const lean = underSig > highKeys.length ? 'under' : highKeys.length > underSig ? 'over' : 'none';
     const body = '偏離目標：'+offKeys.map(descOf).join('、')+'。'
-      + (lean==='under' ? '偏低項目較多，可小幅往提高萃取方向微調。'
+      + (lean==='under' ? (acidHigh && !lowKeys.length ? '酸值偏高、甜感壓不住，可小幅往提高萃取方向微調。' : '偏低項目較多，可小幅往提高萃取方向微調。')
         : lean==='over' ? '偏高項目較多，可小幅往降低萃取方向微調。'
         : '偏高與偏低項目相當，先維持參數重新萃取一杯確認。')
       + ONE_VAR;
