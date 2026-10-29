@@ -939,27 +939,28 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
 
   <!-- Sliders -->
   <div class="card">
-    <div class="card-head"><div class="card-title">感受比例</div><div class="card-sub">目標：酸 15–25%　甜 60–70%　深調 &lt;5%</div></div>
+    <div class="card-head"><div class="card-title">感受強度</div><div class="card-sub">目標：五項皆落在 中～中高（7–10）</div></div>
     <div class="card-body">
-      <div class="flavor-bar">
-        <div class="fb-seg" id="fba-y" style="flex:20;background:#F5C542;color:#7A5A00">酸 20%</div>
-        <div class="fb-seg" id="fbs-y" style="flex:65;background:#D4537E;color:#5B0F2E">甜 65%</div>
-        <div class="fb-seg" id="fbd-y" style="flex:4;background:#6B3A2A;color:#E8D0C4">深 4%</div>
-        <div class="fb-rest">餘韻</div>
-      </div>
-      <div class="target-bar"><div style="background:#F5C542;flex:20"></div><div style="background:#D4537E;flex:65"></div><div style="background:#6B3A2A;flex:5"></div><div style="background:#DDD;flex:10"></div></div>
-      <div class="range-hint"><span>目標比例 ↑</span><span>酸 15–25%　甜 60–70%　深調 &lt;5%</span></div>
+      <div class="range-hint" style="margin-bottom:12px"><span>強度 1–15</span><span>1–4 低　5–6 中低　7–8 中　9–10 中高　11+ 高</span></div>
       <div class="slider-block">
-        <div class="slider-head"><span class="slider-name" style="color:#8A6200">酸值感</span><span class="slider-val"><span id="va-y" style="color:#8A6200">20%</span><span class="badge ok" id="ra-y">目標</span></span></div>
-        <input type="range" min="0" max="50" value="20" step="1" id="sa-y" oninput="upd('y')">
+        <div class="slider-head"><span class="slider-name" style="color:#8A6200">酸值強度</span><span class="slider-val"><span id="viacid-y" style="color:#8A6200">8</span><span class="badge ok" id="riacid-y">中</span></span></div>
+        <input type="range" min="1" max="15" value="8" step="1" id="iacid-y" oninput="upd('y')">
       </div>
       <div class="slider-block">
-        <div class="slider-head"><span class="slider-name" style="color:#9B1A50">甜感</span><span class="slider-val"><span id="vs-y" style="color:#9B1A50">65%</span><span class="badge ok" id="rs-y">目標</span></span></div>
-        <input type="range" min="0" max="100" value="65" step="1" id="ss-y" oninput="upd('y')">
+        <div class="slider-head"><span class="slider-name" style="color:#1A6B9A">風味強度</span><span class="slider-val"><span id="viflavor-y" style="color:#1A6B9A">8</span><span class="badge ok" id="riflavor-y">中</span></span></div>
+        <input type="range" min="1" max="15" value="8" step="1" id="iflavor-y" oninput="upd('y')">
+      </div>
+      <div class="slider-block">
+        <div class="slider-head"><span class="slider-name" style="color:#9B1A50">甜感強度</span><span class="slider-val"><span id="visweet-y" style="color:#9B1A50">8</span><span class="badge ok" id="risweet-y">中</span></span></div>
+        <input type="range" min="1" max="15" value="8" step="1" id="isweet-y" oninput="upd('y')">
+      </div>
+      <div class="slider-block">
+        <div class="slider-head"><span class="slider-name" style="color:#5A2E1A">口感（觸感）強度</span><span class="slider-val"><span id="vibody-y" style="color:#5A2E1A">8</span><span class="badge ok" id="ribody-y">中</span></span></div>
+        <input type="range" min="1" max="15" value="8" step="1" id="ibody-y" oninput="upd('y')">
       </div>
       <div class="slider-block" style="margin-bottom:0">
-        <div class="slider-head"><span class="slider-name" style="color:#5A2E1A">深褐/巧克力調</span><span class="slider-val"><span id="vd-y" style="color:#5A2E1A">4%</span><span class="badge ok" id="rd-y">目標</span></span></div>
-        <input type="range" min="0" max="25" value="4" step="1" id="sd-y" oninput="upd('y')">
+        <div class="slider-head"><span class="slider-name" style="color:#6E4B9E">餘韻強度</span><span class="slider-val"><span id="vifinish-y" style="color:#6E4B9E">8</span><span class="badge ok" id="rifinish-y">中</span></span></div>
+        <input type="range" min="1" max="15" value="8" step="1" id="ifinish-y" oninput="upd('y')">
       </div>
     </div>
   </div>
@@ -967,8 +968,8 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
   <!-- Result -->
   <div style="margin:12px 12px 0;border-radius:16px;overflow:hidden;border:1px solid #EBE8E2">
     <div id="rbox-y" class="result-box good">
-      <div class="result-title" id="rt-y">均衡 — 符合目標</div>
-      <div class="result-body" id="rb-y">酸值明亮（15–25%）、甜感主導（60–70%）、巧克力調收斂（&lt;5%）。</div>
+      <div class="result-title" id="rt-y">均衡 — 一杯 OK 的咖啡</div>
+      <div class="result-body" id="rb-y">五項強度皆落在中～中高（7–10），是一杯 OK 的咖啡。</div>
     </div>
     <div style="padding:14px 16px;border-top:1px solid #F0EDE8;background:#fff">
       <div class="sec-label" style="margin-bottom:12px">調整方向</div>
@@ -1568,12 +1569,14 @@ function doGet(e) {
                '研磨調整','研磨刻度','水溫調整','水溫說明',
                '氣溫℃','濕度%','水溫℃','粉量g','預浸秒','萃取秒','咖啡液重g','Espresso比例',
                '豆名','批次','Agtron豆','Agtron粉','密度',
-               '酸值%','甜感%','深調%','狀態','Basket','Swan轉速','標籤','備注','門市'];
+               '酸值%','甜感%','深調%','狀態','Basket','Swan轉速','標籤','備注','門市',
+               '酸值強度','風味強度','甜感強度','口感強度','餘韻強度'];
     values = [p.ts,p.staff,p.milkCheck,
               p.grindAdj,p.grindNote,p.tempAdj,p.tempNote,
               p.temp,p.humid,p.wtemp,p.dose,p.prebrew||'',p.brewTime,p.yield,p.ratio,
               p.beanName,p.batchNo,p.agtronBean,p.agtronGrind,p.density,
-              p.acid,p.sweet,p.dark,p.status,p.basket,p.speed,p.tags,p.note,p.storeName];
+              p.acid,p.sweet,p.dark,p.status,p.basket,p.speed,p.tags,p.note,p.storeName,
+              p.iAcid,p.iFlavor,p.iSweet,p.iBody,p.iFinish];
   } else {
     // 中焙 SOE（及其他未特別列出的類型）
     headers = ['時間','夥伴','確認加奶效果',
@@ -1652,7 +1655,8 @@ function doGet(e) {
       connectInfo.push({ title: '參數', description: '水溫 ' + (p.wtemp||'—') + '℃　粉量 ' + (p.dose||'—') + 'g' + (p.prebrew ? '　預浸 ' + p.prebrew + 's' : '') + '　' + (p.brewTime||'—') + 's　液重 ' + (p.yield||'—') + 'g　1:' + (p.ratio||'—') });
       connectInfo.push({ title: '環境', description: '氣溫 ' + (p.temp||'—') + '℃　濕度 ' + (p.humid||'—') + '%' });
       connectInfo.push({ title: '器材', description: (p.basket||'WAFO B/O') + '　Swan ' + (p.speed||'—') });
-      connectInfo.push({ title: '酸甜比例', description: '酸 ' + (p.acid||'—') + '%　甜 ' + (p.sweet||'—') + '%　深 ' + (p.dark||'—') + '%' });
+      if (p.iAcid) connectInfo.push({ title: '感受強度', description: '酸值 ' + lvI(p.iAcid) + '　風味 ' + lvI(p.iFlavor) + '　甜感 ' + lvI(p.iSweet) + '　口感 ' + lvI(p.iBody) + '　餘韻 ' + lvI(p.iFinish) });
+      else connectInfo.push({ title: '酸甜比例', description: '酸 ' + (p.acid||'—') + '%　甜 ' + (p.sweet||'—') + '%　深 ' + (p.dark||'—') + '%' });
       if (p.tags &amp;&amp; p.tags !== '—') connectInfo.push({ title: '風味感受', description: p.tags });
       if (p.milkCheck) connectInfo.push({ title: '加奶確認', description: p.milkCheck });
       connectInfo.push({ title: '狀態', description: statusText });
@@ -3178,7 +3182,7 @@ const cvaScores = { aroma:5, flavor:5, aftertaste:5, acidity:5, sweetness:5, mou
 const cvaTags = { aroma:new Set(), flavor:new Set(), aftertaste:new Set(), acidity:new Set(), mouthfeel:new Set() };
 let scriptUrl = localStorage.getItem('wl_script_url') || 'https://script.google.com/macros/s/AKfycbzTxpt480SKaXyqW_xMXpF92Y1ZapGIVND-puBKKLghgLEoJBAE-Userm6l-l75idFw2g/exec';
 window.scriptUrl = scriptUrl; // expose to SOP IIFE scope
-let curStates = { l:{acid:'',sweet:'',dark:'',iAcid:8,iFlavor:8,iSweet:8,iBody:8,iFinish:8,status:'good',title:'均衡 — 一杯 OK 的咖啡'}, m:{acid:'',sweet:'',dark:'',iAcid:8,iFlavor:8,iSweet:8,iBody:8,iFinish:8,status:'good',title:'均衡 — 一杯 OK 的咖啡'}, y:{acid:20,sweet:65,dark:4,status:'good',title:'均衡 — 符合目標'}, p:{} };
+let curStates = { l:{acid:'',sweet:'',dark:'',iAcid:8,iFlavor:8,iSweet:8,iBody:8,iFinish:8,status:'good',title:'均衡 — 一杯 OK 的咖啡'}, m:{acid:'',sweet:'',dark:'',iAcid:8,iFlavor:8,iSweet:8,iBody:8,iFinish:8,status:'good',title:'均衡 — 一杯 OK 的咖啡'}, y:{acid:'',sweet:'',dark:'',iAcid:8,iFlavor:8,iSweet:8,iBody:8,iFinish:8,status:'good',title:'均衡 — 一杯 OK 的咖啡'}, p:{} };
 let logFilter = 'all';
 let sheetsLogs = null;
 
@@ -3261,7 +3265,7 @@ var POUR_GRINDERS = {
 var ALWAYS_TASKS = ['log','config'];   // 每間店都有
 var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
 
-var BUILD_ID = '2026-10-28e · 強度區間改 1–4 低／5–6 中低；中焙酸值可接受 4–7';
+var BUILD_ID = '2026-10-28f · 一隅 SOE 改為五項感受強度（1–15），判斷規則同淺焙';
 var currentStore = localStorage.getItem('wl_store') || 'linkou';
 if (!STORES[currentStore]) currentStore = 'linkou';
 
@@ -3740,10 +3744,28 @@ function upd(t) {
 
 // ── 一隅 SOE diagnosis ────────────────────────────────────────────
 function updY() {
-  const pfx = {sa:'sa-y',ss:'ss-y',sd:'sd-y',va:'va-y',vs:'vs-y',vd:'vd-y',ra:'ra-y',rs:'rs-y',rd:'rd-y',fba:'fba-y',fbs:'fbs-y',fbd:'fbd-y',rbox:'rbox-y',rt:'rt-y',rb:'rb-y'};
-  const acid  = +document.getElementById(pfx.sa).value;
-  const sweet = +document.getElementById(pfx.ss).value;
-  const dark  = +document.getElementById(pfx.sd).value;
+  // 一隅 SOE：感受強度（1–15），判斷規則與林口／新竹淺焙相同，五項可接受範圍皆 7–10
+  const t = 'y';
+  const iv = {};
+  SENSE_KEYS.forEach(([k]) => {
+    const v = +document.getElementById('i'+k+'-y').value;
+    iv[k] = v;
+    document.getElementById('vi'+k+'-y').textContent = v;
+    const bd = document.getElementById('ri'+k+'-y');
+    bd.className = 'badge '+((v >= 7 && v <= 10) ? 'ok' : v <= 4 ? 'ng' : 'wn');
+    bd.textContent = senseLevel(v).t;
+  });
+  const nameOf  = k => SENSE_KEYS.find(x => x[0]===k)[1];
+  const descOf  = k => nameOf(k)+' '+senseLevel(iv[k]).t+'（'+iv[k]+'）';
+  const keys    = SENSE_KEYS.map(x => x[0]);
+  const inRange = k => iv[k] >= 7 && iv[k] <= 10;
+  const lowKeys  = keys.filter(k => iv[k] < 7);
+  const highKeys = keys.filter(k => k !== 'acid' && iv[k] >= 11);
+  const acidHigh = iv.acid > 10;
+  const allOk    = keys.every(inRange);
+  const overPattern  = iv.acid <= 6 && iv.sweet <= 6 && iv.flavor >= 9 && iv.body >= 9 && iv.finish >= 9;
+  const underPattern = lowKeys.length >= 3;
+
   const speedEl = document.getElementById('yl-speed');
   const speed = speedEl ? speedEl.value : 'L';
   const speedLabel = {L:'L（低轉速）', M:'M（中轉速）', H:'H（高轉速）'}[speed] || speed + ' 轉速';
@@ -3755,39 +3777,18 @@ function updY() {
   const isHighHumid = humid >= 70;
   const isVeryHighHumid = humid >= 80;
 
-  document.getElementById(pfx.va).textContent = acid+'%';
-  document.getElementById(pfx.vs).textContent = sweet+'%';
-  document.getElementById(pfx.vd).textContent = dark+'%';
-
-  setBadge(pfx.ra, acid>=15&&acid<=25);
-  setBadge(pfx.rs, sweet>=60&&sweet<=70);
-  setBadge(pfx.rd, dark<5);
-
-  const fa=document.getElementById(pfx.fba), fs=document.getElementById(pfx.fbs), fd=document.getElementById(pfx.fbd);
-  fa.style.flex=acid; fa.textContent=acid>8?`酸 ${acid}%`:'';
-  fs.style.flex=sweet; fs.textContent=sweet>12?`甜 ${sweet}%`:'';
-  fd.style.flex=Math.max(dark,1); fd.textContent=dark>=5?`深 ${dark}%`:'';
-
   const sel = selTags['y'];
   const hasPeanut=sel.has('peanut'), hasGrass=sel.has('grass');
   const hasSharp=sel.has('sharp'), hasAstringent=sel.has('astringent');
   const hasBitter=sel.has('bitter')||sel.has('choc');
   const hasThin=sel.has('thin'), hasFlatSw=sel.has('flatSw');
 
-  const rb=document.getElementById(pfx.rbox);
-  const rt=document.getElementById(pfx.rt);
-  const rbd=document.getElementById(pfx.rb);
+  const rb=document.getElementById('rbox-y');
+  const rt=document.getElementById('rt-y');
+  const rbd=document.getElementById('rb-y');
   let status='good', title='';
 
-  // Swan speed step helpers
-  function swanOver() {
-    const sp = speed==='H' ? 'Swan 換 M，減少細粉降低萃取' : speed==='M' ? 'Swan 換 L，減少細粉降低萃取' : 'Swan 已是 L（最低），研磨調粗為主';
-    return ['研磨往粗的方向調整', sp, '水溫往降的方向輔助', '咖啡液往減少方向截斷後段苦味', 'act','act-w','act-w',''];
-  }
-  function swanUnder() {
-    const sp = speed==='L' ? 'Swan 換 M，增加細粉提升萃取' : speed==='M' ? 'Swan 換 H，增加細粉提升萃取' : 'Swan 已是 H（最高），研磨調細為主';
-    return ['研磨往細的方向調整', sp, '水溫往升的方向輔助', '咖啡液往增加方向，拉長萃取量', 'act','act-w','act-w',''];
-  }
+  // 步驟順序：研磨／水溫／Swan 轉速／液重
   function setY(a,b,c,d, ca,cb,cc,cd) {
     [['s1-y',a,ca],['s2-y',b,cb],['s3-y',c,cc],['s4-y',d,cd]].forEach(([id,txt,cls]) => {
       const el = document.getElementById(id);
@@ -3796,63 +3797,71 @@ function updY() {
       el.className = 'step-desc'+(cls?' '+cls:'');
     });
   }
-
-  if (isVeryHighHumid && hasAstringent) {
-    status='bad'; title='高濕度通道效應 — 粉餅結構鬆散';
-    rb.className='result-box bad'; rt.textContent=title;
-    rbd.textContent=`濕度 ${humid}% 過高導致粉餅吸水膨脹，產生通道效應。Swan 換 H 增加細粉壓實粉餅。`;
-    const sp = speed!=='H' ? 'Swan 換 H（關鍵）— 增加細粉壓實粉餅，減少通道' : 'Swan 已是 H，確認布粉器深度往深調整';
-    setY(sp, '研磨往細的方向微調，配合 H 轉速', '確認布粉器深度（往深調），重新設定高度', '液重重新設定（粉餅結構改變後吃水不同）', 'crit','act','act','act-w');
-  } else if (hasPeanut||hasGrass) {
-    status='crit'; title='嚴重萃取不足 — 花生/青草味';
-    rb.className='result-box crit'; rt.textContent=title;
-    rbd.textContent=(hasPeanut?'花生/穀物味 = 生豆感，萃取極度不足。':'')+(hasGrass?'青草味 = 揮發物殘留，萃取嚴重不足。':'')+' 大幅調整後重新萃取。';
-    const sp = speed!=='H' ? 'Swan 換 H，增加細粉全面提升萃取' : 'Swan 已是 H，研磨大幅往細為主';
-    setY('研磨往細的方向大幅調整', '確認水溫是否足夠，往升的方向確認', sp, '維持目前液重', 'crit','crit','crit','');
-  } else if (hasAstringent) {
-    status='bad'; title='收斂感 — 粉餅結構或萃取不均';
-    rb.className='result-box bad'; rt.textContent=title;
-    rbd.textContent='收斂感通常是粉餅結構問題（布粉不均 / 通道效應）或流速過快。確認 ' + basketLabel + ' 布粉均勻度。';
-    const sp = speed!=='H' ? 'Swan 換 H，增加細粉壓實粉餅' : 'Swan 已是 H，確認布粉均勻度';
-    setY('研磨往細的方向調整', '確認布粉均勻度，確認 ' + basketLabel + ' 高度', sp, '咖啡液往增加方向微調', 'act','act','act-w','');
-  } else if (hasSharp) {
-    status='bad'; title='酸質不對 — 尖酸';
-    rb.className='result-box bad'; rt.textContent=title;
-    rbd.textContent='尖酸 = 萃取率不足，甜感沒有充分溶出來支撐酸值。';
-    const s = swanUnder();
-    setY(s[0],s[1],s[2],s[3], s[4],s[5],s[6],s[7]);
-  } else if (dark>=5||hasBitter) {
-    status='bad'; title='過萃 — 深調/苦感超標';
-    rb.className='result-box bad'; rt.textContent=title;
-    rbd.textContent='巧克力調超過 5%，萃取過度。';
-    const s = swanOver();
-    setY(s[0],s[1],s[2],s[3], s[4],s[5],s[6],s[7]);
-  } else if (acid<15||hasThin) {
-    status='warn'; title='萃取不足 — 水感/酸值偏低';
-    rb.className='result-box warn'; rt.textContent=title;
-    rbd.textContent='酸值低於 15% 或有水感，甜感沒有充分溶出。';
-    const s = swanUnder();
-    setY(s[0],s[1],s[2],s[3], s[4],s[5],s[6],s[7]);
-  } else if (acid>25) {
-    status='warn'; title='酸值偏高 — 甜感被壓制';
-    rb.className='result-box warn'; rt.textContent=title;
-    rbd.textContent='酸值超過 25%，甜感比例不足，需要提升萃取讓甜感更明顯。';
-    const s = swanUnder();
-    setY(s[0],s[1],s[2],s[3], s[4],s[5],s[6],s[7]);
-  } else if (hasFlatSw||sweet<60) {
-    status='warn'; title='甜感不足 — 低於 60%';
-    rb.className='result-box warn'; rt.textContent=title;
-    rbd.textContent='甜感比例偏低。增粉為最後手段（不換批次不輕易動粉量）。';
-    const sp = speed!=='H' ? 'Swan 可嘗試換 M/H 增加細粉輔助甜感' : 'Swan 已是 H，研磨是主要手段';
-    setY('研磨往細的方向微調', '確認水溫是否一致', sp, '維持目前液重，增粉為最後手段', 'act','','act-w','');
-  } else {
-    status='good'; title='均衡 — 符合目標';
-    rb.className='result-box good'; rt.textContent=title;
-    const humidNote = isVeryHighHumid ? `　⚠️ 濕度 ${humid}% 偏高，留意通道效應，布粉確認。` : isHighHumid ? `　濕度 ${humid}%，研磨可略粗方向微調。` : '';
-    rbd.textContent=`酸值明亮（15–25%）、甜感主導（60–70%）、巧克力調收斂（<5%）。${humidNote}`;
-    setY('維持目前刻度', '維持今日水溫', '維持目前 Swan 轉速（'+speedLabel+'）', '維持目前液重', '','','','');
+  const show = (st, ttl, body, steps) => {
+    status = st; title = ttl;
+    rb.className = 'result-box '+st; rt.textContent = ttl; rbd.textContent = body;
+    setY(...steps);
+  };
+  function swanOver() {
+    const sp = speed==='H' ? 'Swan 換 M，減少細粉降低萃取' : speed==='M' ? 'Swan 換 L，減少細粉降低萃取' : 'Swan 已是 L（最低），研磨調粗為主';
+    return ['研磨往粗的方向調整', '水溫往降的方向', sp, '咖啡液往減少方向，縮短萃取量截斷後段苦味', 'act','act-w','act-w','act-w'];
   }
-  curStates['y'] = {acid, sweet, dark, status, title, speed: speedLabel, basket: basketLabel};
+  function swanUnder() {
+    const sp = speed==='L' ? 'Swan 換 M，增加細粉提升萃取' : speed==='M' ? 'Swan 換 H，增加細粉提升萃取' : 'Swan 已是 H（最高），研磨調細為主';
+    return ['研磨往細的方向調整', '水溫往升的方向', sp, '咖啡液往增加方向，拉長萃取量', 'act','act-w','act-w','act-w'];
+  }
+  const ONE_VAR = '一次只動一個變數，重新萃取後再評估。';
+
+  if (hasPeanut || hasGrass) {
+    show('crit', '萃取嚴重不足 — 生豆感',
+      (hasPeanut?'花生/穀物味 = 生豆感，萃取極度不足。':'')+(hasGrass?'青草味 = 揮發物殘留，萃取嚴重不足。':'')+' 大幅調整後重新萃取再評估。',
+      ['研磨往細的方向大幅調整', '確認水溫是否足夠，往升的方向確認', speed!=='H' ? 'Swan 換 H，增加細粉全面提升萃取' : 'Swan 已是 H，研磨大幅往細為主', '咖啡液往增加方向，拉長萃取量', 'crit','crit','crit','act-w']);
+  } else if (isVeryHighHumid && hasAstringent) {
+    show('bad', '高濕度通道效應 — 粉餅結構鬆散',
+      `濕度 ${humid}% 過高導致粉餅吸水膨脹，產生通道效應。Swan 換 H 增加細粉壓實粉餅，並確認布粉器深度（往深調）。`,
+      ['研磨往細的方向微調，配合 H 轉速', '水溫維持，濕度高時勿再降溫', speed!=='H' ? 'Swan 換 H（關鍵）— 增加細粉壓實粉餅，減少通道' : 'Swan 已是 H，確認布粉器深度往深調整', '液重重新設定（粉餅結構改變後吃水不同）', 'act','','crit','act-w']);
+  } else if (hasAstringent) {
+    const humidCtx = isHighHumid ? `（目前濕度 ${humid}%，高濕度會加劇通道效應）` : '';
+    show('bad', '收斂感 — 粉餅結構或萃取不均',
+      '收斂感通常是粉餅結構問題（布粉不均 / 通道效應）或流速過快。確認 '+basketLabel+' 布粉均勻度與高度。'+humidCtx,
+      ['研磨往細的方向調整', '水溫往升的方向', speed!=='H' ? 'Swan 換 H，增加細粉壓實粉餅' : 'Swan 已是 H，確認布粉均勻度', '確認咖啡液重是否穩定', 'act','act-w','act-w','']);
+  } else if (overPattern) {
+    show('bad', '過萃 — 降低萃取率',
+      descOf('acid')+'、'+descOf('sweet')+'偏低，'+descOf('flavor')+'、'+descOf('body')+'、'+descOf('finish')+'偏重 → 萃取率過高。磨粗、降溫或縮短萃取量，'+ONE_VAR,
+      swanOver());
+  } else if (underPattern) {
+    show('warn', '萃取不足 — 提高萃取率',
+      lowKeys.map(descOf).join('、')+'，共 '+lowKeys.length+' 項低於可接受範圍 → 萃取率不足。磨細、升溫或拉長萃取量，'+ONE_VAR,
+      swanUnder());
+  } else if (allOk) {
+    const tagNote = (hasSharp||hasThin||hasFlatSw||hasBitter) ? '　⚠️ 有勾選風味標籤（'+[...sel].map(k=>document.querySelector(`.tag[data-k="${k}"]`)?.textContent||k).join('、')+'），請再喝一口確認。' : '';
+    const humidNote = isVeryHighHumid ? `　⚠️ 濕度 ${humid}% 偏高，留意通道效應，布粉確認。` : isHighHumid ? `　濕度 ${humid}%，研磨可略粗方向微調。` : '';
+    show('good', '均衡 — 一杯 OK 的咖啡',
+      '五項強度皆落在中～中高（7–10）。目前 Basket：'+basketLabel+tagNote+humidNote,
+      ['維持目前刻度', '維持今日水溫', '維持目前 Swan 轉速（'+speedLabel+'）', '維持目前液重', '','','','']);
+  } else if (hasSharp || hasThin || hasFlatSw) {
+    show('warn', '萃取偏低 — 依風味標籤',
+      '強度未達明確型態，但勾選了尖酸／水感／甜感平淡，屬萃取率不足。磨細、升溫或拉長萃取量，'+ONE_VAR,
+      swanUnder());
+  } else if (hasBitter) {
+    show('warn', '萃取偏高 — 依風味標籤',
+      '強度未達明確型態，但勾選了苦感，屬萃取率偏高。磨粗、降溫或縮短萃取量，'+ONE_VAR,
+      swanOver());
+  } else {
+    const offKeys = keys.filter(k => !inRange(k));
+    const underSig = lowKeys.length + (acidHigh ? 1 : 0);
+    const lean = underSig > highKeys.length ? 'under' : highKeys.length > underSig ? 'over' : 'none';
+    const body = '偏離目標：'+offKeys.map(descOf).join('、')+'。'
+      + (lean==='under' ? (acidHigh && !lowKeys.length ? '酸值偏高、甜感壓不住，可小幅往提高萃取方向微調。' : '偏低項目較多，可小幅往提高萃取方向微調。')
+        : lean==='over' ? '偏高項目較多，可小幅往降低萃取方向微調。'
+        : '偏高與偏低項目相當，先維持參數重新萃取一杯確認。')
+      + ONE_VAR;
+    const steps = lean==='under' ? ['研磨往細的方向微調', '水溫往升的方向微調（備選）', '維持目前 Swan 轉速（'+speedLabel+'）', '咖啡液往增加方向微調（備選）', 'act','act-w','','act-w']
+                : lean==='over'  ? ['研磨往粗的方向微調', '水溫往降的方向微調（備選）', '維持目前 Swan 轉速（'+speedLabel+'）', '咖啡液往減少方向微調（備選）', 'act','act-w','','act-w']
+                : ['維持目前刻度，重新萃取確認', '維持今日水溫', '維持目前 Swan 轉速（'+speedLabel+'）', '維持目前液重', 'act','','',''];
+    show('warn', '接近目標 — 單項偏離', body, steps);
+  }
+  curStates['y'] = {acid:'', sweet:'', dark:'', iAcid:iv.acid, iFlavor:iv.flavor, iSweet:iv.sweet, iBody:iv.body, iFinish:iv.finish, status, title, speed: speedLabel, basket: basketLabel};
 }
 
 // ── CVA ───────────────────────────────────────────────────────────
@@ -4183,11 +4192,11 @@ async function submitRecord(t) {
       acid:  curStates[t].acid,
       sweet: curStates[t].sweet,
       dark:  curStates[t].dark,
-      iAcid:   t==='y' ? '' : curStates[t].iAcid,
-      iFlavor: t==='y' ? '' : curStates[t].iFlavor,
-      iSweet:  t==='y' ? '' : curStates[t].iSweet,
-      iBody:   t==='y' ? '' : curStates[t].iBody,
-      iFinish: t==='y' ? '' : curStates[t].iFinish,
+      iAcid:   curStates[t].iAcid,
+      iFlavor: curStates[t].iFlavor,
+      iSweet:  curStates[t].iSweet,
+      iBody:   curStates[t].iBody,
+      iFinish: curStates[t].iFinish,
       status: curStates[t].status,
       title:  curStates[t].title,
       tags:   [...selTags[t]].join('、')||'—',
@@ -5243,7 +5252,7 @@ async function fetchBeanHistory(t, beanName, batchNo) {
     const recent = matched.slice(-12);
     const statusColor = s => s==='good'?'#3B8B50':s==='warn'?'#D4A017':'#C0392B';
 
-    const useI = t !== 'y';   // 淺焙／中焙改用感受強度（1–15）
+    const useI = true;   // 淺焙／中焙／一隅皆改用感受強度（1–15）
     const sparkRow = (values, color, label, unit='%', fixedMax=0) => {
       const nums = values.map(v => parseFloat(v)||0);
       const max = fixedMax || Math.max(...nums, 1);
