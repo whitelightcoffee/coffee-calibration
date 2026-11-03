@@ -1297,6 +1297,8 @@ input[type=range]{width:100%;height:32px;cursor:pointer;accent-color:#1a1a1a}
 //   分頁不存在時會自動建立（含表頭）。舊的混合分頁請自行改名封存；
 //   read 仍會相容讀取舊的未分店分頁（淺焙SOE、水質紀錄…）作為轉移期備援。
 //
+// ★ 2026-11-03 淺焙SOE 新增「磨豆機」欄（林口改 Mahlkonig E80GBW，轉速固定記為「不動」）；
+//   Slack「器材」改顯示實際磨豆機名稱，轉速為「不動」時不顯示。
 // ★ 2026-08-26 新增「沖煮策略DFR」欄：淺焙SOE / 中焙SOE / SOE刻度 三種紀錄。
 // ==========================================================
 
@@ -1370,7 +1372,7 @@ function doGet(e) {
           obj.wd=obj['WD值g']||''; obj.iAcid=obj['酸值強度']||''; obj.iFlavor=obj['風味強度']||''; obj.iSweet=obj['甜感強度']||''; obj.iBody=obj['口感強度']||''; obj.iFinish=obj['餘韻強度']||'';
           obj.dose=obj['粉量g']||''; obj.brewTime=obj['萃取秒']||'';
           obj.ratio=obj['Espresso比例']||''; obj.basket=obj['Basket']||'';
-          obj.speed=obj['轉速']||''; obj.status=obj['狀態']||'good';
+          obj.speed=obj['轉速']||''; obj.grinder=obj['磨豆機']||''; obj.status=obj['狀態']||'good';
           obj.title=obj['狀態']||'記錄'; obj.tags=obj['標籤']||'';
         }
         allRecords.push(obj);
@@ -1559,13 +1561,13 @@ function doGet(e) {
                '氣溫℃','濕度%','水溫℃','粉量g','萃取秒','咖啡液重g','Espresso比例',
                '豆名','批次','Agtron豆','Agtron粉','密度',
                '酸值%','甜感%','深調%','狀態','Basket','轉速','標籤','備注','門市','RDT','沖煮策略DFR',
-               '酸值強度','風味強度','甜感強度','口感強度','餘韻強度','WD值g'];
+               '酸值強度','風味強度','甜感強度','口感強度','餘韻強度','WD值g','磨豆機'];
     values = [p.ts,p.staff,p.milkCheck,
               p.tapTds,p.tdsAdj,p.drinkTds,p.mgAdj,p.grindAdj,p.grindNote,p.tempAdj,p.tempNote,
               p.temp,p.humid,p.wtemp,p.dose,p.brewTime,p.yield,p.ratio,
               p.beanName,p.batchNo,p.agtronBean,p.agtronGrind,p.density,
               p.acid,p.sweet,p.dark,p.status,p.basket,p.speed,p.tags,p.note,p.storeName,p.rdt,p.dfr||'',
-              p.iAcid,p.iFlavor,p.iSweet,p.iBody,p.iFinish,p.wd||''];
+              p.iAcid,p.iFlavor,p.iSweet,p.iBody,p.iFinish,p.wd||'',p.grinder||''];
   } else if (p.type === 'yiyu') {
     headers = ['時間','夥伴','確認加奶效果',
                '研磨調整','研磨刻度','水溫調整','水溫說明',
@@ -1643,7 +1645,7 @@ function doGet(e) {
       connectInfo.push({ title: '門市', description: p.storeName || '—' });
       connectInfo.push({ title: '參數', description: '水溫 ' + (p.wtemp||'—') + '℃　粉量 ' + (p.dose||'—') + 'g　' + (p.brewTime||'—') + 's　液重 ' + (p.yield||'—') + 'g　1:' + (p.ratio||'—') });
       connectInfo.push({ title: '環境', description: '氣溫 ' + (p.temp||'—') + '℃　濕度 ' + (p.humid||'—') + '%　飲用水TDS ' + (p.drinkTds||'—') });
-      connectInfo.push({ title: '器材', description: 'Basket ' + (p.basket||'—') + '　Molar ' + (p.speed||'—') + (p.rdt ? '　RDT ' + p.rdt : '') });
+      connectInfo.push({ title: '器材', description: 'Basket ' + (p.basket||'—') + '　' + (p.grinder||'磨豆機') + ((p.speed &amp;&amp; p.speed !== '不動') ? '　轉速 ' + p.speed : '') + (p.rdt ? '　RDT ' + p.rdt : '') });
       if (p.wd) connectInfo.push({ title: 'WD 值（最高 DFR 10 秒）', description: p.wd + 'g' + (Number(p.wd) &lt; 90 ? '　⚠️ 低於 90g，需進行 DFR 校正' : '　✅ 正常') });
       if (p.iAcid) connectInfo.push({ title: '感受強度', description: '酸值 ' + lvI(p.iAcid) + '　風味 ' + lvI(p.iFlavor) + '　甜感 ' + lvI(p.iSweet) + '　口感 ' + lvI(p.iBody) + '　餘韻 ' + lvI(p.iFinish) });
       else connectInfo.push({ title: '酸甜比例', description: '酸 ' + (p.acid||'—') + '%　甜 ' + (p.sweet||'—') + '%　深 ' + (p.dark||'—') + '%' });
@@ -3267,7 +3269,7 @@ var POUR_GRINDERS = {
 var ALWAYS_TASKS = ['log','config'];   // 每間店都有
 var ALL_TASKS = ['sop','light','medium','yiyu','soe','filter','log','config'];
 
-var BUILD_ID = '2026-11-03a · 林口淺焙磨豆機改 Mahlkonig E80GBW（轉速固定、RDT 預設無、DFR 預設更新）';
+var BUILD_ID = '2026-11-03b · 林口淺焙磨豆機改 Mahlkonig E80GBW＋GAS 磨豆機欄／Slack 器材顯示';
 var currentStore = localStorage.getItem('wl_store') || 'linkou';
 if (!STORES[currentStore]) currentStore = 'linkou';
 
@@ -4213,6 +4215,7 @@ async function submitRecord(t) {
       basket: ({ikape:'IKAPE 變徑濾杯', bigbang:'Big Bang', eblab:'E&B LAB24', artefatto:'神器 Artefatto', wafo:'WAFO B/O', eblab24:'E&B Lab 24'})[document.getElementById(pre+'-basket').value] || '',
       speed: (function(){ var wrap=document.getElementById(pre+'-speed-field'); if(wrap && wrap.style.display==='none') return ''; var f=document.getElementById(pre+'-speed'); return f ? f.value : ''; })(),
       wd: t==='l' ? ((document.getElementById('ll-wd-field')?.style.display==='none') ? '' : (document.getElementById('ll-wd')?.value || '')) : '',
+      grinder: t==='l' ? ((document.getElementById('ll-grinder-name')?.textContent || '').trim()) : '',
       rdt: t==='l' ? ((document.getElementById('ll-rdt-field')?.style.display==='none') ? '' : (document.getElementById('ll-rdt')?.value || '')) : '',
       acid:  curStates[t].acid,
       sweet: curStates[t].sweet,
@@ -4820,7 +4823,7 @@ function renderLog() {
       ? [e.storeName?`${e.storeName}`:'', e.grinder?`${e.grinder}${e.speed?' / '+e.speed:''}`:'', e.glass?`盅重 ${e.glass}g`:'', e.dose?`粉 ${e.dose}g`:'', e.basket?`[${e.basket}]`:'', e.suggested?`建議 #${e.suggested}`:'', e.finalGrind?`定案 #${e.finalGrind}`:'', e.actualTime?`${e.actualTime}s`:'', e.actualYield?`液重 ${e.actualYield}g`:'', e.restDays?`養豆 ${e.restDays}天`:'', e.rdt==='有'?'RDT':'', e.deltaGrind?`誤差 ${e.deltaGrind}`:''].filter(Boolean)
       : e.type==='pour'
       ? [e.storeName?`${e.storeName}`:'', `CVA ${e.cvaTotal||'?'}/60`, e.grind?`刻度 ${e.grind}`:'', e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:''].filter(Boolean)
-      : [e.storeName?`${e.storeName}`:'', ...(e.iAcid ? [`酸${e.iAcid}・風${e.iFlavor}・甜${e.iSweet}・口${e.iBody}・餘${e.iFinish}`] : [e.acid?`酸 ${e.acid}%`:'', e.sweet?`甜 ${e.sweet}%`:'', e.dark?`深 ${e.dark}%`:'']), e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:'', e.dose?`粉 ${e.dose}g`:'', e.brewTime?`${e.brewTime}s`:'', e.yield?`液重 ${e.yield}g`:'', e.ratio?`比例 ${e.ratio}`:'', e.basket?`[${e.basket}]`:'', e.speed?`${e.speed}`:'', e.rdt==='有'?'RDT':'', e.wd?`WD ${e.wd}g${parseFloat(e.wd)<90?' ⚠️':''}`:''].filter(Boolean);
+      : [e.storeName?`${e.storeName}`:'', ...(e.iAcid ? [`酸${e.iAcid}・風${e.iFlavor}・甜${e.iSweet}・口${e.iBody}・餘${e.iFinish}`] : [e.acid?`酸 ${e.acid}%`:'', e.sweet?`甜 ${e.sweet}%`:'', e.dark?`深 ${e.dark}%`:'']), e.wtemp?`水溫 ${e.wtemp}℃`:'', e.temp?`氣溫 ${e.temp}℃`:'', e.humid?`濕度 ${e.humid}%`:'', e.dose?`粉 ${e.dose}g`:'', e.brewTime?`${e.brewTime}s`:'', e.yield?`液重 ${e.yield}g`:'', e.ratio?`比例 ${e.ratio}`:'', e.basket?`[${e.basket}]`:'', e.grinder?`${e.grinder}`:'', (e.speed && e.speed!=='不動')?`${e.speed}`:'', e.rdt==='有'?'RDT':'', e.wd?`WD ${e.wd}g${parseFloat(e.wd)<90?' ⚠️':''}`:''].filter(Boolean);
     return `<div class="log-row">
       <div class="log-dot ${status}"></div>
       <div style="flex:1;min-width:0">
